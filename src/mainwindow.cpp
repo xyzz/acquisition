@@ -226,7 +226,7 @@ void MainWindow::InitializeSearchForm() {
         name_search,
         // Offense
         // new DamageFilter(offense_layout, "Damage"),
-        new SimplePropertyFilter(offense_layout, "Critical Strike", "Crit."),
+        new SimplePropertyFilter(offense_layout, "Critical Strike Chance", "Crit."),
         new ItemMethodFilter(offense_layout, &Item::DPS, "DPS"),
         new ItemMethodFilter(offense_layout, &Item::pDPS, "pDPS"),
         new ItemMethodFilter(offense_layout, &Item::eDPS, "eDPS"),
