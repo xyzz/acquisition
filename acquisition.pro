@@ -5,7 +5,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = acquisition
 TEMPLATE = app
 
-LIBS += -ldl
+unix {
+    LIBS += -ldl
+}
 
 INCLUDEPATH += src
 
