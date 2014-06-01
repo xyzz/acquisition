@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/sockets">
+        <file alias="I.png">assets/Socket_I.png</file>
+        <file alias="D.png">assets/Socket_D.png</file>
+        <file alias="linkH.png">assets/Socket_Link_Horizontal.png</file>
+        <file alias="linkV.png">assets/Socket_Link_Vertical.png</file>
+        <file alias="S.png">assets/Socket_S.png</file>
+        <file alias="G.png">assets/Socket_G.png</file>
+    </qresource>
+</RCC>

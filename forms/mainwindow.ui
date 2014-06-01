@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>867</width>
+    <height>544</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Acquisition</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <layout class="QVBoxLayout" name="mainLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <layout class="QVBoxLayout" name="itemListAndSearchFormLayout">
+          <item>
+           <layout class="QVBoxLayout" name="searchFormLayout"/>
+          </item>
+          <item>
+           <widget class="QTreeView" name="treeView"/>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QComboBox" name="buyoutTypeComboBox"/>
+            </item>
+            <item>
+             <widget class="QComboBox" name="buyoutCurrencyComboBox"/>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="buyoutValueLineEdit"/>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="itemLayout">
+          <item>
+           <widget class="QWidget" name="widget" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>250</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="nameLabel">
+            <property name="text">
+             <string>Name</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="typeLineLabel">
+            <property name="text">
+             <string>typeLine</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="imageLabel">
+            <property name="text">
+             <string>Image</string>
+            </property>
+            <property name="openExternalLinks">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="propertiesLabel">
+            <property name="maximumSize">
+             <size>
+              <width>250</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Properties</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="locationLabel">
+            <property name="text">
+             <string>Item location</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="minimapLabel">
+            <property name="text">
+             <string>Stash minimap</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>867</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuShop">
+    <property name="title">
+     <string>Shop</string>
+    </property>
+    <addaction name="actionTab_buyouts"/>
+    <addaction name="actionForum_shop_thread"/>
+    <addaction name="actionCopy_shop_data_to_clipboard"/>
+   </widget>
+   <addaction name="menuShop"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionTab_buyouts">
+   <property name="text">
+    <string>Tab buyouts...</string>
+   </property>
+  </action>
+  <action name="actionForum_shop_thread">
+   <property name="text">
+    <string>Forum shop thread...</string>
+   </property>
+  </action>
+  <action name="actionAutomatically_update_shop">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Automatically update shop</string>
+   </property>
+  </action>
+  <action name="actionCopy_shop_data_to_clipboard">
+   <property name="text">
+    <string>Copy shop data to clipboard</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
