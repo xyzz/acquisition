@@ -302,7 +302,7 @@ void MainWindow::UpdateCurrentItemProperties() {
         first_prop = false;
         if (property["displayMode"].asInt() == 3) {
             QString format(property["name"].asString().c_str());
-            for (size_t i = 0; i < property["values"].size(); ++i) {
+            for (int i = 0; i < property["values"].size(); ++i) {
                 const auto &value = property["values"][i];
                 format = format.arg(value[0].asString().c_str());
             }
@@ -374,7 +374,7 @@ void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
     QImage link_v(":/sockets/linkV.png");
 
     auto &json = current_item_->json();
-    for (size_t i = 0; i < json["sockets"].size(); ++i) {
+    for (int i = 0; i < json["sockets"].size(); ++i) {
         auto &socket = json["sockets"][i];
         bool link = (i > 0) && (socket["group"].asInt() == json["sockets"][i - 1]["group"].asInt());
         QImage socket_image(":/sockets/" + QString(socket["attr"].asString().c_str()) + ".png");
