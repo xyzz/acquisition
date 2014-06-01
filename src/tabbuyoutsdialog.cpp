@@ -47,6 +47,7 @@ TabBuyoutsDialog::~TabBuyoutsDialog() {
 }
 
 void TabBuyoutsDialog::on_pushButton_clicked() {
+    app_->buyout_manager()->Save();
     hide();
 }
 
