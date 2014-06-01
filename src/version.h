@@ -23,4 +23,4 @@ const int VERSION_CODE = 1;
 const char* VERSION_NAME = "0.0, preview";
 
 const char* UPDATE_CHECK_URL = "http://xyz.is/acquisition/version.txt";
-const char* UPDATE_DOWNLOAD_LOCATION = "https://github.com/xyzz/acquisition/";
+const char* UPDATE_DOWNLOAD_LOCATION = "https://github.com/xyzz/acquisition/releases";
