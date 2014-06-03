@@ -29,7 +29,13 @@ FilterData* Filter::CreateData() {
 }
 
 FilterData::FilterData(Filter *filter):
-    filter_(filter)
+    filter_(filter),
+    text_query(""),
+    min_filled(false),
+    max_filled(false),
+    r_filled(false),
+    g_filled(false),
+    b_filled(false)
 {}
 
 bool FilterData::Matches(const std::shared_ptr<Item> item) {
