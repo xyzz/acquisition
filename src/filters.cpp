@@ -77,7 +77,7 @@ bool NameSearchFilter::Matches(const std::shared_ptr<Item> &item, FilterData *da
 void NameSearchFilter::Initialize(QLayout *parent) {
     textbox_ = new QLineEdit;
     parent->addWidget(textbox_);
-    QObject::connect(textbox_, SIGNAL(textChanged(const QString&)),
+    QObject::connect(textbox_, SIGNAL(textEdited(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
 }
 
@@ -113,9 +113,9 @@ void MinMaxFilter::Initialize(QLayout *parent) {
     textbox_min_->setFixedWidth(30);
     textbox_max_->setFixedWidth(30);
     label->setFixedWidth(FILTER_LABEL_WIDTH);
-    QObject::connect(textbox_min_, SIGNAL(textChanged(const QString&)),
+    QObject::connect(textbox_min_, SIGNAL(textEdited(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
-    QObject::connect(textbox_max_, SIGNAL(textChanged(const QString&)),
+    QObject::connect(textbox_max_, SIGNAL(textEdited(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
 }
 
@@ -215,11 +215,11 @@ void SocketsColorsFilter::Initialize(QLayout *parent, const char* caption) {
     textbox_g_->setFixedWidth(25);
     textbox_b_->setFixedWidth(25);
     label->setFixedWidth(FILTER_LABEL_WIDTH);
-    QObject::connect(textbox_r_, SIGNAL(textChanged(const QString&)),
+    QObject::connect(textbox_r_, SIGNAL(textEdited(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
-    QObject::connect(textbox_g_, SIGNAL(textChanged(const QString&)),
+    QObject::connect(textbox_g_, SIGNAL(textEdited(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
-    QObject::connect(textbox_b_, SIGNAL(textChanged(const QString&)),
+    QObject::connect(textbox_b_, SIGNAL(textEdited(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
 }
 
