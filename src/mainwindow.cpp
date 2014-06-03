@@ -35,6 +35,7 @@
 #include <QStringList>
 #include <QTabBar>
 #include "jsoncpp/json.h"
+#include "QsLog.h"
 
 #include "item.h"
 #include "column.h"
@@ -409,7 +410,7 @@ void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
                         link_v
                     );
                 } else {
-                    std::cerr << "No idea how to draw link for " << current_item_->PrettyName() << std::endl;
+                    QLOG_ERROR() << "No idea how to draw link for" << current_item_->PrettyName().c_str();
                 }
             }
         }

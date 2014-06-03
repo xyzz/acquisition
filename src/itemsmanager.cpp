@@ -27,6 +27,7 @@
 #include "jsoncpp/json.h"
 #include <iostream>
 #include <stdexcept>
+#include "QsLog.h"
 
 #include "mainwindow.h"
 #include "datamanager.h"
@@ -72,13 +73,10 @@ void ItemsManager::Update() {
 }
 
 void ItemsManager::FetchSomeTabs(int limit) {
-    std::cout << "fetchsometabs" << std::endl;
     int count = std::min(limit, static_cast<int>(tabs_queue_.size()));
     for (int i = 0; i < count; ++i) {
         int index = tabs_queue_.front();
         tabs_queue_.pop();
-
-        std::cout << "Requesting tab " << index << std::endl;
 
         QNetworkReply *tab_fetched = app_->logged_in_nm()->get(MakeRequest(index, false));
         signal_mapper_->setMapping(tab_fetched, index);
@@ -152,13 +150,13 @@ void ItemsManager::LoadSavedData() {
 
 void ItemsManager::OnTabReceived(int index) {
     if (!replies_.count(index)) {
-        std::cout << "WARN: received a tab (" << index << ") that was not requested." << std::endl;
+        QLOG_WARN() << "Received a tab" << index << "that was not requested.";
         return;
     }
     ++requests_completed_;
     if (requests_completed_ == requests_needed_ && tabs_queue_.size() > 0) {
         emit StatusUpdate(tabs_received_ + 1, tabs_needed_, true);
-        std::cout << "Sleeping one minute to prevent throttling." << std::endl;
+        QLOG_INFO() << "Sleeping one minute to prevent throttling.";
         QTimer::singleShot(THROTTLE_SLEEP * 1000, this, SLOT(FetchSomeTabs()));
     } else {
         emit StatusUpdate(tabs_received_ + 1, tabs_needed_, false);
@@ -172,7 +170,7 @@ void ItemsManager::OnTabReceived(int index) {
     reader.parse(json, root);
 
     if (root.isMember("error")) {
-        std::cout << index << " WARN: got 'error' instead of stash tab contents, this shouldn't normally happen." << std::endl;
+        QLOG_WARN() << index << "got 'error' instead of stash tab contents, this shouldn't normally happen.";
         // but it just happened
         tabs_queue_.push(index);
         return;
@@ -181,7 +179,6 @@ void ItemsManager::OnTabReceived(int index) {
     ParseItems(root, index);
 
     ++tabs_received_;
-    std::cout << tabs_received_ << "/" << tabs_needed_ << std::endl;
     if (tabs_received_ == tabs_needed_) {
         // all tabs were received
         emit ItemsRefreshed(items_, tabs_);

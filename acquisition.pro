@@ -9,6 +9,8 @@ unix {
     LIBS += -ldl
 }
 
+include(deps/QsLog/QsLog.pri)
+
 INCLUDEPATH += src deps
 
 SOURCES += \
