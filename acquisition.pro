@@ -9,13 +9,13 @@ unix {
     LIBS += -ldl
 }
 
-INCLUDEPATH += src
+INCLUDEPATH += src deps
 
 SOURCES += \
     src/main.cpp\
     src/mainwindow.cpp \
     src/item.cpp \
-    src/jsoncpp/jsoncpp.cpp \
+    deps/jsoncpp/jsoncpp.cpp \
     src/column.cpp \
     src/filters.cpp \
     src/search.cpp \
@@ -25,7 +25,7 @@ SOURCES += \
     src/logindialog.cpp \
     src/itemsmanager.cpp \
     src/datamanager.cpp \
-    src/sqlite/sqlite3.c \
+    deps/sqlite/sqlite3.c \
     src/buyoutmanager.cpp \
     src/util.cpp \
     src/shop.cpp \
@@ -33,8 +33,8 @@ SOURCES += \
 
 HEADERS += \
     src/item.h \
-    src/jsoncpp/json.h \
-    src/jsoncpp/json-forwards.h \
+    deps/jsoncpp/json.h \
+    deps/jsoncpp/json-forwards.h \
     src/column.h \
     src/filters.h \
     src/search.h \
@@ -45,7 +45,7 @@ HEADERS += \
     src/logindialog.h \
     src/itemsmanager.h \
     src/datamanager.h \
-    src/sqlite/sqlite3.h \
+    deps/sqlite/sqlite3.h \
     src/buyoutmanager.h \
     src/util.h \
     src/shop.h \
