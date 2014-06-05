@@ -24,24 +24,35 @@
 #include <QSignalMapper>
 #include <QTimer>
 #include <QUrlQuery>
-#include "jsoncpp/json.h"
+#include <QTimer>
 #include <iostream>
 #include <stdexcept>
+#include "jsoncpp/json.h"
 #include "QsLog.h"
 
 #include "mainwindow.h"
 #include "datamanager.h"
 
 const char *POE_STASH_URL = "http://www.pathofexile.com/character-window/get-stash-items";
+const int DEFAULT_AUTO_UPDATE_INTERVAL = 30;
 
 ItemsManager::ItemsManager(MainWindow *app):
     app_(app),
-    signal_mapper_(new QSignalMapper)
+    signal_mapper_(new QSignalMapper),
+    auto_update_(true),
+    auto_update_timer_(new QTimer),
+    updating_(false)
 {
 }
 
+ItemsManager::~ItemsManager() {
+    delete auto_update_timer_;
+}
+
 void ItemsManager::Init() {
+    SetAutoUpdateInterval(DEFAULT_AUTO_UPDATE_INTERVAL);
     LoadSavedData();
+    connect(auto_update_timer_, SIGNAL(timeout()), this, SLOT(OnAutoRefreshTimer()));
 }
 
 QNetworkRequest ItemsManager::MakeRequest(int tab_index, bool tabs) {
@@ -56,6 +67,11 @@ QNetworkRequest ItemsManager::MakeRequest(int tab_index, bool tabs) {
 }
 
 void ItemsManager::Update() {
+    if (updating_) {
+        QLOG_WARN() << "ItemsManager::Update called while updating";
+        return;
+    }
+    updating_ = true;
     // remove all mappings (from previous requests)
     delete signal_mapper_;
     signal_mapper_ = new QSignalMapper;
@@ -186,5 +202,26 @@ void ItemsManager::OnTabReceived(int index) {
         Json::FastWriter writer;
         app_->data_manager()->Set("items", writer.write(items_as_json_));
         app_->data_manager()->Set("tabs", writer.write(tabs_as_json_));
+
+        updating_ = false;
     }
+}
+
+void ItemsManager::SetAutoUpdate(bool update) {
+    auto_update_ = update;
+    if (!auto_update_)
+        auto_update_timer_->stop();
+    else
+        // to start timer
+        SetAutoUpdateInterval(auto_update_interval_);
+}
+
+void ItemsManager::SetAutoUpdateInterval(int minutes) {
+    auto_update_interval_ = minutes;
+    if (auto_update_)
+        auto_update_timer_->start(auto_update_interval_ * 60 * 1000);
+}
+
+void ItemsManager::OnAutoRefreshTimer() {
+    Update();
 }

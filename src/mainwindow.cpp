@@ -484,3 +484,18 @@ void MainWindow::on_actionTab_buyouts_triggered() {
     tab_buyouts_dialog_->Populate();
     tab_buyouts_dialog_->show();
 }
+
+void MainWindow::on_actionItems_refresh_interval_triggered() {
+    int interval = QInputDialog::getText(this, "Auto refresh items", "Refresh items every X minutes",
+        QLineEdit::Normal, QString::number(items_manager_->auto_update_interval())).toInt();
+    if (interval > 0)
+        items_manager_->SetAutoUpdateInterval(interval);
+}
+
+void MainWindow::on_actionRefresh_triggered() {
+    items_manager_->Update();
+}
+
+void MainWindow::on_actionAutomatically_refresh_items_triggered() {
+    items_manager_->SetAutoUpdate(ui->actionAutomatically_refresh_items->isChecked());
+}
