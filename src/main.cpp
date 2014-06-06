@@ -20,12 +20,30 @@
 #include "logindialog.h"
 
 #include <QApplication>
+#include <QDir>
 #include <QLocale>
+#include "QsLog.h"
+#include "QsLogDest.h"
 
 int main(int argc, char *argv[])
 {
     QLocale::setDefault(QLocale::C);
     QApplication a(argc, argv);
+
+    QsLogging::Logger& logger = QsLogging::Logger::instance();
+    logger.setLoggingLevel(QsLogging::InfoLevel);
+    const QString sLogPath(QDir(a.applicationDirPath()).filePath("log.txt"));
+
+    QsLogging::DestinationPtr fileDestination(
+        QsLogging::DestinationFactory::MakeFileDestination(sLogPath, false, 512, 2) );
+    QsLogging::DestinationPtr debugDestination(
+        QsLogging::DestinationFactory::MakeDebugOutputDestination() );
+    logger.addDestination(debugDestination);
+    logger.addDestination(fileDestination);
+
+    QLOG_INFO() << "--------------------------------------------------------------------------------";
+    QLOG_INFO() << "Built with Qt" << QT_VERSION_STR << "running on" << qVersion();
+
     LoginDialog login;
     login.show();
 

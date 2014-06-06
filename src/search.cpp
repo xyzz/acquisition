@@ -86,5 +86,4 @@ void Search::FilterItems(const Items &items) {
         if (matches)
             items_.push_back(item);
     }
-    std::cout << items_.size() << " match" << std::endl;
 }

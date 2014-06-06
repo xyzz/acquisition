@@ -32,6 +32,7 @@
 #include <QUrlQuery>
 #include <iostream>
 #include "jsoncpp/json.h"
+#include "QsLog.h"
 
 #include "mainwindow.h"
 #include "version.h"
@@ -82,7 +83,8 @@ void LoginDialog::OnLeaguesRequestFinished() {
     Json::Value root;
     Json::Reader reader;
     if (!reader.parse(json, root)) {
-        std::cerr << "Failed to parse leagues." << std::endl;
+        QLOG_ERROR() << "Failed to parse leagues. The output was:";
+        QLOG_ERROR() << QString(bytes);
         return;
     }
     ui->leagueComboBox->clear();
@@ -119,7 +121,6 @@ void LoginDialog::OnLoginPageFinished() {
     std::string page(bytes.constData(), bytes.size());
     std::string needle = "name=\"hash\" value=\"";
     std::string hash = page.substr(page.find(needle) + needle.size(), 32);
-    std::cout << "Got hash " << hash << std::endl;
 
     QUrlQuery query;
     query.addQueryItem("login_email", ui->emailLineEdit->text());

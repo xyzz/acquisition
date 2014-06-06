@@ -35,6 +35,7 @@
 #include <QStringList>
 #include <QTabBar>
 #include "jsoncpp/json.h"
+#include "QsLog.h"
 
 #include "item.h"
 #include "column.h"
@@ -409,7 +410,7 @@ void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
                         link_v
                     );
                 } else {
-                    std::cerr << "No idea how to draw link for " << current_item_->PrettyName() << std::endl;
+                    QLOG_ERROR() << "No idea how to draw link for" << current_item_->PrettyName().c_str();
                 }
             }
         }
@@ -482,4 +483,19 @@ void MainWindow::on_actionCopy_shop_data_to_clipboard_triggered() {
 void MainWindow::on_actionTab_buyouts_triggered() {
     tab_buyouts_dialog_->Populate();
     tab_buyouts_dialog_->show();
+}
+
+void MainWindow::on_actionItems_refresh_interval_triggered() {
+    int interval = QInputDialog::getText(this, "Auto refresh items", "Refresh items every X minutes",
+        QLineEdit::Normal, QString::number(items_manager_->auto_update_interval())).toInt();
+    if (interval > 0)
+        items_manager_->SetAutoUpdateInterval(interval);
+}
+
+void MainWindow::on_actionRefresh_triggered() {
+    items_manager_->Update();
+}
+
+void MainWindow::on_actionAutomatically_refresh_items_triggered() {
+    items_manager_->SetAutoUpdate(ui->actionAutomatically_refresh_items->isChecked());
 }
