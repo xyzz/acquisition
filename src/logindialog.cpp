@@ -25,6 +25,9 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QNetworkCookie>
+#include <QNetworkCookieJar>
+#include <QSettings>
 #include <QUrl>
 #include <QUrlQuery>
 #include <iostream>
@@ -42,6 +45,9 @@ LoginDialog::LoginDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowTitle(QString("Login [") + VERSION_NAME + "]");
+
+    settingsFile_ = "./settings.ini";
+    LoadSettings();
 
     login_manager_ = new QNetworkAccessManager;
     QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
@@ -96,6 +102,18 @@ void LoginDialog::OnLoginButtonClicked() {
 }
 
 void LoginDialog::OnLoginPageFinished() {
+    if(ui->sessIDcheckBox->isChecked()) {
+        QNetworkCookie poeCookie("PHPSESSID", ui->emailLineEdit->text().toUtf8());
+        poeCookie.setPath("/");
+        poeCookie.setDomain("www.pathofexile.com");
+
+        login_manager_->cookieJar()->insertCookie(poeCookie);
+
+        QNetworkReply *login_page = login_manager_->get(QNetworkRequest(QUrl(POE_LOGIN_URL)));
+        connect(login_page, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
+
+        return;
+    }
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
     std::string page(bytes.constData(), bytes.size());
@@ -127,6 +145,24 @@ void LoginDialog::OnLoggedIn() {
     close();
 }
 
+void LoginDialog::LoadSettings() {
+    QSettings settings(settingsFile_, QSettings::NativeFormat);
+    ui->emailLineEdit->setText(settings.value("email", "").toString());
+    ui->sessIDcheckBox->setChecked(settings.value("sessIDBox").toBool());
+    ui->remEmailcheckBox->setChecked(settings.value("emailBox").toBool());
+}
+
+void LoginDialog::SaveSettings() {
+    QSettings settings(settingsFile_, QSettings::NativeFormat);
+    if(ui->remEmailcheckBox->isChecked())
+        settings.setValue("email", ui->emailLineEdit->text());
+    else
+        settings.setValue("email", "");
+    settings.setValue("sessIDBox", ui->sessIDcheckBox->isChecked());
+    settings.setValue("emailBox", ui->remEmailcheckBox->isChecked());
+}
+
 LoginDialog::~LoginDialog() {
+    SaveSettings();
     delete ui;
 }

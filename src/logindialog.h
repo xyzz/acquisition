@@ -44,7 +44,10 @@ public slots:
     void OnUpdateCheckCompleted();
 
 private:
+    void SaveSettings();
+    void LoadSettings();
     Ui::LoginDialog *ui;
+    QString settingsFile_;
     QNetworkAccessManager *login_manager_;
     std::vector<std::string> leagues_;
 };
