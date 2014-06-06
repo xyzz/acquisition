@@ -102,8 +102,8 @@ void LoginDialog::OnLoginButtonClicked() {
 }
 
 void LoginDialog::OnLoginPageFinished() {
-    if(ui->sessIDcheckBox->isChecked()) {
-        QNetworkCookie poeCookie("PHPSESSID", ui->emailLineEdit->text().toUtf8());
+    if(ui->sessIDCheckBox->isChecked()) {
+        QNetworkCookie poeCookie("PHPSESSID", ui->sessionIDLineEdit->text().toUtf8());
         poeCookie.setPath("/");
         poeCookie.setDomain("www.pathofexile.com");
 
@@ -139,8 +139,9 @@ void LoginDialog::OnLoggedIn() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
     std::string league(ui->leagueComboBox->currentText().toUtf8().constData());
-    std::string email(ui->emailLineEdit->text().toUtf8().constData());
-    MainWindow *w = new MainWindow(0, login_manager_, league, email);
+//    std::string email(ui->emailLineEdit->text().toUtf8().constData());
+    std::string user = ui->sessIDCheckBox ? ui->sessionIDLineEdit->text().toStdString() : ui->emailLineEdit->text().toStdString();
+    MainWindow *w = new MainWindow(0, login_manager_, league, user);
     w->show();
     close();
 }
@@ -148,18 +149,24 @@ void LoginDialog::OnLoggedIn() {
 void LoginDialog::LoadSettings() {
     QSettings settings(settingsFile_, QSettings::NativeFormat);
     ui->emailLineEdit->setText(settings.value("email", "").toString());
-    ui->sessIDcheckBox->setChecked(settings.value("sessIDBox").toBool());
-    ui->remEmailcheckBox->setChecked(settings.value("emailBox").toBool());
+    ui->sessionIDLineEdit->setText(settings.value("sessionID", "").toString());
+    ui->sessIDCheckBox->setChecked(settings.value("sessIDBox").toBool());
+    ui->rembmeCheckBox->setChecked(settings.value("emailBox").toBool());
+    ui->sessionIDLineEdit->setVisible(ui->sessIDCheckBox->isChecked());
+    ui->sessIDLabel->setVisible(ui->sessIDCheckBox->isChecked());
 }
 
 void LoginDialog::SaveSettings() {
-    QSettings settings(settingsFile_, QSettings::NativeFormat);
-    if(ui->remEmailcheckBox->isChecked())
+    QSettings settings(settingsFile_, QSettings::IniFormat);
+    if(ui->rembmeCheckBox->isChecked()) {
         settings.setValue("email", ui->emailLineEdit->text());
-    else
+        settings.setValue("sessionID", ui->sessionIDLineEdit->text());
+    }else {
         settings.setValue("email", "");
-    settings.setValue("sessIDBox", ui->sessIDcheckBox->isChecked());
-    settings.setValue("emailBox", ui->remEmailcheckBox->isChecked());
+        settings.setValue("sessionID", "");
+    }
+    settings.setValue("sessIDBox", ui->sessIDCheckBox->isChecked());
+    settings.setValue("emailBox", ui->rembmeCheckBox->isChecked());
 }
 
 LoginDialog::~LoginDialog() {
