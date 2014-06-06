@@ -146,6 +146,15 @@
     <addaction name="actionForum_shop_thread"/>
     <addaction name="actionCopy_shop_data_to_clipboard"/>
    </widget>
+   <widget class="QMenu" name="menuItems">
+    <property name="title">
+     <string>Items</string>
+    </property>
+    <addaction name="actionRefresh"/>
+    <addaction name="actionAutomatically_refresh_items"/>
+    <addaction name="actionItems_refresh_interval"/>
+   </widget>
+   <addaction name="menuItems"/>
    <addaction name="menuShop"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -170,6 +179,27 @@
   <action name="actionCopy_shop_data_to_clipboard">
    <property name="text">
     <string>Copy shop data to clipboard</string>
+   </property>
+  </action>
+  <action name="actionAutomatically_refresh_items">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Automatically refresh items</string>
+   </property>
+  </action>
+  <action name="actionItems_refresh_interval">
+   <property name="text">
+    <string>Items refresh interval...</string>
+   </property>
+  </action>
+  <action name="actionRefresh">
+   <property name="text">
+    <string>Refresh</string>
    </property>
   </action>
  </widget>

@@ -33,14 +33,21 @@ const int THROTTLE_SLEEP = 60;
 
 class QNetworkReply;
 class QSignalMapper;
+class QTimer;
 class MainWindow;
 
 class ItemsManager : public QObject {
     Q_OBJECT
 public:
     explicit ItemsManager(MainWindow *app);
+    ~ItemsManager();
+    ItemsManager(const ItemsManager&) = delete;
+    ItemsManager& operator=(const ItemsManager&) = delete;
     void Init();
     void Update();
+    void SetAutoUpdateInterval(int minutes);
+    void SetAutoUpdate(bool update);
+    int auto_update_interval() const { return auto_update_interval_; }
 public slots:
     void OnFirstTabReceived();
     void OnTabReceived(int index);
@@ -50,6 +57,8 @@ public slots:
      * based on some quick testing.
      */
     void FetchSomeTabs(int limit = THROTTLE_REQUESTS);
+    // called by auto_update_timer_
+    void OnAutoRefreshTimer();
 signals:
     void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
     void StatusUpdate(int fetched, int total, bool throttled);
@@ -68,4 +77,11 @@ private:
     QSignalMapper *signal_mapper_;
     Json::Value items_as_json_;
     Json::Value tabs_as_json_;
+    // should items be automatically refreshed
+    bool auto_update_;
+    // items will be automatically updated every X minutes
+    int auto_update_interval_;
+    QTimer *auto_update_timer_;
+    // set to true if updating right now
+    bool updating_;
 };

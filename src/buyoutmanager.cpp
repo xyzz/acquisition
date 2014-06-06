@@ -21,6 +21,7 @@
 
 #include <cassert>
 #include <sstream>
+#include "QsLog.h"
 
 #include "mainwindow.h"
 #include "datamanager.h"
@@ -82,7 +83,8 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
         if (bo.second.currency == CURRENCY_NONE || bo.second.type == BUYOUT_TYPE_NONE)
             continue;
         if (bo.second.type >= BuyoutTypeAsTag.size() || bo.second.currency >= CurrencyAsTag.size()) {
-            std::cerr << "warning, ignoring invalid buyout" << std::endl;
+            QLOG_WARN() << "Ignoring invalid buyout, type:" << bo.second.type
+                << "currency:" << bo.second.currency;
             continue;
         }
         Json::Value item;
@@ -101,7 +103,8 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
     Json::Value root;
     Json::Reader reader;
     if (!reader.parse(data, root)) {
-        std::cerr << "Error while parsing buyouts" << std::endl << reader.getFormattedErrorMessages();
+        QLOG_ERROR() << "Error while parsing buyouts.";
+        QLOG_ERROR() << reader.getFormattedErrorMessages().c_str();
         return;
     }
     if (!root.isObject())

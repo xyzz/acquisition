@@ -24,23 +24,35 @@
 #include <QSignalMapper>
 #include <QTimer>
 #include <QUrlQuery>
-#include "jsoncpp/json.h"
+#include <QTimer>
 #include <iostream>
 #include <stdexcept>
+#include "jsoncpp/json.h"
+#include "QsLog.h"
 
 #include "mainwindow.h"
 #include "datamanager.h"
 
 const char *POE_STASH_URL = "http://www.pathofexile.com/character-window/get-stash-items";
+const int DEFAULT_AUTO_UPDATE_INTERVAL = 30;
 
 ItemsManager::ItemsManager(MainWindow *app):
     app_(app),
-    signal_mapper_(new QSignalMapper)
+    signal_mapper_(new QSignalMapper),
+    auto_update_(true),
+    auto_update_timer_(new QTimer),
+    updating_(false)
 {
 }
 
+ItemsManager::~ItemsManager() {
+    delete auto_update_timer_;
+}
+
 void ItemsManager::Init() {
+    SetAutoUpdateInterval(DEFAULT_AUTO_UPDATE_INTERVAL);
     LoadSavedData();
+    connect(auto_update_timer_, SIGNAL(timeout()), this, SLOT(OnAutoRefreshTimer()));
 }
 
 QNetworkRequest ItemsManager::MakeRequest(int tab_index, bool tabs) {
@@ -55,6 +67,11 @@ QNetworkRequest ItemsManager::MakeRequest(int tab_index, bool tabs) {
 }
 
 void ItemsManager::Update() {
+    if (updating_) {
+        QLOG_WARN() << "ItemsManager::Update called while updating";
+        return;
+    }
+    updating_ = true;
     // remove all mappings (from previous requests)
     delete signal_mapper_;
     signal_mapper_ = new QSignalMapper;
@@ -72,13 +89,10 @@ void ItemsManager::Update() {
 }
 
 void ItemsManager::FetchSomeTabs(int limit) {
-    std::cout << "fetchsometabs" << std::endl;
     int count = std::min(limit, static_cast<int>(tabs_queue_.size()));
     for (int i = 0; i < count; ++i) {
         int index = tabs_queue_.front();
         tabs_queue_.pop();
-
-        std::cout << "Requesting tab " << index << std::endl;
 
         QNetworkReply *tab_fetched = app_->logged_in_nm()->get(MakeRequest(index, false));
         signal_mapper_->setMapping(tab_fetched, index);
@@ -152,13 +166,13 @@ void ItemsManager::LoadSavedData() {
 
 void ItemsManager::OnTabReceived(int index) {
     if (!replies_.count(index)) {
-        std::cout << "WARN: received a tab (" << index << ") that was not requested." << std::endl;
+        QLOG_WARN() << "Received a tab" << index << "that was not requested.";
         return;
     }
     ++requests_completed_;
     if (requests_completed_ == requests_needed_ && tabs_queue_.size() > 0) {
         emit StatusUpdate(tabs_received_ + 1, tabs_needed_, true);
-        std::cout << "Sleeping one minute to prevent throttling." << std::endl;
+        QLOG_INFO() << "Sleeping one minute to prevent throttling.";
         QTimer::singleShot(THROTTLE_SLEEP * 1000, this, SLOT(FetchSomeTabs()));
     } else {
         emit StatusUpdate(tabs_received_ + 1, tabs_needed_, false);
@@ -172,7 +186,7 @@ void ItemsManager::OnTabReceived(int index) {
     reader.parse(json, root);
 
     if (root.isMember("error")) {
-        std::cout << index << " WARN: got 'error' instead of stash tab contents, this shouldn't normally happen." << std::endl;
+        QLOG_WARN() << index << "got 'error' instead of stash tab contents, this shouldn't normally happen.";
         // but it just happened
         tabs_queue_.push(index);
         return;
@@ -181,7 +195,6 @@ void ItemsManager::OnTabReceived(int index) {
     ParseItems(root, index);
 
     ++tabs_received_;
-    std::cout << tabs_received_ << "/" << tabs_needed_ << std::endl;
     if (tabs_received_ == tabs_needed_) {
         // all tabs were received
         emit ItemsRefreshed(items_, tabs_);
@@ -189,5 +202,26 @@ void ItemsManager::OnTabReceived(int index) {
         Json::FastWriter writer;
         app_->data_manager()->Set("items", writer.write(items_as_json_));
         app_->data_manager()->Set("tabs", writer.write(tabs_as_json_));
+
+        updating_ = false;
     }
+}
+
+void ItemsManager::SetAutoUpdate(bool update) {
+    auto_update_ = update;
+    if (!auto_update_)
+        auto_update_timer_->stop();
+    else
+        // to start timer
+        SetAutoUpdateInterval(auto_update_interval_);
+}
+
+void ItemsManager::SetAutoUpdateInterval(int minutes) {
+    auto_update_interval_ = minutes;
+    if (auto_update_)
+        auto_update_timer_->start(auto_update_interval_ * 60 * 1000);
+}
+
+void ItemsManager::OnAutoRefreshTimer() {
+    Update();
 }
