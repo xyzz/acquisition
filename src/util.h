@@ -30,4 +30,9 @@ void PopulateBuyoutTypeComboBox(QComboBox *combobox);
 void PopulateBuyoutCurrencyComboBox(QComboBox *combobox);
 int TagAsCurrency(const std::string &tag);
 int TagAsBuyoutType(const std::string &tag);
+
+int MinMaxWidth();
+int LabelWidth();
+int RGBWidth();
+int GroupWidth();
 }

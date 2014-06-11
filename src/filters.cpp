@@ -21,8 +21,7 @@
 #include <QLineEdit>
 
 #include "filters.h"
-
-const int FILTER_LABEL_WIDTH = 40;
+#include "util.h"
 
 FilterData* Filter::CreateData() {
     return new FilterData(this);
@@ -110,9 +109,9 @@ void MinMaxFilter::Initialize(QLayout *parent) {
     parent->addWidget(group);
     textbox_min_->setPlaceholderText("min");
     textbox_max_->setPlaceholderText("max");
-    textbox_min_->setFixedWidth(30);
-    textbox_max_->setFixedWidth(30);
-    label->setFixedWidth(FILTER_LABEL_WIDTH);
+    textbox_min_->setFixedWidth(Util::MinMaxWidth());
+    textbox_max_->setFixedWidth(Util::MinMaxWidth());
+    label->setFixedWidth(Util::LabelWidth());
     QObject::connect(textbox_min_, SIGNAL(textEdited(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
     QObject::connect(textbox_max_, SIGNAL(textEdited(const QString&)),
@@ -211,10 +210,10 @@ void SocketsColorsFilter::Initialize(QLayout *parent, const char* caption) {
     layout->addWidget(textbox_b_);
     group->setLayout(layout);
     parent->addWidget(group);
-    textbox_r_->setFixedWidth(25);
-    textbox_g_->setFixedWidth(25);
-    textbox_b_->setFixedWidth(25);
-    label->setFixedWidth(FILTER_LABEL_WIDTH);
+    textbox_r_->setFixedWidth(Util::RGBWidth());
+    textbox_g_->setFixedWidth(Util::RGBWidth());
+    textbox_b_->setFixedWidth(Util::RGBWidth());
+    label->setFixedWidth(Util::LabelWidth());
     QObject::connect(textbox_r_, SIGNAL(textEdited(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
     QObject::connect(textbox_g_, SIGNAL(textEdited(const QString&)),

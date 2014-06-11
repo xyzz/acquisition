@@ -23,6 +23,9 @@
 #include <QCryptographicHash>
 #include <QString>
 #include <QStringList>
+#include <QLineEdit>
+#include <QLabel>
+#include <QFontMetrics>
 
 #include "buyoutmanager.h"
 
@@ -53,4 +56,56 @@ int Util::TagAsBuyoutType(const std::string &tag) {
 
 int Util::TagAsCurrency(const std::string &tag) {
     return std::find(CurrencyAsTag.begin(), CurrencyAsTag.end(), tag) - CurrencyAsTag.begin();
+}
+
+int Util::MinMaxWidth() {
+    static bool calculated = false;
+    static int result;
+
+    if (!calculated) {
+        calculated = true;
+        QLineEdit textbox;
+        QFontMetrics fm(textbox.fontMetrics());
+        result = fm.width("max#");
+    }
+    return result;
+}
+
+int Util::LabelWidth() {
+    static bool calculated = false;
+    static int result;
+
+    if (!calculated) {
+        calculated = true;
+        QLabel label;
+        QFontMetrics fm(label.fontMetrics());
+        result = fm.width("R. Level");
+    }
+    return result;
+}
+
+int Util::RGBWidth() {
+    static bool calculated = false;
+    static int result;
+
+    if (!calculated) {
+        calculated = true;
+        QLineEdit textbox;
+        QFontMetrics fm(textbox.fontMetrics());
+        result = fm.width("R##");
+    }
+    return result;
+}
+
+int Util::GroupWidth() {
+    static bool calculated = false;
+    static int result;
+
+    if (!calculated) {
+        calculated = true;
+        QLabel label;
+        QFontMetrics fm(label.fontMetrics());
+        result = fm.width("Defense");
+    }
+    return result;
 }
