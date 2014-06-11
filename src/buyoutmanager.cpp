@@ -102,6 +102,9 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
     buyouts->clear();
     Json::Value root;
     Json::Reader reader;
+    // if data is empty (on first use) we shouldn't make user panic by showing ERROR messages
+    if (data.empty())
+        return;
     if (!reader.parse(data, root)) {
         QLOG_ERROR() << "Error while parsing buyouts.";
         QLOG_ERROR() << reader.getFormattedErrorMessages().c_str();
