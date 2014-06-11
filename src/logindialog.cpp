@@ -48,7 +48,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle(QString("Login [") + VERSION_NAME + "]");
 
-    settingsFile_ = porting::UserDir() + "/settings.ini";
+    settings_path_ = porting::UserDir() + "/settings.ini";
     LoadSettings();
 
     login_manager_ = new QNetworkAccessManager;
@@ -141,34 +141,34 @@ void LoginDialog::OnLoggedIn() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
     std::string league(ui->leagueComboBox->currentText().toUtf8().constData());
-//    std::string email(ui->emailLineEdit->text().toUtf8().constData());
-    std::string user = ui->sessIDCheckBox ? ui->sessionIDLineEdit->text().toStdString() : ui->emailLineEdit->text().toStdString();
+    std::string user = ui->sessIDCheckBox ? ui->sessionIDLineEdit->text().toStdString() :
+        ui->emailLineEdit->text().toStdString();
     MainWindow *w = new MainWindow(0, login_manager_, league, user);
     w->show();
     close();
 }
 
 void LoginDialog::LoadSettings() {
-    QSettings settings(settingsFile_, QSettings::IniFormat);
+    QSettings settings(settings_path_, QSettings::IniFormat);
     ui->emailLineEdit->setText(settings.value("email", "").toString());
-    ui->sessionIDLineEdit->setText(settings.value("sessionID", "").toString());
-    ui->sessIDCheckBox->setChecked(settings.value("sessIDBox").toBool());
-    ui->rembmeCheckBox->setChecked(settings.value("emailBox").toBool());
+    ui->sessionIDLineEdit->setText(settings.value("session_id", "").toString());
+    ui->sessIDCheckBox->setChecked(settings.value("session_id_checked").toBool());
+    ui->rembmeCheckBox->setChecked(settings.value("remember_me_checked").toBool());
     ui->sessionIDLineEdit->setVisible(ui->sessIDCheckBox->isChecked());
     ui->sessIDLabel->setVisible(ui->sessIDCheckBox->isChecked());
 }
 
 void LoginDialog::SaveSettings() {
-    QSettings settings(settingsFile_, QSettings::IniFormat);
+    QSettings settings(settings_path_, QSettings::IniFormat);
     if(ui->rembmeCheckBox->isChecked()) {
         settings.setValue("email", ui->emailLineEdit->text());
-        settings.setValue("sessionID", ui->sessionIDLineEdit->text());
+        settings.setValue("session_id", ui->sessionIDLineEdit->text());
     }else {
         settings.setValue("email", "");
-        settings.setValue("sessionID", "");
+        settings.setValue("session_id", "");
     }
-    settings.setValue("sessIDBox", ui->sessIDCheckBox->isChecked());
-    settings.setValue("emailBox", ui->rembmeCheckBox->isChecked());
+    settings.setValue("session_id_checked", ui->sessIDCheckBox->isChecked());
+    settings.setValue("remember_me_checked", ui->rembmeCheckBox->isChecked());
 }
 
 LoginDialog::~LoginDialog() {
