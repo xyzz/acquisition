@@ -36,6 +36,7 @@
 
 #include "mainwindow.h"
 #include "version.h"
+#include "porting.h"
 
 const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
@@ -47,7 +48,7 @@ LoginDialog::LoginDialog(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle(QString("Login [") + VERSION_NAME + "]");
 
-    settingsFile_ = "./settings.ini";
+    settingsFile_ = porting::UserDir() + "/settings.ini";
     LoadSettings();
 
     login_manager_ = new QNetworkAccessManager;
@@ -148,7 +149,7 @@ void LoginDialog::OnLoggedIn() {
 }
 
 void LoginDialog::LoadSettings() {
-    QSettings settings(settingsFile_, QSettings::NativeFormat);
+    QSettings settings(settingsFile_, QSettings::IniFormat);
     ui->emailLineEdit->setText(settings.value("email", "").toString());
     ui->sessionIDLineEdit->setText(settings.value("sessionID", "").toString());
     ui->sessIDCheckBox->setChecked(settings.value("sessIDBox").toBool());

@@ -31,7 +31,8 @@ SOURCES += \
     src/buyoutmanager.cpp \
     src/util.cpp \
     src/shop.cpp \
-    src/tabbuyoutsdialog.cpp
+    src/tabbuyoutsdialog.cpp \
+    src/porting.cpp
 
 HEADERS += \
     src/item.h \
@@ -52,7 +53,8 @@ HEADERS += \
     src/util.h \
     src/shop.h \
     src/tabbuyoutsdialog.h \
-    src/version.h
+    src/version.h \
+    src/porting.h
 
 FORMS += \
     forms/mainwindow.ui \

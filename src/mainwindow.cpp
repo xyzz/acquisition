@@ -47,6 +47,7 @@
 #include "shop.h"
 #include "tabbuyoutsdialog.h"
 #include "util.h"
+#include "porting.h"
 
 const int LINKH_HEIGHT = 16;
 const int LINKH_WIDTH = 38;
@@ -64,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent, QNetworkAccessManager *login_manager,
     logged_in_nm_(login_manager),
     tab_buyouts_dialog_(new TabBuyoutsDialog(0, this))
 {
-    std::string root_dir(qApp->applicationDirPath().toUtf8().constData());
+    std::string root_dir(porting::UserDir().toUtf8().constData());
     data_manager_ = new DataManager(this, root_dir + "/data");
     image_cache_ = new ImageCache(this, root_dir + "/cache");
     buyout_manager_ = new BuyoutManager(this);
