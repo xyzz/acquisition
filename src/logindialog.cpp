@@ -46,6 +46,8 @@ LoginDialog::LoginDialog(QWidget *parent) :
     ui(new Ui::LoginDialog)
 {
     ui->setupUi(this);
+    ui->errorLabel->hide();
+    ui->errorLabel->setStyleSheet("QLabel { color : red; }");
     setWindowTitle(QString("Login [") + VERSION_NAME + "]");
 
     settings_path_ = porting::UserDir() + "/settings.ini";
@@ -143,6 +145,14 @@ void LoginDialog::OnLoginPageFinished() {
 void LoginDialog::OnLoggedIn() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
+    int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status != 302) {
+        ui->errorLabel->setText("Failed to log in (invalid password?)");
+        ui->errorLabel->show();
+        ui->loginButton->setEnabled(true);
+        ui->loginButton->setText("Login");
+        return;
+    }
     std::string league(ui->leagueComboBox->currentText().toUtf8().constData());
     std::string user = ui->sessIDCheckBox ? ui->sessionIDLineEdit->text().toStdString() :
         ui->emailLineEdit->text().toStdString();

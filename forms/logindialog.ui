@@ -103,6 +103,13 @@
     </layout>
    </item>
    <item>
+    <widget class="QLabel" name="errorLabel">
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QCheckBox" name="sessIDCheckBox">
      <property name="text">
       <string>Use SessionID</string>
