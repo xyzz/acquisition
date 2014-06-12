@@ -95,6 +95,9 @@ void LoginDialog::OnLeaguesRequestFinished() {
         ui->leagueComboBox->addItem(name.c_str());
     }
     ui->leagueComboBox->setEnabled(true);
+
+    if (saved_league_.size() > 0)
+        ui->leagueComboBox->setCurrentText(saved_league_);
 }
 
 void LoginDialog::OnLoginButtonClicked() {
@@ -156,6 +159,12 @@ void LoginDialog::LoadSettings() {
     ui->rembmeCheckBox->setChecked(settings.value("remember_me_checked").toBool());
     ui->sessionIDLineEdit->setVisible(ui->sessIDCheckBox->isChecked());
     ui->sessIDLabel->setVisible(ui->sessIDCheckBox->isChecked());
+
+    saved_league_ = settings.value("league", "").toString();
+    if (saved_league_.size() > 0) {
+        ui->leagueComboBox->addItem(saved_league_);
+        ui->leagueComboBox->setEnabled(true);
+    }
 }
 
 void LoginDialog::SaveSettings() {
@@ -163,9 +172,11 @@ void LoginDialog::SaveSettings() {
     if(ui->rembmeCheckBox->isChecked()) {
         settings.setValue("email", ui->emailLineEdit->text());
         settings.setValue("session_id", ui->sessionIDLineEdit->text());
-    }else {
+        settings.setValue("league", ui->leagueComboBox->currentText());
+    } else {
         settings.setValue("email", "");
         settings.setValue("session_id", "");
+        settings.setValue("league", "");
     }
     settings.setValue("session_id_checked", ui->sessIDCheckBox->isChecked());
     settings.setValue("remember_me_checked", ui->rembmeCheckBox->isChecked());

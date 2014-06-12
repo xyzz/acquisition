@@ -48,6 +48,7 @@ private:
     void LoadSettings();
     Ui::LoginDialog *ui;
     QString settings_path_;
+    QString saved_league_;
     QNetworkAccessManager *login_manager_;
     std::vector<std::string> leagues_;
 };
