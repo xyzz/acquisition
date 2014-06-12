@@ -42,10 +42,12 @@ public slots:
     void OnLoginPageFinished();
     void OnLoggedIn();
     void OnUpdateCheckCompleted();
+    void OnMainPageFinished();
 
 private:
     void SaveSettings();
     void LoadSettings();
+    void DisplayError(const QString &error);
     Ui::LoginDialog *ui;
     QString settings_path_;
     QString saved_league_;

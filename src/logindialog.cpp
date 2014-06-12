@@ -27,6 +27,7 @@
 #include <QNetworkRequest>
 #include <QNetworkCookie>
 #include <QNetworkCookieJar>
+#include <QRegExp>
 #include <QSettings>
 #include <QUrl>
 #include <QUrlQuery>
@@ -40,6 +41,7 @@
 
 const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
+const char* POE_MAIN_PAGE = "https://www.pathofexile.com/";
 
 LoginDialog::LoginDialog(QWidget *parent) :
     QDialog(parent),
@@ -147,16 +149,30 @@ void LoginDialog::OnLoggedIn() {
     QByteArray bytes = reply->readAll();
     int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (status != 302) {
-        ui->errorLabel->setText("Failed to log in (invalid password?)");
-        ui->errorLabel->show();
-        ui->loginButton->setEnabled(true);
-        ui->loginButton->setText("Login");
+        DisplayError("Failed to log in (invalid password?)");
         return;
     }
+
+    // we need one more request to get account name
+    QNetworkReply *main_page = login_manager_->get(QNetworkRequest(QUrl(POE_MAIN_PAGE)));
+    connect(main_page, SIGNAL(finished()), this, SLOT(OnMainPageFinished()));
+}
+
+void LoginDialog::OnMainPageFinished() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
+    QString html(reply->readAll());
+    QRegExp regexp("/account/view-profile/(.*)\"");
+    regexp.setMinimal(true);
+    int pos = regexp.indexIn(html);
+    if (pos == -1) {
+        DisplayError("Failed to find account name.");
+        return;
+    }
+    QString account = regexp.cap(1);
+    QLOG_INFO() << "Logged in as:" << account;
+
     std::string league(ui->leagueComboBox->currentText().toUtf8().constData());
-    std::string user = ui->sessIDCheckBox ? ui->sessionIDLineEdit->text().toStdString() :
-        ui->emailLineEdit->text().toStdString();
-    MainWindow *w = new MainWindow(0, login_manager_, league, user);
+    MainWindow *w = new MainWindow(0, login_manager_, league, account.toStdString());
     w->show();
     close();
 }
@@ -190,6 +206,13 @@ void LoginDialog::SaveSettings() {
     }
     settings.setValue("session_id_checked", ui->sessIDCheckBox->isChecked());
     settings.setValue("remember_me_checked", ui->rembmeCheckBox->isChecked());
+}
+
+void LoginDialog::DisplayError(const QString &error) {
+    ui->errorLabel->setText(error);
+    ui->errorLabel->show();
+    ui->loginButton->setEnabled(true);
+    ui->loginButton->setText("Login");
 }
 
 LoginDialog::~LoginDialog() {
