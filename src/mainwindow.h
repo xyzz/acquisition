@@ -22,6 +22,11 @@
 #include <memory>
 #include <QMainWindow>
 
+#ifdef Q_OS_WIN
+#include <QWinTaskbarButton>
+#include <QWinTaskbarProgress>
+#endif
+
 #include "column.h"
 #include "items_model.h"
 #include "search.h"
@@ -108,4 +113,7 @@ private:
     Shop *shop_;
     QNetworkAccessManager *logged_in_nm_;
     TabBuyoutsDialog *tab_buyouts_dialog_;
+#ifdef Q_OS_WIN32
+    QWinTaskbarButton *taskbar_button_;
+#endif
 };

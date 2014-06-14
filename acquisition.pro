@@ -1,5 +1,9 @@
 QT += core gui network
 
+win32 {
+    QT += winextras
+}
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = acquisition

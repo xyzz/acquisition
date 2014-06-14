@@ -65,6 +65,11 @@ MainWindow::MainWindow(QWidget *parent, QNetworkAccessManager *login_manager,
     logged_in_nm_(login_manager),
     tab_buyouts_dialog_(new TabBuyoutsDialog(0, this))
 {
+#ifdef Q_OS_WIN32
+    createWinId();
+    taskbar_button_ = new QWinTaskbarButton(this);
+    taskbar_button_->setWindow(this->windowHandle());
+#endif
     std::string root_dir(porting::UserDir().toUtf8().constData());
     data_manager_ = new DataManager(this, root_dir + "/data");
     image_cache_ = new ImageCache(this, root_dir + "/cache");
@@ -138,6 +143,15 @@ void MainWindow::OnItemsManagerStatusUpdate(int fetched, int total, bool throttl
     if (fetched == total)
         status = "Received all tabs";
     status_bar_label_->setText(status);
+
+#ifdef Q_OS_WIN32
+    QWinTaskbarProgress *progress = taskbar_button_->progress();
+    progress->setVisible(fetched != total);
+    progress->setMinimum(0);
+    progress->setMaximum(total);
+    progress->setValue(fetched);
+    progress->setPaused(throttled);
+#endif
 }
 
 bool MainWindow::eventFilter(QObject *o, QEvent *e) {
@@ -470,6 +484,7 @@ MainWindow::~MainWindow() {
     delete data_manager_;
     delete items_manager_;
     delete buyout_manager_;
+    delete taskbar_button_;
 }
 
 void MainWindow::on_actionForum_shop_thread_triggered() {
