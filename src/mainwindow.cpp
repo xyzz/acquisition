@@ -484,7 +484,9 @@ MainWindow::~MainWindow() {
     delete data_manager_;
     delete items_manager_;
     delete buyout_manager_;
+#ifdef Q_OS_WIN32
     delete taskbar_button_;
+#endif
 }
 
 void MainWindow::on_actionForum_shop_thread_triggered() {
