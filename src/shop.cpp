@@ -22,6 +22,7 @@
 #include "mainwindow.h"
 #include "datamanager.h"
 #include "buyoutmanager.h"
+#include "porting.h"
 
 #include <QApplication>
 #include <QClipboard>

@@ -22,6 +22,7 @@
 
 #include "filters.h"
 #include "util.h"
+#include "porting.h"
 
 FilterData* Filter::CreateData() {
     return new FilterData(this);

@@ -24,7 +24,7 @@
 #include <QLocale>
 #include "QsLog.h"
 #include "QsLogDest.h"
-#include <cstdint>
+#include <limits>
 
 int main(int argc, char *argv[])
 {
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     const QString sLogPath(QDir(a.applicationDirPath()).filePath("log.txt"));
 
     QsLogging::DestinationPtr fileDestination(
-        QsLogging::DestinationFactory::MakeFileDestination(sLogPath, true, INT64_MAX, 0) );
+        QsLogging::DestinationFactory::MakeFileDestination(sLogPath, true, 10 * 1024 * 1024, 0) );
     QsLogging::DestinationPtr debugDestination(
         QsLogging::DestinationFactory::MakeDebugOutputDestination() );
     logger.addDestination(debugDestination);

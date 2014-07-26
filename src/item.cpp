@@ -24,6 +24,7 @@
 #include "jsoncpp/json.h"
 
 #include "util.h"
+#include "porting.h"
 
 Item::Item(const Json::Value &json, int tab, std::string tab_caption) :
     json_(json),

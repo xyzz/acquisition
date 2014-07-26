@@ -28,6 +28,7 @@
 #include <QFontMetrics>
 
 #include "buyoutmanager.h"
+#include "porting.h"
 
 std::string Util::Md5(const std::string &value) {
     QString hash = QString(QCryptographicHash::hash(value.c_str(), QCryptographicHash::Md5).toHex());

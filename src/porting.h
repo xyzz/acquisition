@@ -24,3 +24,21 @@
 namespace porting {
 QString UserDir();
 }
+
+#ifdef __ANDROID__
+#include <string>
+#include <sstream>
+
+// http://stackoverflow.com/a/18124627/2606891
+namespace std {
+template <typename T>
+std::string to_string(T value)
+{
+    std::ostringstream os ;
+    os << value ;
+    return os.str() ;
+}
+
+double stod(const std::string& str);
+}
+#endif

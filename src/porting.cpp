@@ -16,14 +16,31 @@
     You should have received a copy of the GNU General Public License
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "porting.h"
 
 #include <QApplication>
+#include <QDir>
 #include <QString>
 
 // This namespace should contain platform-dependant functions.
 
 namespace porting {
 QString UserDir() {
+#ifdef __ANDROID__
+    return QDir::homePath();
+#else
     return qApp->applicationDirPath();
+#endif
 }
 }
+
+#ifdef __ANDROID__
+namespace std {
+double stod(const std::string& str) {
+    std::istringstream is(str);
+    double result;
+    is >> result;
+    return result;
+}
+}
+#endif
