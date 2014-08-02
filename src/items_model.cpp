@@ -26,16 +26,41 @@ ItemsModel::ItemsModel(QObject *parent, Search *search) :
 {
 }
 
+/*
+    Tree structure:
+
+    + stash tab title (called "bucket" elsewhere)
+    |- item
+    |- item
+      ...
+    + another stash tab or character
+    |- item
+    |- item
+
+    and so on
+*/
+
 int ItemsModel::rowCount(const QModelIndex &parent) const {
-    if (parent.isValid())
-        return 0;
-    return search_->items().size();
+    // Root element, contains buckets
+    if (!parent.isValid())
+        return search_->buckets().size();
+    // Bucket, contains elements
+    if (parent.isValid() && !parent.parent().isValid()) {
+        return search_->buckets()[parent.row()]->items().size();
+    }
+    // Element, contains nothing
+    return 0;
 }
 
 int ItemsModel::columnCount(const QModelIndex &parent) const {
-    if (parent.isValid())
-        return 0;
-    return search_->columns().size();
+    // Root element, contains buckets
+    if (!parent.isValid())
+        return search_->columns().size();
+    // Bucket, contains elements
+    if (parent.isValid() && !parent.parent().isValid())
+        return search_->columns().size();
+    // Element, contains nothing
+    return 0;
 }
 
 QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, int role) const {
@@ -45,8 +70,14 @@ QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, 
 }
 
 QVariant ItemsModel::data(const QModelIndex &index, int role) const {
+    // Bucket title
+    if (index.internalId() == 0) {
+        if (role == Qt::DisplayRole && index.column() == 0)
+            return QString(search_->buckets()[index.row()]->name().c_str());
+        return QVariant();
+    }
     Column *column = search_->columns()[index.column()];
-    const Item &item = *search_->items()[index.row()];
+    const Item &item = *search_->buckets()[index.parent().row()]->items()[index.row()];
     if (role == Qt::DisplayRole)
         return QString(column->value(item).c_str());
     else if (role == Qt::ForegroundRole)
@@ -54,10 +85,18 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 
-QModelIndex ItemsModel::parent(const QModelIndex & /* index */) const {
-    return QModelIndex();
+QModelIndex ItemsModel::parent(const QModelIndex &index) const {
+    // bucket
+    if (index.internalId() == 0)
+        return QModelIndex();
+    // item
+    return createIndex(index.internalId() - 1, 0, static_cast<quintptr>(0));
 }
 
-QModelIndex ItemsModel::index(int row, int column, const QModelIndex & /* parent */) const {
-    return createIndex(row, column);
+QModelIndex ItemsModel::index(int row, int column, const QModelIndex &parent) const {
+    // bucket
+    if (!parent.isValid())
+        return createIndex(row, column, static_cast<quintptr>(0));
+    // item, we pass parent's (bucket's) row through ID parameter
+    return createIndex(row, column, static_cast<quintptr>(parent.row() + 1));
 }

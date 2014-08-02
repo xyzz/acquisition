@@ -23,6 +23,8 @@
 #include <vector>
 
 #include "item.h"
+#include "column.h"
+#include "bucket.h"
 
 class Filter;
 class FilterData;
@@ -40,10 +42,12 @@ public:
     const Items &items() const { return items_; }
     const std::vector<Column*> &columns() const { return columns_; }
     ItemsModel *model() const { return model_; }
+    const std::vector<std::unique_ptr<Bucket>> &buckets() const { return buckets_; }
 private:
     std::vector<FilterData*> filters_;
     std::vector<Column*> columns_;
     std::string caption_;
     Items items_;
     ItemsModel *model_;
+    std::vector<std::unique_ptr<Bucket>> buckets_;
 };

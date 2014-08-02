@@ -17,9 +17,12 @@
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "filters.h"
 #include "search.h"
+
+#include "filters.h"
 #include "column.h"
+#include "bucket.h"
+#include "porting.h"
 
 #include <iostream>
 
@@ -86,4 +89,15 @@ void Search::FilterItems(const Items &items) {
         if (matches)
             items_.push_back(item);
     }
+
+    std::map<int, std::unique_ptr<Bucket>> bucketed_tabs;
+    for (const auto &item : items_) {
+        if (!bucketed_tabs.count(item->tab()))
+            bucketed_tabs[item->tab()] = std::make_unique<Bucket>(item->tab_caption());
+        bucketed_tabs[item->tab()]->AddItem(item);
+    }
+
+    buckets_.clear();
+    for (auto &element : bucketed_tabs)
+        buckets_.push_back(std::move(element.second));
 }

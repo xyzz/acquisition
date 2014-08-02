@@ -72,14 +72,13 @@ public slots:
     void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
     void OnItemsManagerStatusUpdate(int fetched, int total, bool throttled);
     void OnBuyoutChange();
+    void ResizeTreeColumns();
 private slots:
     void on_actionForum_shop_thread_triggered();
     void on_actionCopy_shop_data_to_clipboard_triggered();
     void on_actionTab_buyouts_triggered();
     void on_actionItems_refresh_interval_triggered();
-
     void on_actionRefresh_triggered();
-
     void on_actionAutomatically_refresh_items_triggered();
 
 private:

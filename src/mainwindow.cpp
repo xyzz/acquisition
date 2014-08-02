@@ -54,6 +54,8 @@ const int LINKH_WIDTH = 38;
 const int LINKV_HEIGHT = LINKH_WIDTH;
 const int LINKV_WIDTH = LINKH_HEIGHT;
 
+const int MAX_EXPANDABLE_ITEMS = 1000;
+
 MainWindow::MainWindow(QWidget *parent, QNetworkAccessManager *login_manager,
                        const std::string &league, const std::string &email) :
     QMainWindow(parent),
@@ -117,6 +119,11 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutCurrencyComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutTypeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutValueLineEdit, SIGNAL(textChanged(QString)), this, SLOT(OnBuyoutChange()));
+}
+
+void MainWindow::ResizeTreeColumns() {
+    for (int i = 0; i < ui->treeView->header()->count(); ++i)
+        ui->treeView->resizeColumnToContents(i);
 }
 
 void MainWindow::OnBuyoutChange() {
@@ -190,19 +197,29 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
 
 void MainWindow::OnSearchFormChange() {
     buyout_manager_->Save();
-    Search *search = current_search_;
-    search->FromForm();
-    search->FilterItems(items_);
+    current_search_->FromForm();
+    current_search_->FilterItems(items_);
     ui->treeView->setModel(current_search_->model());
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
     ui->treeView->reset();
-    for (int i = 0; i < ui->treeView->header()->count(); ++i)
-        ui->treeView->resizeColumnToContents(i);
+
+    // if it's connected during the call it's called for every item apparently, which is damn slow!
+    disconnect(ui->treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+    disconnect(ui->treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+    if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
+        ui->treeView->expandAll();
+    connect(ui->treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+    connect(ui->treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+
+    ResizeTreeColumns();
 }
 
 void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /* previous */) {
-    current_item_ = current_search_->items()[current.row()];
+    // clicked on a bucket
+    if (!current.parent().isValid())
+        return;
+    current_item_ = current_search_->buckets()[current.parent().row()]->items()[current.row()];
     UpdateCurrentItem();
 }
 
