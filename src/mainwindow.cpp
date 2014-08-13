@@ -451,7 +451,8 @@ void MainWindow::UpdateCurrentItemMinimap() {
     QPainter painter(&pixmap);
     painter.setBrush(QBrush(QColor(0x0c, 0x0b, 0x0b)));
     painter.drawRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE);
-    painter.setBrush(QBrush(Qt::red));
+    const ItemLocation &location = current_item_->location();
+    painter.setBrush(QBrush(location.socketed() ? Qt::blue : Qt::red));
     QRectF rect = current_item_->location().GetRect();
     painter.drawRect(rect);
     ui->minimapLabel->setPixmap(pixmap);

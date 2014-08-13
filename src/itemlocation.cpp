@@ -3,7 +3,8 @@
 #include <QString>
 #include "jsoncpp/json.h"
 
-ItemLocation::ItemLocation()
+ItemLocation::ItemLocation():
+    socketed_(false)
 {}
 
 ItemLocation::ItemLocation(const Json::Value &root) {
@@ -19,9 +20,19 @@ void ItemLocation::FromItemJson(const Json::Value &root) {
         } else {
             character_ = root["_character"].asString();
         }
+        socketed_ = false;
+        if (root.isMember("_socketed"))
+            socketed_ = root["_socketed"].asBool();
+        // socketed items have x/y pointing to parent
+        if (socketed_) {
+            x_ = root["_x"].asInt();
+            y_ = root["_y"].asInt();
+        }
     }
-    x_ = root["x"].asInt();
-    y_ = root["y"].asInt();
+    if (root.isMember("x") && root.isMember("y")) {
+        x_ = root["x"].asInt();
+        y_ = root["y"].asInt();
+    }
     w_ = root["w"].asInt();
     h_ = root["h"].asInt();
     inventory_id_ = root["inventoryId"].asString();
@@ -35,6 +46,11 @@ void ItemLocation::ToItemJson(Json::Value *root) {
     } else {
         (*root)["_character"] = character_;
     }
+    if (socketed_) {
+        (*root)["_x"] = x_;
+        (*root)["_y"] = y_;
+    }
+    (*root)["_socketed"] = socketed_;
 }
 
 std::string ItemLocation::GetHeader() const {

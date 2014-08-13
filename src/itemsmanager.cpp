@@ -177,7 +177,7 @@ void ItemsManager::OnFirstTabReceived() {
     first_tab_location.set_type(ItemLocationType::STASH);
     first_tab_location.set_tab_id(0);
     first_tab_location.set_tab_label(tabs_[0]);
-    ParseItems(root, first_tab_location);
+    ParseItems(root["items"], first_tab_location);
 
     total_needed_ = queue_.size() + 1;
     total_completed_ = 1;
@@ -188,12 +188,14 @@ void ItemsManager::OnFirstTabReceived() {
 }
 
 void ItemsManager::ParseItems(const Json::Value &root, const ItemLocation &base_location) {
-    for (auto item : root["items"]) {
+    for (auto item : root) {
         ItemLocation location(base_location);
         location.FromItemJson(item);
         location.ToItemJson(&item);
         items_as_json_.append(item);
         items_.push_back(std::make_shared<Item>(item));
+        location.set_socketed(true);
+        ParseItems(item["socketedItems"], location);
     }
 }
 
@@ -248,7 +250,7 @@ void ItemsManager::OnTabReceived(int request_id) {
     }
     emit StatusUpdate(total_completed_, total_needed_, throttled);
 
-    ParseItems(root, reply.request.location);
+    ParseItems(root["items"], reply.request.location);
 
     if (total_completed_ == total_needed_) {
         // all requests completed

@@ -25,6 +25,8 @@ public:
     void set_character(const std::string &character) { character_ = character; }
     void set_tab_id(int tab_id) { tab_id_ = tab_id; }
     void set_tab_label(const std::string &tab_label) { tab_label_ = tab_label; }
+    bool socketed() const { return socketed_; }
+    void set_socketed(bool socketed) { socketed_ = socketed; }
 private:
     ItemLocationType type_;
     int tab_id_;
@@ -32,4 +34,5 @@ private:
     int x_, y_, w_, h_;
     std::string character_;
     std::string inventory_id_;
+    bool socketed_;
 };
