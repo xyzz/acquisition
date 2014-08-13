@@ -26,6 +26,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QFontMetrics>
+#include <QNetworkReply>
 
 #include "buyoutmanager.h"
 #include "porting.h"
@@ -109,4 +110,11 @@ int Util::GroupWidth() {
         result = fm.width("Defense");
     }
     return result;
+}
+
+void Util::ParseJson(QNetworkReply *reply, Json::Value *root) {
+    QByteArray bytes = reply->readAll();
+    std::string json(bytes.constData(), bytes.size());
+    Json::Reader reader;
+    reader.parse(json, *root);
 }

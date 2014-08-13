@@ -32,8 +32,11 @@
 
 #include "mainwindow.h"
 #include "datamanager.h"
+#include "util.h"
 
-const char *POE_STASH_URL = "http://www.pathofexile.com/character-window/get-stash-items";
+const char *POE_STASH_ITEMS_URL = "https://www.pathofexile.com/character-window/get-stash-items";
+const char *POE_ITEMS_URL = "https://www.pathofexile.com/character-window/get-items";
+const char *POE_GET_CHARACTERS_URL = "https://www.pathofexile.com/character-window/get-characters";
 const int DEFAULT_AUTO_UPDATE_INTERVAL = 30;
 
 ItemsManager::ItemsManager(MainWindow *app):
@@ -41,7 +44,8 @@ ItemsManager::ItemsManager(MainWindow *app):
     signal_mapper_(new QSignalMapper),
     auto_update_(true),
     auto_update_timer_(new QTimer),
-    updating_(false)
+    updating_(false),
+    queue_id_(0)
 {
 }
 
@@ -55,17 +59,6 @@ void ItemsManager::Init() {
     connect(auto_update_timer_, SIGNAL(timeout()), this, SLOT(OnAutoRefreshTimer()));
 }
 
-QNetworkRequest ItemsManager::MakeRequest(int tab_index, bool tabs) {
-    QUrlQuery query;
-    query.addQueryItem("league", app_->league().c_str());
-    query.addQueryItem("tabs", tabs ? "1" : "0");
-    query.addQueryItem("tabIndex", QString::number(tab_index));
-
-    QUrl url(POE_STASH_URL);
-    url.setQuery(query);
-    return QNetworkRequest(url);
-}
-
 void ItemsManager::Update() {
     if (updating_) {
         QLOG_WARN() << "ItemsManager::Update called while updating";
@@ -76,28 +69,79 @@ void ItemsManager::Update() {
     delete signal_mapper_;
     signal_mapper_ = new QSignalMapper;
     // remove all pending requests
-    tabs_queue_ = std::queue<int>();
-    for (auto &reply : replies_)
-        delete reply.second;
+    queue_ = std::queue<ItemsRequest>();
+    queue_id_ = 0;
     replies_.clear();
     items_as_json_.clear();
     items_.clear();
 
-    // first step, fetch first tab and get list of all tabs
-    QNetworkReply *first_tab = app_->logged_in_nm()->get(MakeRequest(0, true));
-    connect(first_tab, SIGNAL(finished()), this, SLOT(OnFirstTabReceived()));
+    // first get character list
+    QNetworkReply *characters = app_->logged_in_nm()->get(QNetworkRequest(QUrl(POE_GET_CHARACTERS_URL)));
+    connect(characters, SIGNAL(finished()), this, SLOT(OnCharacterListReceived()));
 }
 
-void ItemsManager::FetchSomeTabs(int limit) {
-    int count = std::min(limit, static_cast<int>(tabs_queue_.size()));
-    for (int i = 0; i < count; ++i) {
-        int index = tabs_queue_.front();
-        tabs_queue_.pop();
+QNetworkRequest ItemsManager::MakeTabRequest(int tab_index, bool tabs) {
+    QUrlQuery query;
+    query.addQueryItem("league", app_->league().c_str());
+    query.addQueryItem("tabs", tabs ? "1" : "0");
+    query.addQueryItem("tabIndex", QString::number(tab_index));
 
-        QNetworkReply *tab_fetched = app_->logged_in_nm()->get(MakeRequest(index, false));
-        signal_mapper_->setMapping(tab_fetched, index);
-        connect(tab_fetched, SIGNAL(finished()), signal_mapper_, SLOT(map()));
-        replies_[index] = tab_fetched;
+    QUrl url(POE_STASH_ITEMS_URL);
+    url.setQuery(query);
+    return QNetworkRequest(url);
+}
+
+QNetworkRequest ItemsManager::MakeCharacterRequest(const std::string &name) {
+    QUrlQuery query;
+    query.addQueryItem("character", name.c_str());
+
+    QUrl url(POE_ITEMS_URL);
+    url.setQuery(query);
+    return QNetworkRequest(url);
+}
+
+void ItemsManager::QueueRequest(const QNetworkRequest &request, const ItemLocation &location) {
+    ItemsRequest items_request;
+    items_request.network_request = request;
+    items_request.id = queue_id_++;
+    items_request.location = location;
+    queue_.push(items_request);
+}
+
+void ItemsManager::OnCharacterListReceived() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
+    Json::Value root;
+    Util::ParseJson(reply, &root);
+
+    for (auto &character : root)
+        if (character["league"].asString() == app_->league()) {
+            std::string name = character["name"].asString();
+            ItemLocation location;
+            location.set_type(ItemLocationType::CHARACTER);
+            location.set_character(name);
+            QueueRequest(MakeCharacterRequest(name), location);
+        }
+
+    // now get first tab and tab list
+    QNetworkReply *first_tab = app_->logged_in_nm()->get(MakeTabRequest(0, true));
+    connect(first_tab, SIGNAL(finished()), this, SLOT(OnFirstTabReceived()));
+    reply->deleteLater();
+}
+
+void ItemsManager::FetchItems(int limit) {
+    int count = std::min(limit, static_cast<int>(queue_.size()));
+    for (int i = 0; i < count; ++i) {
+        ItemsRequest request = queue_.front();
+        queue_.pop();
+
+        QNetworkReply *fetched = app_->logged_in_nm()->get(request.network_request);
+        signal_mapper_->setMapping(fetched, request.id);
+        connect(fetched, SIGNAL(finished()), signal_mapper_, SLOT(map()));
+
+        ItemsReply reply;
+        reply.network_reply = fetched;
+        reply.request = request;
+        replies_[request.id] = reply;
     }
     requests_needed_ = count;
     requests_completed_ = 0;
@@ -105,38 +149,51 @@ void ItemsManager::FetchSomeTabs(int limit) {
 
 void ItemsManager::OnFirstTabReceived() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    QByteArray bytes = reply->readAll();
-
-    std::string json(bytes.constData(), bytes.size());
     Json::Value root;
-    Json::Reader reader;
-    reader.parse(json, root);
+    Util::ParseJson(reply, &root);
 
     int index = 0;
-    if (!root.isObject())
-        throw std::runtime_error("First response is not an object.");
+    if (!root.isObject()) {
+        QLOG_ERROR() << "Can't even fetch first tab. Failed to update items.";
+        updating_ = false;
+        return;
+    }
     tabs_.clear();
     tabs_as_json_ = root["tabs"];
-    for (auto tab : root["tabs"]) {
-        tabs_.push_back(tab["n"].asString());
-        if (index > 0)
-            tabs_queue_.push(index);
+    for (auto &tab : root["tabs"]) {
+        std::string label = tab["n"].asString();
+        tabs_.push_back(label);
+        if (index > 0) {
+            ItemLocation location;
+            location.set_type(ItemLocationType::STASH);
+            location.set_tab_id(index);
+            location.set_tab_label(label);
+            QueueRequest(MakeTabRequest(index), location);
+        }
         ++index;
     }
-    ParseItems(root, 0);
-    tabs_needed_ = tabs_.size();
-    tabs_received_ = 1;
-    FetchSomeTabs(THROTTLE_REQUESTS - 1);
+
+    ItemLocation first_tab_location;
+    first_tab_location.set_type(ItemLocationType::STASH);
+    first_tab_location.set_tab_id(0);
+    first_tab_location.set_tab_label(tabs_[0]);
+    ParseItems(root, first_tab_location);
+
+    total_needed_ = queue_.size() + 1;
+    total_completed_ = 1;
+    FetchItems(THROTTLE_REQUESTS - 1);
 
     connect(signal_mapper_, SIGNAL(mapped(int)), this, SLOT(OnTabReceived(int)));
+    reply->deleteLater();
 }
 
-void ItemsManager::ParseItems(const Json::Value &root, int tab) {
+void ItemsManager::ParseItems(const Json::Value &root, const ItemLocation &base_location) {
     for (auto item : root["items"]) {
-        item["_tab"] = tab;
-        item["_tab_label"] = tabs_[tab];
+        ItemLocation location(base_location);
+        location.FromItemJson(item);
+        location.ToItemJson(&item);
         items_as_json_.append(item);
-        items_.push_back(std::make_shared<Item>(item, tab, tabs_[tab]));
+        items_.push_back(std::make_shared<Item>(item));
     }
 }
 
@@ -147,9 +204,8 @@ void ItemsManager::LoadSavedData() {
         Json::Value root;
         Json::Reader reader;
         reader.parse(items, root);
-        for (auto &item : root) {
-            items_.push_back(std::make_shared<Item>(item, item["_tab"].asInt(), item["_tab_label"].asString()));
-        }
+        for (auto &item : root)
+            items_.push_back(std::make_shared<Item>(item));
     }
 
     tabs_.clear();
@@ -164,39 +220,38 @@ void ItemsManager::LoadSavedData() {
     emit ItemsRefreshed(items_, tabs_);
 }
 
-void ItemsManager::OnTabReceived(int index) {
-    if (!replies_.count(index)) {
-        QLOG_WARN() << "Received a tab" << index << "that was not requested.";
+void ItemsManager::OnTabReceived(int request_id) {
+    if (!replies_.count(request_id)) {
+        QLOG_WARN() << "Received a reply for request" << request_id << "that was not requested.";
         return;
     }
-    ++requests_completed_;
-    if (requests_completed_ == requests_needed_ && tabs_queue_.size() > 0) {
-        emit StatusUpdate(tabs_received_ + 1, tabs_needed_, true);
-        QLOG_INFO() << "Sleeping one minute to prevent throttling.";
-        QTimer::singleShot(THROTTLE_SLEEP * 1000, this, SLOT(FetchSomeTabs()));
-    } else {
-        emit StatusUpdate(tabs_received_ + 1, tabs_needed_, false);
-    }
 
-    QNetworkReply *reply = replies_[index];
-    QByteArray bytes = reply->readAll();
-    std::string json(bytes.constData(), bytes.size());
+    ItemsReply reply = replies_[request_id];
     Json::Value root;
-    Json::Reader reader;
-    reader.parse(json, root);
+    Util::ParseJson(reply.network_reply, &root);
 
     if (root.isMember("error")) {
-        QLOG_WARN() << index << "got 'error' instead of stash tab contents, this shouldn't normally happen.";
-        // but it just happened
-        tabs_queue_.push(index);
+        // this can happen if user is browsing stash in background and we can't know about it
+        QLOG_WARN() << request_id << "got 'error' instead of stash tab contents";
+        QueueRequest(reply.request.network_request, reply.request.location);
         return;
     }
 
-    ParseItems(root, index);
+    ++requests_completed_;
+    ++total_completed_;
 
-    ++tabs_received_;
-    if (tabs_received_ == tabs_needed_) {
-        // all tabs were received
+    bool throttled = false;
+    if (requests_completed_ == requests_needed_ && queue_.size() > 0) {
+        throttled = true;
+        QLOG_INFO() << "Sleeping one minute to prevent throttling.";
+        QTimer::singleShot(THROTTLE_SLEEP * 1000, this, SLOT(FetchItems()));
+    }
+    emit StatusUpdate(total_completed_, total_needed_, throttled);
+
+    ParseItems(root, reply.request.location);
+
+    if (total_completed_ == total_needed_) {
+        // all requests completed
         emit ItemsRefreshed(items_, tabs_);
 
         Json::FastWriter writer;
@@ -205,6 +260,8 @@ void ItemsManager::OnTabReceived(int index) {
 
         updating_ = false;
     }
+
+    reply.network_reply->deleteLater();
 }
 
 void ItemsManager::SetAutoUpdate(bool update) {

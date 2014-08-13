@@ -49,13 +49,6 @@
 #include "util.h"
 #include "porting.h"
 
-const int LINKH_HEIGHT = 16;
-const int LINKH_WIDTH = 38;
-const int LINKV_HEIGHT = LINKH_WIDTH;
-const int LINKV_WIDTH = LINKH_HEIGHT;
-
-const int MAX_EXPANDABLE_ITEMS = 1000;
-
 MainWindow::MainWindow(QWidget *parent, QNetworkAccessManager *login_manager,
                        const std::string &league, const std::string &email) :
     QMainWindow(parent),
@@ -318,7 +311,7 @@ void MainWindow::UpdateCurrentItem() {
         UpdateCurrentItemIcon(image_cache_->Get(current_item_->icon()));
     }
 
-    ui->locationLabel->setText(QString("#%1, \"%2\"").arg(current_item_->tab() + 1).arg(current_item_->tab_caption().c_str()));
+    ui->locationLabel->setText(current_item_->location().GetHeader().c_str());
 
     UpdateCurrentItemBuyout();
 }
@@ -452,21 +445,15 @@ void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
 }
 
 void MainWindow::UpdateCurrentItemMinimap() {
-    const int PIXELS_PER_MINIMAP_SLOT = 10;
-
-    QPixmap pixmap(INVENTORY_SLOTS * PIXELS_PER_MINIMAP_SLOT, INVENTORY_SLOTS * PIXELS_PER_MINIMAP_SLOT);
+    QPixmap pixmap(MINIMAP_SIZE, MINIMAP_SIZE);
     pixmap.fill(QColor("transparent"));
 
     QPainter painter(&pixmap);
     painter.setBrush(QBrush(QColor(0x0c, 0x0b, 0x0b)));
-    painter.drawRect(0, 0, INVENTORY_SLOTS * PIXELS_PER_MINIMAP_SLOT, INVENTORY_SLOTS * PIXELS_PER_MINIMAP_SLOT);
+    painter.drawRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE);
     painter.setBrush(QBrush(Qt::red));
-    int x = current_item_->x();
-    int y = current_item_->y();
-    int w = current_item_->w();
-    int h = current_item_->h();
-    painter.drawRect(x * PIXELS_PER_MINIMAP_SLOT, y * PIXELS_PER_MINIMAP_SLOT,
-                     w * PIXELS_PER_MINIMAP_SLOT, h * PIXELS_PER_MINIMAP_SLOT);
+    QRectF rect = current_item_->location().GetRect();
+    painter.drawRect(rect);
     ui->minimapLabel->setPixmap(pixmap);
 }
 

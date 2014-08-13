@@ -90,11 +90,12 @@ void Search::FilterItems(const Items &items) {
             items_.push_back(item);
     }
 
-    std::map<int, std::unique_ptr<Bucket>> bucketed_tabs;
+    std::map<ItemLocation, std::unique_ptr<Bucket>> bucketed_tabs;
     for (const auto &item : items_) {
-        if (!bucketed_tabs.count(item->tab()))
-            bucketed_tabs[item->tab()] = std::make_unique<Bucket>(item->tab_caption());
-        bucketed_tabs[item->tab()]->AddItem(item);
+        ItemLocation location = item->location();
+        if (!bucketed_tabs.count(location))
+            bucketed_tabs[location] = std::make_unique<Bucket>(location.GetHeader());
+        bucketed_tabs[location]->AddItem(item);
     }
 
     buckets_.clear();

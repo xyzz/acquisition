@@ -25,20 +25,18 @@
 
 #include "util.h"
 #include "porting.h"
+#include "itemlocation.h"
 
-Item::Item(const Json::Value &json, int tab, std::string tab_caption) :
+Item::Item(const Json::Value &json) :
     json_(json),
+    location_(ItemLocation(json)),
     name_(json["name"].asString()),
     typeLine_(json["typeLine"].asString()),
     corrupted_(json["corrupted"].asBool()),
     w_(json["w"].asInt()),
     h_(json["h"].asInt()),
-    x_(json["x"].asInt()),
-    y_(json["y"].asInt()),
     frameType_(json["frameType"].asInt()),
     icon_(json["icon"].asString()),
-    tab_(tab),
-    tab_caption_(tab_caption),
     sockets_(0),
     links_(0),
     sockets_r_(0),

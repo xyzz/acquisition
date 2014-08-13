@@ -41,21 +41,20 @@ void Shop::SetThread(const std::string &thread) {
 
 void Shop::Update(bool submit) {
     shop_data_outdated_ = false;
-
     std::string data;
     for (auto &item : app_->items()) {
         Buyout bo;
         bo.type = BUYOUT_TYPE_NONE;
-        if (app_->buyout_manager()->ExistsTab(item->tab_caption()))
-            bo = app_->buyout_manager()->GetTab(item->tab_caption());
+
+        std::string hash = item->location().GetUniqueHash();
+        if (app_->buyout_manager()->ExistsTab(hash))
+            bo = app_->buyout_manager()->GetTab(hash);
         if (app_->buyout_manager()->Exists(*item))
             bo = app_->buyout_manager()->Get(*item);
         if (bo.type == BUYOUT_TYPE_NONE)
             continue;
 
-        data += "[linkItem location=\"Stash" + std::to_string(item->tab() + 1)
-              + "\" league=\"" + app_->league() + "\" x=\""
-              + std::to_string(item->x()) + "\" y=\"" + std::to_string(item->y()) + "\"]";
+        data += item->location().GetForumCode(app_->league());
 
         if (bo.type == BUYOUT_TYPE_BUYOUT)
             data += " ~b/o ";
@@ -66,7 +65,6 @@ void Shop::Update(bool submit) {
     }
 
     shop_data_ = data;
-
     if (submit)
         SubmitShopToForum();
 }

@@ -20,8 +20,10 @@
 #pragma once
 
 #include <string>
+#include "jsoncpp/json-forwards.h"
 
 class QComboBox;
+class QNetworkReply;
 
 namespace Util {
 std::string Md5(const std::string &value);
@@ -35,4 +37,6 @@ int MinMaxWidth();
 int LabelWidth();
 int RGBWidth();
 int GroupWidth();
+
+void ParseJson(QNetworkReply *reply, Json::Value *root);
 }

@@ -37,7 +37,8 @@ SOURCES += \
     src/shop.cpp \
     src/tabbuyoutsdialog.cpp \
     src/porting.cpp \
-    src/bucket.cpp
+    src/bucket.cpp \
+    src/itemlocation.cpp
 
 HEADERS += \
     src/item.h \
@@ -60,7 +61,9 @@ HEADERS += \
     src/tabbuyoutsdialog.h \
     src/version.h \
     src/porting.h \
-    src/bucket.h
+    src/bucket.h \
+    src/itemlocation.h \
+    src/itemconstants.h
 
 FORMS += \
     forms/mainwindow.ui \

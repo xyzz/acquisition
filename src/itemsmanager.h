@@ -27,6 +27,7 @@
 #include "jsoncpp/json.h"
 
 #include "item.h"
+#include "itemlocation.h"
 
 const int THROTTLE_REQUESTS = 45;
 const int THROTTLE_SLEEP = 60;
@@ -35,6 +36,17 @@ class QNetworkReply;
 class QSignalMapper;
 class QTimer;
 class MainWindow;
+
+struct ItemsRequest {
+    int id;
+    QNetworkRequest network_request;
+    ItemLocation location;
+};
+
+struct ItemsReply {
+    QNetworkReply *network_reply;
+    ItemsRequest request;
+};
 
 class ItemsManager : public QObject {
     Q_OBJECT
@@ -51,28 +63,32 @@ public:
 public slots:
     void OnFirstTabReceived();
     void OnTabReceived(int index);
+    void OnCharacterListReceived();
     /*
-     * Fetches 45 tabs at once, should be called every minute.
+     * Makes 45 requests at once, should be called every minute.
      * These values are approximated (GGG throttles requests)
      * based on some quick testing.
      */
-    void FetchSomeTabs(int limit = THROTTLE_REQUESTS);
+    void FetchItems(int limit = THROTTLE_REQUESTS);
     // called by auto_update_timer_
     void OnAutoRefreshTimer();
 signals:
     void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
     void StatusUpdate(int fetched, int total, bool throttled);
 private:
-    void ParseItems(const Json::Value &root, int tab);
+    void ParseItems(const Json::Value &root, const ItemLocation &location);
     void LoadSavedData();
-    QNetworkRequest MakeRequest(int tab_index, bool tabs);
+
+    QNetworkRequest MakeTabRequest(int tab_index, bool tabs=false);
+    QNetworkRequest MakeCharacterRequest(const std::string &name);
+    void QueueRequest(const QNetworkRequest &request, const ItemLocation &location);
 
     MainWindow *app_;
     std::vector<std::string> tabs_;
-    std::queue<int> tabs_queue_;
-    std::map<int, QNetworkReply*> replies_;
+    std::queue<ItemsRequest> queue_;
+    std::map<int, ItemsReply> replies_;
     Items items_;
-    int tabs_received_, tabs_needed_;
+    int total_completed_, total_needed_;
     int requests_completed_, requests_needed_;
     QSignalMapper *signal_mapper_;
     Json::Value items_as_json_;
@@ -84,4 +100,5 @@ private:
     QTimer *auto_update_timer_;
     // set to true if updating right now
     bool updating_;
+    int queue_id_;
 };
