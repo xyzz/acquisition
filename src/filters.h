@@ -176,3 +176,9 @@ public:
     using BooleanFilter::BooleanFilter;
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
 };
+
+class AltartFilter : public BooleanFilter {
+public:
+    using BooleanFilter::BooleanFilter;
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
+};

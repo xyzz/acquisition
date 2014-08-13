@@ -276,6 +276,7 @@ void MainWindow::InitializeSearchForm() {
         new SimplePropertyFilter(misc_layout, "Quality"),
         new SimplePropertyFilter(misc_layout, "Level"),
         new MTXFilter(misc_layout, "", "MTX"),
+        new AltartFilter(misc_layout, "", "Alt. art"),
     };
 }
 
