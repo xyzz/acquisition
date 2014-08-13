@@ -17,6 +17,7 @@
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <QCheckBox>
 #include <QGroupBox>
 #include <QLineEdit>
 
@@ -35,6 +36,7 @@ FilterData::FilterData(Filter *filter):
     r_filled(false),
     g_filled(false),
     b_filled(false),
+    checked(false),
     filter_(filter)
 {}
 
@@ -305,4 +307,47 @@ bool LinksColorsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *d
         }
     }
     return Check(need_r, need_g, need_b, got_r, got_g, got_b, got_w);
+}
+
+BooleanFilter::BooleanFilter(QLayout *parent, std::string property, std::string caption):
+    property_(property),
+    caption_(caption)
+{
+    Initialize(parent);
+}
+
+void BooleanFilter::Initialize(QLayout *parent) {
+    QWidget *group = new QWidget;
+    QHBoxLayout *layout = new QHBoxLayout;
+    layout->setMargin(0);
+    QLabel *label = new QLabel(caption_.c_str());
+    label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    checkbox_ = new QCheckBox;
+    layout->addWidget(label);
+    layout->addWidget(checkbox_);
+    group->setLayout(layout);
+    parent->addWidget(group);
+    label->setFixedWidth(Util::LabelWidth());
+    QObject::connect(checkbox_, SIGNAL(stateChanged(int)),
+                     parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
+}
+
+void BooleanFilter::FromForm(FilterData *data) {
+    data->checked = checkbox_->isChecked();
+}
+
+void BooleanFilter::ToForm(FilterData *data) {
+    checkbox_->setChecked(data->checked);
+}
+
+void BooleanFilter::ResetForm() {
+    checkbox_->setChecked(false);
+}
+
+bool BooleanFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    return true;
+}
+
+bool MTXFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    return (!data->checked || item->json().isMember("cosmeticMods"));
 }

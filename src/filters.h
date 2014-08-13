@@ -26,6 +26,7 @@
 #include "ui_mainwindow.h"
 
 class QLineEdit;
+class QCheckBox;
 class FilterData;
 
 /*
@@ -63,6 +64,7 @@ public:
     bool min_filled, max_filled;
     int r, g, b;
     bool r_filled, g_filled, b_filled;
+    bool checked;
 private:
     Filter *filter_;
 };
@@ -152,5 +154,25 @@ protected:
 class LinksColorsFilter : public SocketsColorsFilter {
 public:
     explicit LinksColorsFilter(QLayout *parent);
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
+};
+
+class BooleanFilter : public Filter {
+public:
+    BooleanFilter(QLayout *parent, std::string property, std::string caption);
+    void FromForm(FilterData *data);
+    void ToForm(FilterData *data);
+    void ResetForm();
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
+    void Initialize(QLayout *parent);
+private:
+    QCheckBox *checkbox_;
+protected:
+    std::string property_, caption_;
+};
+
+class MTXFilter : public BooleanFilter {
+public:
+    using BooleanFilter::BooleanFilter;
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
 };

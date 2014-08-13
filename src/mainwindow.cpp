@@ -275,6 +275,7 @@ void MainWindow::InitializeSearchForm() {
         // Misc
         new SimplePropertyFilter(misc_layout, "Quality"),
         new SimplePropertyFilter(misc_layout, "Level"),
+        new MTXFilter(misc_layout, "", "MTX"),
     };
 }
 
@@ -376,10 +377,22 @@ void MainWindow::UpdateCurrentItemProperties() {
     }
 
     std::string explicit_text;
-    for (auto mod : current_item_->explicitMods())
-        explicit_text += mod + "<br>";
-    if (explicit_text.size() > 0)
-        sections.push_back(explicit_text);
+    {
+        bool first = true;
+        for (auto mod : current_item_->explicitMods()) {
+            explicit_text += (first ? "" : "<br>") + mod;
+            first = false;
+        }
+        if (explicit_text.size() > 0)
+            sections.push_back(explicit_text);
+    }
+
+    if (current_item_->json().isMember("cosmeticMods")) {
+        std::string cosmetic_mods;
+        for (auto mod : current_item_->json()["cosmeticMods"])
+            cosmetic_mods += mod.asString() + "<br>";
+        sections.push_back(cosmetic_mods);
+    }
 
     std::string text;
     bool first = true;
