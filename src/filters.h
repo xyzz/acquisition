@@ -100,7 +100,10 @@ protected:
 
 class SimplePropertyFilter : public MinMaxFilter {
 public:
-    using MinMaxFilter::MinMaxFilter;
+    SimplePropertyFilter(QLayout *parent, std::string property) :
+        MinMaxFilter(parent, property) {}
+    SimplePropertyFilter(QLayout *parent, std::string property, std::string caption) :
+        MinMaxFilter(parent, property, caption) {}
 private:
     bool IsValuePresent(const std::shared_ptr<Item> &item);
     double GetValue(const std::shared_ptr<Item> &item);
@@ -108,7 +111,10 @@ private:
 
 class RequiredStatFilter : public MinMaxFilter {
 public:
-    using MinMaxFilter::MinMaxFilter;
+    RequiredStatFilter(QLayout *parent, std::string property) :
+        MinMaxFilter(parent, property) {}
+    RequiredStatFilter(QLayout *parent, std::string property, std::string caption) :
+        MinMaxFilter(parent, property, caption) {}
 private:
     bool IsValuePresent(const std::shared_ptr<Item> & /* item */) { return true; }
     double GetValue(const std::shared_ptr<Item> &item);
@@ -125,14 +131,20 @@ private:
 
 class SocketsFilter : public MinMaxFilter {
 public:
-    using MinMaxFilter::MinMaxFilter;
+    SocketsFilter(QLayout *parent, std::string property) :
+        MinMaxFilter(parent, property) {}
+    SocketsFilter(QLayout *parent, std::string property, std::string caption) :
+        MinMaxFilter(parent, property, caption) {}
     bool IsValuePresent(const std::shared_ptr<Item> & /* item */) { return true; }
     double GetValue(const std::shared_ptr<Item> &item);
 };
 
 class LinksFilter : public MinMaxFilter {
 public:
-    using MinMaxFilter::MinMaxFilter;
+    LinksFilter(QLayout *parent, std::string property) :
+        MinMaxFilter(parent, property) {}
+    LinksFilter(QLayout *parent, std::string property, std::string caption) :
+        MinMaxFilter(parent, property, caption) {}
     bool IsValuePresent(const std::shared_ptr<Item> & /* item */) { return true; }
     double GetValue(const std::shared_ptr<Item> &item);
 };
@@ -173,12 +185,15 @@ protected:
 
 class MTXFilter : public BooleanFilter {
 public:
-    using BooleanFilter::BooleanFilter;
+    MTXFilter(QLayout *parent, std::string property, std::string caption):
+        BooleanFilter(parent, property, caption) {}
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
 };
 
 class AltartFilter : public BooleanFilter {
 public:
+    AltartFilter(QLayout *parent, std::string property, std::string caption):
+        BooleanFilter(parent, property, caption) {}
     using BooleanFilter::BooleanFilter;
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
 };

@@ -44,6 +44,8 @@ double stod(const std::string& str);
 }
 #endif
 
+// visual studio ships with std::make_unique implementation
+#ifndef _MSC_VER
 namespace std {
 // to be added in C++14
 // source: http://herbsutter.com/gotw/_102/
@@ -53,3 +55,4 @@ std::unique_ptr<T> make_unique( Args&& ...args )
     return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
 }
 }
+#endif

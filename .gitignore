@@ -26,3 +26,13 @@ Makefile*
 # QtCreator
 
 *.autosave
+
+# Visual Studio-specific stuff
+*.sln
+*.sdf
+*.tss
+*.suo
+*.vcxproj*
+*_resource.rc
+[Dd]ebug/
+[Rr]elease/
