@@ -27,6 +27,7 @@
 #include <limits>
 
 #include "version.h"
+#include "porting.h"
 
 #ifdef CRASHRPT
 #include "CrashRpt.h"
@@ -49,7 +50,7 @@ int main(int argc, char *argv[])
 
     QsLogging::Logger& logger = QsLogging::Logger::instance();
     logger.setLoggingLevel(QsLogging::InfoLevel);
-    const QString sLogPath(QDir(a.applicationDirPath()).filePath("log.txt"));
+    const QString sLogPath(QDir(porting::UserDir()).filePath("log.txt"));
 
     QsLogging::DestinationPtr fileDestination(
         QsLogging::DestinationFactory::MakeFileDestination(sLogPath, true, 10 * 1024 * 1024, 0) );

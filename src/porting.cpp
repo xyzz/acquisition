@@ -20,16 +20,17 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QStandardPaths>
 #include <QString>
 
 // This namespace should contain platform-dependant functions.
 
 namespace porting {
 QString UserDir() {
-#ifdef __ANDROID__
-    return QDir::homePath();
-#else
+#ifdef PORTABLE
     return qApp->applicationDirPath();
+#else
+    return QStandardPaths::writableLocation(QStandardPaths::DataLocation);
 #endif
 }
 }
