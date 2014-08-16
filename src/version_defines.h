@@ -17,11 +17,16 @@
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "version.h"
-#include "version_defines.h"
+#pragma once
 
-const int VERSION_CODE = VER_CODE;
-const char VERSION_NAME[] = VER_FILEVERSION_STR;
+#define VER_CODE                    1
+#define VER_FILEVERSION             0,0,0,0
+#define VER_FILEVERSION_STR         "0.0\0"
 
-const char UPDATE_CHECK_URL[] = "http://xyz.is/acquisition/version.txt";
-const char UPDATE_DOWNLOAD_LOCATION[] = "https://github.com/xyzz/acquisition/releases";
+#define VER_PRODUCTVERSION          VER_FILEVERSION
+#define VER_PRODUCTVERSION_STR      VER_FILEVERSION_STR
+
+#define VER_FILEDESCRIPTION_STR     "Acquisition"
+#define VER_ORIGINALFILENAME_STR    "acquisition.exe"
+#define VER_INTERNALNAME_STR        VER_FILEDESCRIPTION_STR
+#define VER_PRODUCTNAME_STR         VER_FILEDESCRIPTION_STR

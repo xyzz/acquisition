@@ -64,7 +64,8 @@ HEADERS += \
     src/porting.h \
     src/bucket.h \
     src/itemlocation.h \
-    src/itemconstants.h
+    src/itemconstants.h \
+    src/version_defines.h
 
 FORMS += \
     forms/mainwindow.ui \
@@ -77,4 +78,4 @@ DEPENDPATH *= $${INCLUDEPATH}
 
 RESOURCES += resources.qrc
 
-win32:RC_ICONS += assets/icon.ico
+RC_FILE = resources.rc
