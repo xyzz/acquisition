@@ -26,8 +26,24 @@
 #include "QsLogDest.h"
 #include <limits>
 
+#include "version.h"
+
+#ifdef CRASHRPT
+#include "CrashRpt.h"
+#endif
+
 int main(int argc, char *argv[])
 {
+#ifdef CRASHRPT
+    CR_INSTALL_INFOW info;
+    memset(&info, 0, sizeof(CR_INSTALL_INFOW));
+    info.cb = sizeof(CR_INSTALL_INFOW);
+    info.pszAppName = L"Acquisition";
+    info.pszAppVersion = L"0.0";
+    info.pszUrl = L"https://xyz.is/acquisition/utils/crashrpt.php";
+    CrAutoInstallHelper cr_install_helper(&info);
+#endif
+
     QLocale::setDefault(QLocale::C);
     QApplication a(argc, argv);
 

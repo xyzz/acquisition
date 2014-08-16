@@ -38,7 +38,8 @@ SOURCES += \
     src/tabbuyoutsdialog.cpp \
     src/porting.cpp \
     src/bucket.cpp \
-    src/itemlocation.cpp
+    src/itemlocation.cpp \
+    src/version.cpp
 
 HEADERS += \
     src/item.h \
