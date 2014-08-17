@@ -128,6 +128,10 @@ void LoginDialog::OnLoginPageFinished() {
     QByteArray bytes = reply->readAll();
     std::string page(bytes.constData(), bytes.size());
     std::string needle = "name=\"hash\" value=\"";
+    if (page.find(needle) == std::string::npos) {
+        DisplayError("Failed to log in (can't extract form hash from page)");
+        return;
+    }
     std::string hash = page.substr(page.find(needle) + needle.size(), 32);
 
     QUrlQuery query;
