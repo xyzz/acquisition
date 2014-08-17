@@ -21,7 +21,7 @@
 #include "version_defines.h"
 
 const int VERSION_CODE = VER_CODE;
-const char VERSION_NAME[] = VER_FILEVERSION_STR;
+const char VERSION_NAME[] = VER_STR;
 
 const char UPDATE_CHECK_URL[] = "http://xyz.is/acquisition/version.txt";
 const char UPDATE_DOWNLOAD_LOCATION[] = "https://github.com/xyzz/acquisition/releases";

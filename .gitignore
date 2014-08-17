@@ -27,6 +27,8 @@ Makefile*
 
 *.autosave
 
+*.swp
+
 # Visual Studio-specific stuff
 *.sln
 *.sdf
@@ -36,3 +38,9 @@ Makefile*
 *_resource.rc
 [Dd]ebug/
 [Rr]elease/
+*.opensdf
+*.aps
+
+# deployment/installer
+deploy
+Output
