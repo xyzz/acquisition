@@ -1,0 +1,3 @@
+[submodule "redist"]
+	path = redist
+	url = https://github.com/xyzz/acquisition-redist.git
