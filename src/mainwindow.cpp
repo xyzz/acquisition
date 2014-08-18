@@ -134,6 +134,9 @@ void MainWindow::OnBuyoutChange() {
         ui->buyoutCurrencyComboBox->setEnabled(true);
         ui->buyoutValueLineEdit->setEnabled(true);
     }
+    // refresh treeView to immediately reflect price changes
+    ui->treeView->model()->layoutChanged();
+    ResizeTreeColumns();
 }
 
 void MainWindow::OnItemsManagerStatusUpdate(int fetched, int total, bool throttled) {
@@ -285,7 +288,7 @@ void MainWindow::InitializeSearchForm() {
 }
 
 void MainWindow::NewSearch() {
-    current_search_ = new Search(QString("Search %1").arg(++search_count_).toStdString(), filters_);
+    current_search_ = new Search(this, QString("Search %1").arg(++search_count_).toStdString(), filters_);
     tab_bar_->setTabText(tab_bar_->count() - 1, current_search_->GetCaption());
     tab_bar_->addTab("+");
     // this can't be done in ctor because it'll call OnSearchFormChange slot

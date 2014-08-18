@@ -24,6 +24,8 @@
 
 #include "item.h"
 
+class BuyoutManager;
+
 class Column {
 public:
     virtual std::string name() = 0;
@@ -83,4 +85,13 @@ public:
     QColor color(const Item &item);
 private:
     size_t index_;
+};
+
+class PriceColumn : public Column {
+public:
+    explicit PriceColumn(BuyoutManager *bo_manager);
+    std::string name();
+    std::string value(const Item &item);
+private:
+    BuyoutManager *bo_manager_;
 };

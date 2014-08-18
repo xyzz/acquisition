@@ -21,6 +21,8 @@
 
 #include <cmath>
 
+#include "buyoutmanager.h"
+
 const double EPS = 1e-6;
 
 QColor Column::color(const Item & /* item */) {
@@ -147,4 +149,19 @@ QColor ElementalDamageColumn::color(const Item &item) {
         }
     }
     return QColor();
+}
+
+PriceColumn::PriceColumn(BuyoutManager *bo_manager):
+    bo_manager_(bo_manager)
+{}
+
+std::string PriceColumn::name() {
+    return "Price";
+}
+
+std::string PriceColumn::value(const Item &item) {
+    if (!bo_manager_->Exists(item))
+        return "";
+    const Buyout &bo = bo_manager_->Get(item);
+    return BuyoutTypeAsTag[bo.type] + " " + QString::number(bo.value).toStdString() + " " + CurrencyAsTag[bo.currency];
 }
