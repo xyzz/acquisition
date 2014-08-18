@@ -43,6 +43,8 @@ public:
     const std::vector<Column*> &columns() const { return columns_; }
     ItemsModel *model() const { return model_; }
     const std::vector<std::unique_ptr<Bucket>> &buckets() const { return buckets_; }
+    QString GetCaption();
+    int GetItemsCount();
 private:
     std::vector<FilterData*> filters_;
     std::vector<Column*> columns_;

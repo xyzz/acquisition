@@ -102,3 +102,14 @@ void Search::FilterItems(const Items &items) {
     for (auto &element : bucketed_tabs)
         buckets_.push_back(std::move(element.second));
 }
+
+QString Search::GetCaption() {
+    return QString("%1 [%2]").arg(caption_.c_str()).arg(GetItemsCount());
+}
+
+int Search::GetItemsCount() {
+    int count = 0;
+    for (auto &item : items_)
+        count += item->count();
+    return count;
+}

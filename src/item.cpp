@@ -102,6 +102,15 @@ Item::Item(const Json::Value &json) :
         unique += std::to_string(socket["group"].asInt()) + "~" + socket["attr"].asString() + "~";
 
     hash_ = Util::Md5(unique);
+
+    count_ = 1;
+    if (properties_.find("Stack Size") != properties_.end()) {
+        std::string size = properties_["Stack Size"];
+        if (size.find("/") != std::string::npos) {
+            size = size.substr(0, size.find("/"));
+            count_ = std::stoi(size);
+        }
+    }
 }
 
 std::string Item::UniqueProperties(const std::string &name) {

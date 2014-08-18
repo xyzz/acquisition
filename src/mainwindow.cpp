@@ -168,6 +168,9 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e) {
                 if (tab_bar_->currentIndex() == searches_.size())
                     tab_bar_->setCurrentIndex(searches_.size() - 1);
                 OnTabChange(tab_bar_->currentIndex());
+                // that's because after removeTab text will be set to previous search's caption
+                // which is because my way of dealing with "+" tab is hacky and should be replaced by something sane
+                tab_bar_->setTabText(tab_bar_->count() - 1, "+");
             }
             return true;
         }
@@ -206,6 +209,7 @@ void MainWindow::OnSearchFormChange() {
     connect(ui->treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(ResizeTreeColumns()));
 
     ResizeTreeColumns();
+    tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
 }
 
 void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /* previous */) {
@@ -281,9 +285,9 @@ void MainWindow::InitializeSearchForm() {
 }
 
 void MainWindow::NewSearch() {
-    tab_bar_->setTabText(tab_bar_->count() - 1, QString("Search %1").arg(++search_count_));
+    current_search_ = new Search(QString("Search %1").arg(++search_count_).toStdString(), filters_);
+    tab_bar_->setTabText(tab_bar_->count() - 1, current_search_->GetCaption());
     tab_bar_->addTab("+");
-    current_search_ = new Search("Search 1", filters_);
     // this can't be done in ctor because it'll call OnSearchFormChange slot
     // and remove all previous search data
     current_search_->ResetForm();
@@ -491,8 +495,11 @@ void MainWindow::UpdateCurrentItemBuyout() {
 void MainWindow::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {
     items_ = items;
     tabs_ = tabs;
-    for (auto search : searches_)
+    int tab = 0;
+    for (auto search : searches_) {
         search->FilterItems(items_);
+        tab_bar_->setTabText(tab++, search->GetCaption());
+    }
     OnSearchFormChange();
     shop_->Update();
 }

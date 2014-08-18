@@ -55,6 +55,7 @@ public:
     int sockets_b() const { return sockets_b_; }
     int sockets_w() const { return sockets_w_; }
     const ItemLocation &location() const { return location_; }
+    int count() const { return count_; };
 private:
     std::string UniqueProperties(const std::string &name);
 
@@ -74,6 +75,7 @@ private:
     int sockets_, links_;
     int sockets_r_, sockets_g_, sockets_b_, sockets_w_;
     std::map<std::string, int> requirements_;
+    int count_;
 };
 
 typedef std::vector<std::shared_ptr<Item>> Items;
