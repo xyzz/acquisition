@@ -31,7 +31,7 @@ DataManager::DataManager(MainWindow *app, const std::string &directory):
     app_(app)
 {
     if (!QDir(directory.c_str()).exists())
-        QDir().mkdir(directory.c_str());
+        QDir().mkpath(directory.c_str());
     std::string key = app_->email() + "|" + app->league();
     filename_ = QString(QCryptographicHash::hash(key.c_str(), QCryptographicHash::Md5).toHex()).toUtf8().constData();
     filename_ = directory + "/" + filename_;

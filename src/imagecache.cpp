@@ -32,7 +32,7 @@ ImageCache::ImageCache(MainWindow *app, const std::string &directory):
     directory_(directory)
 {
     if (!QDir(directory_.c_str()).exists())
-        QDir().mkdir(directory_.c_str());
+        QDir().mkpath(directory_.c_str());
 }
 
 bool ImageCache::Exists(const std::string &url) {
