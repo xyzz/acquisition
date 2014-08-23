@@ -168,7 +168,8 @@ void ItemsManager::OnFirstTabReceived() {
             location.set_type(ItemLocationType::STASH);
             location.set_tab_id(index);
             location.set_tab_label(label);
-            QueueRequest(MakeTabRequest(index), location);
+            if (!tab["hidden"].asBool())
+                QueueRequest(MakeTabRequest(index), location);
         }
         ++index;
     }
@@ -177,7 +178,8 @@ void ItemsManager::OnFirstTabReceived() {
     first_tab_location.set_type(ItemLocationType::STASH);
     first_tab_location.set_tab_id(0);
     first_tab_location.set_tab_label(tabs_[0]);
-    ParseItems(root["items"], first_tab_location);
+    if (!root["tabs"][0]["hidden"].asBool())
+        ParseItems(root["items"], first_tab_location);
 
     total_needed_ = queue_.size() + 1;
     total_completed_ = 1;
