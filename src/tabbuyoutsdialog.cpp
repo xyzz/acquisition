@@ -30,6 +30,7 @@
 #include "mainwindow.h"
 #include "util.h"
 #include "buyoutmanager.h"
+#include "shop.h"
 
 TabBuyoutsDialog::TabBuyoutsDialog(QWidget *parent, MainWindow *app) :
     QDialog(parent),
@@ -48,6 +49,7 @@ TabBuyoutsDialog::~TabBuyoutsDialog() {
 
 void TabBuyoutsDialog::on_pushButton_clicked() {
     app_->buyout_manager()->Save();
+    app_->shop()->ExpireShopData();
     hide();
 }
 
@@ -100,7 +102,7 @@ void TabBuyoutsDialog::Populate() {
                 signal_mapper_, SLOT(map()));
 
         if (app_->buyout_manager()->ExistsTab(tab)) {
-            Buyout bo = app_->buyout_manager()->GetTab(tab);
+            Buyout bo = app_->buyout_manager()->GetTab("stash:" + tab);
             buyout_type_combobox->setCurrentIndex(bo.type);
             buyout_currency_combobox->setCurrentIndex(bo.currency);
             buyout_value->setText(QString::number(bo.value));
@@ -136,7 +138,7 @@ void TabBuyoutsDialog::OnBuyoutChanged(int row) {
         bo.type = static_cast<BuyoutType>(buyout_type_combobox->currentIndex());
         bo.currency = static_cast<Currency>(buyout_currency_combobox->currentIndex());
         bo.value = buyout_value->text().toDouble();
-        app_->buyout_manager()->SetTab(tab_titles_[row], bo);
+        app_->buyout_manager()->SetTab("stash:" + tab_titles_[row], bo);
         break;
     }
 }

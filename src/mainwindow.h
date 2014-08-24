@@ -64,6 +64,7 @@ public:
     BuyoutManager *buyout_manager() const { return buyout_manager_; }
     QNetworkAccessManager *logged_in_nm() const { return logged_in_nm_; }
     const std::vector<std::string> &tabs() const { return tabs_; }
+    Shop *shop() const { return shop_; }
 public slots:
     void OnTreeChange(const QModelIndex &index, const QModelIndex &prev);
     void OnSearchFormChange();
