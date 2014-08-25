@@ -49,6 +49,8 @@
 #include "util.h"
 #include "porting.h"
 
+const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
+
 MainWindow::MainWindow(QWidget *parent, QNetworkAccessManager *login_manager,
                        const std::string &league, const std::string &email) :
     QMainWindow(parent),
@@ -185,15 +187,17 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e) {
 }
 
 void MainWindow::OnImageFetched(QNetworkReply *reply) {
-    std::string url = reply->url().toString().toUtf8().constData();
-    if (reply->error())
+    std::string url = reply->url().toString().toStdString();
+    if (reply->error()) {
+        QLOG_WARN() << "Failed to download item image," << url.c_str();
         return;
+    }
     QImageReader image_reader(reply);
     QImage image = image_reader.read();
 
     image_cache_->Set(url, image);
 
-    if (url == current_item_->icon())
+    if (url == current_item_->icon() || url == POE_WEBCDN + current_item_->icon())
         UpdateCurrentItemIcon(image);
 }
 
@@ -317,11 +321,13 @@ void MainWindow::UpdateCurrentItem() {
     UpdateCurrentItemProperties();
     UpdateCurrentItemMinimap();
 
-    if (!image_cache_->Exists(current_item_->icon())) {
-        image_network_manager_->get(QNetworkRequest(QUrl(current_item_->icon().c_str())));
-    } else {
-        UpdateCurrentItemIcon(image_cache_->Get(current_item_->icon()));
-    }
+    std::string icon = current_item_->icon();
+    if (icon.size() && icon[0] == '/')
+        icon = POE_WEBCDN + icon;
+    if (!image_cache_->Exists(icon))
+        image_network_manager_->get(QNetworkRequest(QUrl(icon.c_str())));
+    else
+        UpdateCurrentItemIcon(image_cache_->Get(icon));
 
     ui->locationLabel->setText(current_item_->location().GetHeader().c_str());
 
