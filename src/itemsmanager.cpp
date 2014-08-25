@@ -37,7 +37,6 @@
 const char *POE_STASH_ITEMS_URL = "https://www.pathofexile.com/character-window/get-stash-items";
 const char *POE_ITEMS_URL = "https://www.pathofexile.com/character-window/get-items";
 const char *POE_GET_CHARACTERS_URL = "https://www.pathofexile.com/character-window/get-characters";
-const int DEFAULT_AUTO_UPDATE_INTERVAL = 30;
 
 ItemsManager::ItemsManager(MainWindow *app):
     app_(app),
@@ -54,8 +53,9 @@ ItemsManager::~ItemsManager() {
 }
 
 void ItemsManager::Init() {
-    SetAutoUpdateInterval(DEFAULT_AUTO_UPDATE_INTERVAL);
-    LoadSavedData();
+    auto_update_interval_ = std::stoi(app_->data_manager()->Get("autoupdate_interval", "30"));
+    auto_update_ = static_cast<bool>(std::stoi(app_->data_manager()->Get("autoupdate")), "1");
+    SetAutoUpdateInterval(auto_update_interval_);
     connect(auto_update_timer_, SIGNAL(timeout()), this, SLOT(OnAutoRefreshTimer()));
 }
 
@@ -269,6 +269,7 @@ void ItemsManager::OnTabReceived(int request_id) {
 }
 
 void ItemsManager::SetAutoUpdate(bool update) {
+    app_->data_manager()->Set("autoupdate", std::to_string(static_cast<int>(update)));
     auto_update_ = update;
     if (!auto_update_)
         auto_update_timer_->stop();
@@ -278,6 +279,7 @@ void ItemsManager::SetAutoUpdate(bool update) {
 }
 
 void ItemsManager::SetAutoUpdateInterval(int minutes) {
+    app_->data_manager()->Set("autoupdate_interval", std::to_string(minutes));
     auto_update_interval_ = minutes;
     if (auto_update_)
         auto_update_timer_->start(auto_update_interval_ * 60 * 1000);

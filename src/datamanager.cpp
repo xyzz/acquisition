@@ -44,12 +44,12 @@ DataManager::DataManager(MainWindow *app, const std::string &directory):
     }
 }
 
-std::string DataManager::Get(const std::string &key) {
+std::string DataManager::Get(const std::string &key, const std::string &default) {
     std::string query = "SELECT value FROM data WHERE key = ?";
     sqlite3_stmt *stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
     sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
-    std::string result;
+    std::string result(default);
     if (sqlite3_step(stmt) == SQLITE_ROW)
         result = std::string(static_cast<const char*>(sqlite3_column_blob(stmt, 0)), sqlite3_column_bytes(stmt, 0));
     sqlite3_finalize(stmt);

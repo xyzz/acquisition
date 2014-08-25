@@ -29,7 +29,7 @@ public:
     DataManager(MainWindow *app, const std::string &directory_);
     ~DataManager();
     void Set(const std::string &key, const std::string &value);
-    std::string Get(const std::string &key);
+    std::string Get(const std::string &key, const std::string &default="");
 private:
     MainWindow *app_;
     std::string email_;

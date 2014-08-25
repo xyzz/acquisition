@@ -57,9 +57,11 @@ public:
     ItemsManager& operator=(const ItemsManager&) = delete;
     void Init();
     void Update();
+    void LoadSavedData();
     void SetAutoUpdateInterval(int minutes);
     void SetAutoUpdate(bool update);
     int auto_update_interval() const { return auto_update_interval_; }
+    bool auto_update() const { return auto_update_; }
 public slots:
     void OnFirstTabReceived();
     void OnTabReceived(int index);
@@ -77,7 +79,6 @@ signals:
     void StatusUpdate(int fetched, int total, bool throttled);
 private:
     void ParseItems(const Json::Value &root, const ItemLocation &location);
-    void LoadSavedData();
 
     QNetworkRequest MakeTabRequest(int tab_index, bool tabs=false);
     QNetworkRequest MakeCharacterRequest(const std::string &name);

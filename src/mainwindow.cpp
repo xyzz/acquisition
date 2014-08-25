@@ -70,6 +70,8 @@ MainWindow::MainWindow(QWidget *parent, QNetworkAccessManager *login_manager,
     image_cache_ = new ImageCache(this, root_dir + "/cache");
     buyout_manager_ = new BuyoutManager(this);
     shop_ = new Shop(this);
+    items_manager_ = new ItemsManager(this);
+    items_manager_->Init();
 
     InitializeUi();
     InitializeSearchForm();
@@ -79,12 +81,11 @@ MainWindow::MainWindow(QWidget *parent, QNetworkAccessManager *login_manager,
     connect(image_network_manager_, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(OnImageFetched(QNetworkReply*)));
 
-    items_manager_ = new ItemsManager(this);
     connect(items_manager_, SIGNAL(ItemsRefreshed(Items,std::vector<std::string>)),
             this, SLOT(OnItemsRefreshed(Items,std::vector<std::string>)));
     connect(items_manager_, SIGNAL(StatusUpdate(int, int, bool)),
             this, SLOT(OnItemsManagerStatusUpdate(int, int, bool)));
-    items_manager_->Init();
+    items_manager_->LoadSavedData();
     items_manager_->Update();
 }
 
@@ -112,6 +113,8 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutCurrencyComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutTypeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutValueLineEdit, SIGNAL(textChanged(QString)), this, SLOT(OnBuyoutChange()));
+
+    ui->actionAutomatically_refresh_items->setChecked(items_manager_->auto_update());
 }
 
 void MainWindow::ResizeTreeColumns() {
