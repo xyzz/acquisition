@@ -39,4 +39,6 @@ int RGBWidth();
 int GroupWidth();
 
 void ParseJson(QNetworkReply *reply, Json::Value *root);
+std::string GetCsrfToken(const std::string &page, const std::string &name);
+std::string FindTextBetween(const std::string &page, const std::string &left, const std::string &right);
 }

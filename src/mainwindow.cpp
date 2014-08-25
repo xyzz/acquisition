@@ -117,6 +117,7 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutValueLineEdit, SIGNAL(textChanged(QString)), this, SLOT(OnBuyoutChange()));
 
     ui->actionAutomatically_refresh_items->setChecked(items_manager_->auto_update());
+    UpdateShopMenu();
 }
 
 void MainWindow::ResizeTreeColumns() {
@@ -528,8 +529,18 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_actionForum_shop_thread_triggered() {
-    QString thread = QInputDialog::getText(this, "[NOT IMPLEMENTED] Shop thread", "Enter thread number");
-    shop_->SetThread(thread.toUtf8().constData());
+    QString thread = QInputDialog::getText(this, "Shop thread", "Enter thread number", QLineEdit::Normal,
+        shop_->thread().c_str());
+    shop_->SetThread(thread.toStdString());
+    UpdateShopMenu();
+}
+
+void MainWindow::UpdateShopMenu() {
+    std::string title = "Forum shop thread...";
+    if (!shop_->thread().empty())
+        title += " [" + shop_->thread() + "]";
+    ui->actionForum_shop_thread->setText(title.c_str());
+    ui->actionAutomatically_update_shop->setChecked(shop_->auto_update());
 }
 
 void MainWindow::on_actionCopy_shop_data_to_clipboard_triggered() {
@@ -554,4 +565,8 @@ void MainWindow::on_actionRefresh_triggered() {
 
 void MainWindow::on_actionAutomatically_refresh_items_triggered() {
     items_manager_->SetAutoUpdate(ui->actionAutomatically_refresh_items->isChecked());
+}
+
+void MainWindow::on_actionUpdate_shop_triggered() {
+    shop_->SubmitShopToForum();
 }

@@ -118,3 +118,18 @@ void Util::ParseJson(QNetworkReply *reply, Json::Value *root) {
     Json::Reader reader;
     reader.parse(json, *root);
 }
+
+std::string Util::GetCsrfToken(const std::string &page, const std::string &name) {
+    std::string needle = "name=\"" + name + "\" value=\"";
+    if (page.find(needle) == std::string::npos)
+        return "";
+    return page.substr(page.find(needle) + needle.size(), 32);
+}
+
+std::string Util::FindTextBetween(const std::string &page, const std::string &left, const std::string &right) {
+    int first = page.find(left);
+    int last = page.find(right);
+    if (first == std::string::npos || last == std::string::npos || first > last)
+        return "";
+    return page.substr(first + left.size(), last - first - left.size());
+}

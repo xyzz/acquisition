@@ -66,6 +66,14 @@ void DataManager::Set(const std::string &key, const std::string &value) {
     sqlite3_finalize(stmt);
 }
 
+void DataManager::SetBool(const std::string &key, bool value) {
+    Set(key, std::to_string(static_cast<int>(value)));
+}
+
+bool DataManager::GetBool(const std::string &key, bool default) {
+    return static_cast<bool>(std::stoi(Get(key, default ? "1" : "0")));
+}
+
 DataManager::~DataManager() {
     sqlite3_close(db_);
 }

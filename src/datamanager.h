@@ -30,6 +30,8 @@ public:
     ~DataManager();
     void Set(const std::string &key, const std::string &value);
     std::string Get(const std::string &key, const std::string &default="");
+    void SetBool(const std::string &key, bool value);
+    bool GetBool(const std::string &key, bool default = false);
 private:
     MainWindow *app_;
     std::string email_;

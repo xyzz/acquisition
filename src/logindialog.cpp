@@ -38,6 +38,7 @@
 #include "mainwindow.h"
 #include "version.h"
 #include "porting.h"
+#include "util.h"
 
 const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
@@ -127,12 +128,11 @@ void LoginDialog::OnLoginPageFinished() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
     std::string page(bytes.constData(), bytes.size());
-    std::string needle = "name=\"hash\" value=\"";
-    if (page.find(needle) == std::string::npos) {
+    std::string hash = Util::GetCsrfToken(page, "hash");
+    if (hash.empty()) {
         DisplayError("Failed to log in (can't extract form hash from page)");
         return;
     }
-    std::string hash = page.substr(page.find(needle) + needle.size(), 32);
 
     QUrlQuery query;
     query.addQueryItem("login_email", ui->emailLineEdit->text());

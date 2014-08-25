@@ -32,6 +32,7 @@
 
 #include "mainwindow.h"
 #include "datamanager.h"
+#include "shop.h"
 #include "util.h"
 
 const char *POE_STASH_ITEMS_URL = "https://www.pathofexile.com/character-window/get-stash-items";
@@ -54,7 +55,7 @@ ItemsManager::~ItemsManager() {
 
 void ItemsManager::Init() {
     auto_update_interval_ = std::stoi(app_->data_manager()->Get("autoupdate_interval", "30"));
-    auto_update_ = static_cast<bool>(std::stoi(app_->data_manager()->Get("autoupdate")), "1");
+    auto_update_ = app_->data_manager()->GetBool("autoupdate", true);
     SetAutoUpdateInterval(auto_update_interval_);
     connect(auto_update_timer_, SIGNAL(timeout()), this, SLOT(OnAutoRefreshTimer()));
 }
@@ -263,13 +264,16 @@ void ItemsManager::OnTabReceived(int request_id) {
         app_->data_manager()->Set("tabs", writer.write(tabs_as_json_));
 
         updating_ = false;
+
+        if (app_->shop()->auto_update())
+            app_->shop()->SubmitShopToForum();
     }
 
     reply.network_reply->deleteLater();
 }
 
 void ItemsManager::SetAutoUpdate(bool update) {
-    app_->data_manager()->Set("autoupdate", std::to_string(static_cast<int>(update)));
+    app_->data_manager()->SetBool("autoupdate", update);
     auto_update_ = update;
     if (!auto_update_)
         auto_update_timer_->stop();

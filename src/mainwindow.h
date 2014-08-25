@@ -81,6 +81,7 @@ private slots:
     void on_actionItems_refresh_interval_triggered();
     void on_actionRefresh_triggered();
     void on_actionAutomatically_refresh_items_triggered();
+    void on_actionUpdate_shop_triggered();
 
 private:
     void UpdateCurrentItem();
@@ -93,6 +94,7 @@ private:
     void InitializeUi();
     void AddSearchGroup(FlowLayout *layout, std::string name);
     bool eventFilter(QObject *o, QEvent *e);
+    void UpdateShopMenu();
     Ui::MainWindow *ui;
     Items items_;
     std::vector<std::string> tabs_;

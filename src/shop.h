@@ -19,21 +19,31 @@
 
 #pragma once
 
+#include <QObject>
 #include <string>
 
 class MainWindow;
 
-class Shop {
+class Shop : public QObject {
+    Q_OBJECT
 public:
     explicit Shop(MainWindow *app);
     void SetThread(const std::string &thread);
-    void Update(bool submit=false);
+    void SetAutoUpdate(bool update);
+    void Update();
     void CopyToClipboard();
     void ExpireShopData();
-private:
     void SubmitShopToForum();
+    bool auto_update() const { return auto_update_; }
+    const std::string &thread() const { return thread_; }
+public slots:
+    void OnEditPageFinished();
+    void OnShopSubmitted();
+private:
+    std::string ShopEditUrl();
     MainWindow *app_;
     std::string thread_;
     std::string shop_data_;
     bool shop_data_outdated_;
+    bool auto_update_;
 };

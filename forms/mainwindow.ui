@@ -145,6 +145,8 @@
     <addaction name="actionTab_buyouts"/>
     <addaction name="actionForum_shop_thread"/>
     <addaction name="actionCopy_shop_data_to_clipboard"/>
+    <addaction name="actionUpdate_shop"/>
+    <addaction name="actionAutomatically_update_shop_2"/>
    </widget>
    <widget class="QMenu" name="menuItems">
     <property name="title">
@@ -200,6 +202,22 @@
   <action name="actionRefresh">
    <property name="text">
     <string>Refresh</string>
+   </property>
+  </action>
+  <action name="actionUpdate_shop">
+   <property name="text">
+    <string>Update shop thread at forums</string>
+   </property>
+  </action>
+  <action name="actionAutomatically_update_shop_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Automatically update shop</string>
    </property>
   </action>
  </widget>
