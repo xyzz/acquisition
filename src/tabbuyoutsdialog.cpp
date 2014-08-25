@@ -101,7 +101,7 @@ void TabBuyoutsDialog::Populate() {
         connect(buyout_value, SIGNAL(textChanged(QString)),
                 signal_mapper_, SLOT(map()));
 
-        if (app_->buyout_manager()->ExistsTab(tab)) {
+        if (app_->buyout_manager()->ExistsTab("stash:" + tab)) {
             Buyout bo = app_->buyout_manager()->GetTab("stash:" + tab);
             buyout_type_combobox->setCurrentIndex(bo.type);
             buyout_currency_combobox->setCurrentIndex(bo.currency);
@@ -129,7 +129,7 @@ void TabBuyoutsDialog::OnBuyoutChanged(int row) {
         buyout_currency_combobox->setEnabled(false);
         buyout_value->setText("");
         buyout_value->setEnabled(false);
-        app_->buyout_manager()->DeleteTab(tab_titles_[row]);
+        app_->buyout_manager()->DeleteTab("stash:" + tab_titles_[row]);
         break;
     default:
         buyout_currency_combobox->setEnabled(true);
