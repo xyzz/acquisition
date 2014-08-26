@@ -65,6 +65,7 @@ void ItemsManager::Update() {
         QLOG_WARN() << "ItemsManager::Update called while updating";
         return;
     }
+    QLOG_INFO() << "Updating stash tabs";
     updating_ = true;
     // remove all mappings (from previous requests)
     delete signal_mapper_;
@@ -102,6 +103,7 @@ QNetworkRequest ItemsManager::MakeCharacterRequest(const std::string &name) {
 }
 
 void ItemsManager::QueueRequest(const QNetworkRequest &request, const ItemLocation &location) {
+    QLOG_INFO() << "Queued" << location.GetHeader().c_str();
     ItemsRequest items_request;
     items_request.network_request = request;
     items_request.id = queue_id_++;
@@ -113,6 +115,8 @@ void ItemsManager::OnCharacterListReceived() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     Json::Value root;
     Util::ParseJson(reply, &root);
+
+    QLOG_INFO() << "Received character list, there are" << root.size() << "characters";
 
     for (auto &character : root)
         if (character["league"].asString() == app_->league()) {
@@ -130,6 +134,7 @@ void ItemsManager::OnCharacterListReceived() {
 }
 
 void ItemsManager::FetchItems(int limit) {
+    std::string tab_titles;
     int count = std::min(limit, static_cast<int>(queue_.size()));
     for (int i = 0; i < count; ++i) {
         ItemsRequest request = queue_.front();
@@ -143,7 +148,10 @@ void ItemsManager::FetchItems(int limit) {
         reply.network_reply = fetched;
         reply.request = request;
         replies_[request.id] = reply;
+
+        tab_titles += request.location.GetHeader() + " ";
     }
+    QLOG_INFO() << "Created" << count << "requests:" << tab_titles.c_str();
     requests_needed_ = count;
     requests_completed_ = 0;
 }
@@ -161,6 +169,9 @@ void ItemsManager::OnFirstTabReceived() {
     }
     tabs_.clear();
     tabs_as_json_ = root["tabs"];
+
+    QLOG_INFO() << "Received tabs list, there are" << tabs_as_json_.size() << "tabs";
+
     for (auto &tab : root["tabs"]) {
         std::string label = tab["n"].asString();
         tabs_.push_back(label);
@@ -232,6 +243,7 @@ void ItemsManager::OnTabReceived(int request_id) {
     }
 
     ItemsReply reply = replies_[request_id];
+    QLOG_INFO() << "Received a reply for" << reply.request.location.GetHeader().c_str();
     Json::Value root;
     Util::ParseJson(reply.network_reply, &root);
 
@@ -264,6 +276,7 @@ void ItemsManager::OnTabReceived(int request_id) {
         app_->data_manager()->Set("tabs", writer.write(tabs_as_json_));
 
         updating_ = false;
+        QLOG_INFO() << "Finished updating stash.";
 
         if (app_->shop()->auto_update())
             app_->shop()->SubmitShopToForum();
