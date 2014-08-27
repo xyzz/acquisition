@@ -167,6 +167,11 @@ void ItemsManager::OnFirstTabReceived() {
         updating_ = false;
         return;
     }
+    if (!root.isMember("tabs") || root["tabs"].size() == 0) {
+        QLOG_WARN() << "There are no tabs, this should not happen, bailing out.";
+        updating_ = false;
+        return;
+    }
     tabs_.clear();
     tabs_as_json_ = root["tabs"];
 
