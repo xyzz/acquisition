@@ -29,9 +29,9 @@ public:
     DataManager(MainWindow *app, const std::string &directory_);
     ~DataManager();
     void Set(const std::string &key, const std::string &value);
-    std::string Get(const std::string &key, const std::string &default="");
+    std::string Get(const std::string &key, const std::string &default_value = "");
     void SetBool(const std::string &key, bool value);
-    bool GetBool(const std::string &key, bool default = false);
+    bool GetBool(const std::string &key, bool default_value = false);
 private:
     MainWindow *app_;
     std::string email_;
