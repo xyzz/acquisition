@@ -64,7 +64,6 @@ public slots:
 private slots:
     void on_actionForum_shop_thread_triggered();
     void on_actionCopy_shop_data_to_clipboard_triggered();
-    void on_actionTab_buyouts_triggered();
     void on_actionItems_refresh_interval_triggered();
     void on_actionRefresh_triggered();
     void on_actionAutomatically_refresh_items_triggered();

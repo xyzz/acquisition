@@ -576,9 +576,6 @@ void MainWindow::on_actionCopy_shop_data_to_clipboard_triggered() {
     app_->shop()->CopyToClipboard();
 }
 
-void MainWindow::on_actionTab_buyouts_triggered() {
-}
-
 void MainWindow::on_actionItems_refresh_interval_triggered() {
     int interval = QInputDialog::getText(this, "Auto refresh items", "Refresh items every X minutes",
         QLineEdit::Normal, QString::number(app_->items_manager()->auto_update_interval())).toInt();
