@@ -43,6 +43,7 @@
 #include "filters.h"
 #include "flowlayout.h"
 #include "item.h"
+#include "itemlocation.h"
 #include "itemsmanager.h"
 #include "porting.h"
 #include "shop.h"
@@ -100,9 +101,9 @@ void MainWindow::InitializeUi() {
     Util::PopulateBuyoutTypeComboBox(ui->buyoutTypeComboBox);
     Util::PopulateBuyoutCurrencyComboBox(ui->buyoutCurrencyComboBox);
 
-    connect(ui->buyoutCurrencyComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(OnBuyoutChange()));
-    connect(ui->buyoutTypeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(OnBuyoutChange()));
-    connect(ui->buyoutValueLineEdit, SIGNAL(textChanged(QString)), this, SLOT(OnBuyoutChange()));
+    connect(ui->buyoutCurrencyComboBox, SIGNAL(activated(int)), this, SLOT(OnBuyoutChange()));
+    connect(ui->buyoutTypeComboBox, SIGNAL(activated(int)), this, SLOT(OnBuyoutChange()));
+    connect(ui->buyoutValueLineEdit, SIGNAL(textEdited(QString)), this, SLOT(OnBuyoutChange()));
 
     ui->actionAutomatically_refresh_items->setChecked(app_->items_manager()->auto_update());
     UpdateShopMenu();
@@ -115,18 +116,31 @@ void MainWindow::ResizeTreeColumns() {
 
 void MainWindow::OnBuyoutChange() {
     app_->shop()->ExpireShopData();
+
     Buyout bo;
     bo.type = static_cast<BuyoutType>(ui->buyoutTypeComboBox->currentIndex());
     bo.currency = static_cast<Currency>(ui->buyoutCurrencyComboBox->currentIndex());
     bo.value = ui->buyoutValueLineEdit->text().toDouble();
+
     if (bo.type == BUYOUT_TYPE_NONE) {
-        app_->buyout_manager()->Delete(*current_item_);
         ui->buyoutCurrencyComboBox->setEnabled(false);
         ui->buyoutValueLineEdit->setEnabled(false);
     } else {
-        app_->buyout_manager()->Set(*current_item_, bo);
         ui->buyoutCurrencyComboBox->setEnabled(true);
         ui->buyoutValueLineEdit->setEnabled(true);
+    }
+
+    if (current_item_) {
+        if (bo.type == BUYOUT_TYPE_NONE)
+            app_->buyout_manager()->Delete(*current_item_);
+        else
+            app_->buyout_manager()->Set(*current_item_, bo);
+    } else {
+        std::string tab = current_bucket_.location().GetUniqueHash();
+        if (bo.type == BUYOUT_TYPE_NONE)
+            app_->buyout_manager()->DeleteTab(tab);
+        else
+            app_->buyout_manager()->SetTab(tab, bo);
     }
     // refresh treeView to immediately reflect price changes
     ui->treeView->model()->layoutChanged();
@@ -212,11 +226,16 @@ void MainWindow::OnSearchFormChange() {
 }
 
 void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /* previous */) {
-    // clicked on a bucket
-    if (!current.parent().isValid())
-        return;
-    current_item_ = current_search_->buckets()[current.parent().row()]->items()[current.row()];
-    UpdateCurrentItem();
+    if (!current.parent().isValid()) {
+        // clicked on a bucket
+        current_item_ = nullptr;
+        current_bucket_ = *current_search_->buckets()[current.row()];
+        UpdateCurrentBucket();
+    } else {
+        current_item_ = current_search_->buckets()[current.parent().row()]->items()[current.row()];
+        UpdateCurrentItem();
+    }
+    UpdateCurrentBuyout();
 }
 
 void MainWindow::OnTabChange(int index) {
@@ -294,7 +313,24 @@ void MainWindow::NewSearch() {
     OnSearchFormChange();
 }
 
+void MainWindow::UpdateCurrentBucket() {
+    ui->typeLineLabel->hide();
+    ui->imageLabel->hide();
+    ui->minimapLabel->hide();
+    ui->locationLabel->hide();
+    ui->propertiesLabel->hide();
+
+    ui->nameLabel->setText(current_bucket_.location().GetHeader().c_str());
+    ui->nameLabel->show();
+}
+
 void MainWindow::UpdateCurrentItem() {
+    ui->typeLineLabel->show();
+    ui->imageLabel->show();
+    ui->minimapLabel->show();
+    ui->locationLabel->show();
+    ui->propertiesLabel->show();
+
     app_->buyout_manager()->Save();
     ui->typeLineLabel->setText(current_item_->typeLine().c_str());
     if (current_item_->name().empty())
@@ -319,8 +355,6 @@ void MainWindow::UpdateCurrentItem() {
         UpdateCurrentItemIcon(image_cache_->Get(icon));
 
     ui->locationLabel->setText(current_item_->location().GetHeader().c_str());
-
-    UpdateCurrentItemBuyout();
 }
 
 void MainWindow::UpdateCurrentItemProperties() {
@@ -477,19 +511,33 @@ void MainWindow::UpdateCurrentItemMinimap() {
     ui->minimapLabel->setPixmap(pixmap);
 }
 
-void MainWindow::UpdateCurrentItemBuyout() {
-    if (!app_->buyout_manager()->Exists(*current_item_)) {
-        ui->buyoutTypeComboBox->setCurrentIndex(0);
-        ui->buyoutCurrencyComboBox->setEnabled(false);
-        ui->buyoutValueLineEdit->setText("");
-        ui->buyoutValueLineEdit->setEnabled(false);
+void MainWindow::ResetBuyoutWidgets() {
+    ui->buyoutTypeComboBox->setCurrentIndex(0);
+    ui->buyoutCurrencyComboBox->setEnabled(false);
+    ui->buyoutValueLineEdit->setText("");
+    ui->buyoutValueLineEdit->setEnabled(false);
+}
+
+void MainWindow::UpdateBuyoutWidgets(const Buyout &bo) {
+    ui->buyoutCurrencyComboBox->setEnabled(true);
+    ui->buyoutValueLineEdit->setEnabled(true);
+    ui->buyoutTypeComboBox->setCurrentIndex(bo.type);
+    ui->buyoutCurrencyComboBox->setCurrentIndex(bo.currency);
+    ui->buyoutValueLineEdit->setText(QString::number(bo.value));
+}
+
+void MainWindow::UpdateCurrentBuyout() {
+    if (current_item_) {
+        if (!app_->buyout_manager()->Exists(*current_item_))
+            ResetBuyoutWidgets();
+        else
+            UpdateBuyoutWidgets(app_->buyout_manager()->Get(*current_item_));
     } else {
-        ui->buyoutCurrencyComboBox->setEnabled(true);
-        ui->buyoutValueLineEdit->setEnabled(true);
-        Buyout buyout = app_->buyout_manager()->Get(*current_item_);
-        ui->buyoutTypeComboBox->setCurrentIndex(buyout.type);
-        ui->buyoutCurrencyComboBox->setCurrentIndex(buyout.currency);
-        ui->buyoutValueLineEdit->setText(QString::number(buyout.value));
+        std::string tab = current_bucket_.location().GetUniqueHash();
+        if (!app_->buyout_manager()->ExistsTab(tab))
+            ResetBuyoutWidgets();
+        else
+            UpdateBuyoutWidgets(app_->buyout_manager()->GetTab(tab));
     }
 }
 

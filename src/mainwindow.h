@@ -41,6 +41,8 @@ class Filter;
 class FlowLayout;
 class TabBuyoutsDialog;
 
+struct Buyout;
+
 namespace Ui {
 class MainWindow;
 }
@@ -69,21 +71,25 @@ private slots:
     void on_actionAutomatically_refresh_items_triggered();
     void on_actionUpdate_shop_triggered();
 private:
+    void UpdateCurrentBucket();
     void UpdateCurrentItem();
     void UpdateCurrentItemMinimap();
     void UpdateCurrentItemIcon(const QImage &image);
     void UpdateCurrentItemProperties();
-    void UpdateCurrentItemBuyout();
+    void UpdateCurrentBuyout();
     void NewSearch();
     void InitializeSearchForm();
     void InitializeUi();
     void AddSearchGroup(FlowLayout *layout, std::string name);
     bool eventFilter(QObject *o, QEvent *e);
     void UpdateShopMenu();
+    void ResetBuyoutWidgets();
+    void UpdateBuyoutWidgets(const Buyout &bo);
 
     Application *app_;
     Ui::MainWindow *ui;
     std::shared_ptr<Item> current_item_;
+    Bucket current_bucket_;
     std::vector<Search*> searches_;
     Search *current_search_;
     QTabBar *tab_bar_;
