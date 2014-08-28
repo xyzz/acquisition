@@ -27,7 +27,7 @@
 #include <QUrlQuery>
 #include "QsLog.h"
 
-#include "mainwindow.h"
+#include "application.h"
 #include "datamanager.h"
 #include "buyoutmanager.h"
 #include "porting.h"
@@ -35,7 +35,7 @@
 
 const std::string POE_EDIT_THREAD = "https://www.pathofexile.com/forum/edit-thread/";
 
-Shop::Shop(MainWindow *app) :
+Shop::Shop(Application *app) :
     app_(app),
     shop_data_outdated_(true)
 {

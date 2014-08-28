@@ -25,9 +25,9 @@
 #include <QString>
 #include <stdexcept>
 
-#include "mainwindow.h"
+#include "application.h"
 
-DataManager::DataManager(MainWindow *app, const std::string &directory):
+DataManager::DataManager(Application *app, const std::string &directory) :
     app_(app)
 {
     if (!QDir(directory.c_str()).exists())

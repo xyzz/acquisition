@@ -27,12 +27,12 @@
 #include <QComboBox>
 #include <QSignalMapper>
 
-#include "mainwindow.h"
-#include "util.h"
+#include "application.h"
 #include "buyoutmanager.h"
 #include "shop.h"
+#include "util.h"
 
-TabBuyoutsDialog::TabBuyoutsDialog(QWidget *parent, MainWindow *app) :
+TabBuyoutsDialog::TabBuyoutsDialog(QWidget *parent, Application *app) :
     QDialog(parent),
     app_(app),
     ui(new Ui::TabBuyoutsDialog),

@@ -23,11 +23,11 @@
 #include <sstream>
 #include "QsLog.h"
 
-#include "mainwindow.h"
+#include "application.h"
 #include "datamanager.h"
 #include "util.h"
 
-BuyoutManager::BuyoutManager(MainWindow *app):
+BuyoutManager::BuyoutManager(Application *app) :
     app_(app),
     save_needed_(false)
 {

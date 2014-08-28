@@ -96,11 +96,11 @@ struct Buyout {
     Currency currency;
 };
 
-class MainWindow;
+class Application;
 
 class BuyoutManager {
 public:
-    explicit BuyoutManager(MainWindow *app);
+    explicit BuyoutManager(Application *app);
     void Set(const Item &item, const Buyout &buyout);
     Buyout Get(const Item &item);
     void Delete(const Item &item);
@@ -118,7 +118,7 @@ private:
     std::string Serialize(const std::map<std::string, Buyout> &buyouts);
     void Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts);
 
-    MainWindow *app_;
+    Application *app_;
     std::map<std::string, Buyout> buyouts_;
     std::map<std::string, Buyout> tab_buyouts_;
     bool save_needed_;

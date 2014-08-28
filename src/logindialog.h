@@ -26,15 +26,16 @@
 class QNetworkAccessManager;
 class QNetworkReply;
 
+class Application;
+
 namespace Ui {
 class LoginDialog;
 }
 
 class LoginDialog : public QDialog {
     Q_OBJECT
-
 public:
-    explicit LoginDialog(QWidget *parent = 0);
+    explicit LoginDialog(Application *app);
     ~LoginDialog();
 public slots:
     void OnLeaguesRequestFinished();
@@ -43,13 +44,13 @@ public slots:
     void OnLoggedIn();
     void OnUpdateCheckCompleted();
     void OnMainPageFinished();
-
 private:
     void SaveSettings();
     void LoadSettings();
     void DisplayError(const QString &error);
+    Application *app_;
     Ui::LoginDialog *ui;
-    QString settings_path_;
+    std::string settings_path_;
     QString saved_league_;
     QNetworkAccessManager *login_manager_;
     std::vector<std::string> leagues_;

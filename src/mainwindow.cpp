@@ -37,43 +37,33 @@
 #include "jsoncpp/json.h"
 #include "QsLog.h"
 
-#include "item.h"
-#include "column.h"
-#include "flowlayout.h"
-#include "filters.h"
-#include "itemsmanager.h"
-#include "datamanager.h"
+#include "application.h"
 #include "buyoutmanager.h"
+#include "column.h"
+#include "filters.h"
+#include "flowlayout.h"
+#include "item.h"
+#include "itemsmanager.h"
+#include "porting.h"
 #include "shop.h"
 #include "tabbuyoutsdialog.h"
 #include "util.h"
-#include "porting.h"
 
 const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
 
-MainWindow::MainWindow(QWidget *parent, QNetworkAccessManager *login_manager,
-                       const std::string &league, const std::string &email) :
-    QMainWindow(parent),
+MainWindow::MainWindow(Application *app):
+    app_(app),
     ui(new Ui::MainWindow),
     current_search_(nullptr),
     search_count_(0),
-    league_(league),
-    email_(email),
-    logged_in_nm_(login_manager),
-    tab_buyouts_dialog_(new TabBuyoutsDialog(0, this))
+    tab_buyouts_dialog_(new TabBuyoutsDialog(0, app_))
 {
 #ifdef Q_OS_WIN32
     createWinId();
     taskbar_button_ = new QWinTaskbarButton(this);
     taskbar_button_->setWindow(this->windowHandle());
 #endif
-    std::string root_dir(porting::UserDir().toUtf8().constData());
-    data_manager_ = new DataManager(this, root_dir + "/data");
-    image_cache_ = new ImageCache(this, root_dir + "/cache");
-    buyout_manager_ = new BuyoutManager(this);
-    shop_ = new Shop(this);
-    items_manager_ = new ItemsManager(this);
-    items_manager_->Init();
+    image_cache_ = new ImageCache(this, porting::UserDir() + "/cache");
 
     InitializeUi();
     InitializeSearchForm();
@@ -83,12 +73,10 @@ MainWindow::MainWindow(QWidget *parent, QNetworkAccessManager *login_manager,
     connect(image_network_manager_, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(OnImageFetched(QNetworkReply*)));
 
-    connect(items_manager_, SIGNAL(ItemsRefreshed(Items,std::vector<std::string>)),
-            this, SLOT(OnItemsRefreshed(Items,std::vector<std::string>)));
-    connect(items_manager_, SIGNAL(StatusUpdate(int, int, bool)),
-            this, SLOT(OnItemsManagerStatusUpdate(int, int, bool)));
-    items_manager_->LoadSavedData();
-    items_manager_->Update();
+    connect(app_->items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
+        this, SLOT(OnItemsRefreshed()));
+    connect(app_->items_manager(), SIGNAL(StatusUpdate(int, int, bool)),
+        this, SLOT(OnItemsManagerStatusUpdate(int, int, bool)));
 }
 
 void MainWindow::InitializeUi() {
@@ -116,7 +104,7 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutTypeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutValueLineEdit, SIGNAL(textChanged(QString)), this, SLOT(OnBuyoutChange()));
 
-    ui->actionAutomatically_refresh_items->setChecked(items_manager_->auto_update());
+    ui->actionAutomatically_refresh_items->setChecked(app_->items_manager()->auto_update());
     UpdateShopMenu();
 }
 
@@ -126,17 +114,17 @@ void MainWindow::ResizeTreeColumns() {
 }
 
 void MainWindow::OnBuyoutChange() {
-    shop_->ExpireShopData();
+    app_->shop()->ExpireShopData();
     Buyout bo;
     bo.type = static_cast<BuyoutType>(ui->buyoutTypeComboBox->currentIndex());
     bo.currency = static_cast<Currency>(ui->buyoutCurrencyComboBox->currentIndex());
     bo.value = ui->buyoutValueLineEdit->text().toDouble();
     if (bo.type == BUYOUT_TYPE_NONE) {
-        buyout_manager_->Delete(*current_item_);
+        app_->buyout_manager()->Delete(*current_item_);
         ui->buyoutCurrencyComboBox->setEnabled(false);
         ui->buyoutValueLineEdit->setEnabled(false);
     } else {
-        buyout_manager_->Set(*current_item_, bo);
+        app_->buyout_manager()->Set(*current_item_, bo);
         ui->buyoutCurrencyComboBox->setEnabled(true);
         ui->buyoutValueLineEdit->setEnabled(true);
     }
@@ -203,9 +191,9 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
 }
 
 void MainWindow::OnSearchFormChange() {
-    buyout_manager_->Save();
+    app_->buyout_manager()->Save();
     current_search_->FromForm();
-    current_search_->FilterItems(items_);
+    current_search_->FilterItems(app_->items());
     ui->treeView->setModel(current_search_->model());
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
@@ -296,7 +284,7 @@ void MainWindow::InitializeSearchForm() {
 }
 
 void MainWindow::NewSearch() {
-    current_search_ = new Search(this, QString("Search %1").arg(++search_count_).toStdString(), filters_);
+    current_search_ = new Search(app_, QString("Search %1").arg(++search_count_).toStdString(), filters_);
     tab_bar_->setTabText(tab_bar_->count() - 1, current_search_->GetCaption());
     tab_bar_->addTab("+");
     // this can't be done in ctor because it'll call OnSearchFormChange slot
@@ -307,7 +295,7 @@ void MainWindow::NewSearch() {
 }
 
 void MainWindow::UpdateCurrentItem() {
-    buyout_manager_->Save();
+    app_->buyout_manager()->Save();
     ui->typeLineLabel->setText(current_item_->typeLine().c_str());
     if (current_item_->name().empty())
         ui->nameLabel->hide();
@@ -490,7 +478,7 @@ void MainWindow::UpdateCurrentItemMinimap() {
 }
 
 void MainWindow::UpdateCurrentItemBuyout() {
-    if (!buyout_manager_->Exists(*current_item_)) {
+    if (!app_->buyout_manager()->Exists(*current_item_)) {
         ui->buyoutTypeComboBox->setCurrentIndex(0);
         ui->buyoutCurrencyComboBox->setEnabled(false);
         ui->buyoutValueLineEdit->setText("");
@@ -498,31 +486,26 @@ void MainWindow::UpdateCurrentItemBuyout() {
     } else {
         ui->buyoutCurrencyComboBox->setEnabled(true);
         ui->buyoutValueLineEdit->setEnabled(true);
-        Buyout buyout = buyout_manager_->Get(*current_item_);
+        Buyout buyout = app_->buyout_manager()->Get(*current_item_);
         ui->buyoutTypeComboBox->setCurrentIndex(buyout.type);
         ui->buyoutCurrencyComboBox->setCurrentIndex(buyout.currency);
         ui->buyoutValueLineEdit->setText(QString::number(buyout.value));
     }
 }
 
-void MainWindow::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {
-    items_ = items;
-    tabs_ = tabs;
+void MainWindow::OnItemsRefreshed() {
     int tab = 0;
     for (auto search : searches_) {
-        search->FilterItems(items_);
+        search->FilterItems(app_->items());
         tab_bar_->setTabText(tab++, search->GetCaption());
     }
     OnSearchFormChange();
-    shop_->Update();
 }
 
 MainWindow::~MainWindow() {
-    buyout_manager_->Save();
+    app_->buyout_manager()->Save();
     delete ui;
-    delete data_manager_;
-    delete items_manager_;
-    delete buyout_manager_;
+    delete app_;
 #ifdef Q_OS_WIN32
     delete taskbar_button_;
 #endif
@@ -530,21 +513,21 @@ MainWindow::~MainWindow() {
 
 void MainWindow::on_actionForum_shop_thread_triggered() {
     QString thread = QInputDialog::getText(this, "Shop thread", "Enter thread number", QLineEdit::Normal,
-        shop_->thread().c_str());
-    shop_->SetThread(thread.toStdString());
+        app_->shop()->thread().c_str());
+    app_->shop()->SetThread(thread.toStdString());
     UpdateShopMenu();
 }
 
 void MainWindow::UpdateShopMenu() {
     std::string title = "Forum shop thread...";
-    if (!shop_->thread().empty())
-        title += " [" + shop_->thread() + "]";
+    if (!app_->shop()->thread().empty())
+        title += " [" + app_->shop()->thread() + "]";
     ui->actionForum_shop_thread->setText(title.c_str());
-    ui->actionAutomatically_update_shop->setChecked(shop_->auto_update());
+    ui->actionAutomatically_update_shop->setChecked(app_->shop()->auto_update());
 }
 
 void MainWindow::on_actionCopy_shop_data_to_clipboard_triggered() {
-    shop_->CopyToClipboard();
+    app_->shop()->CopyToClipboard();
 }
 
 void MainWindow::on_actionTab_buyouts_triggered() {
@@ -554,19 +537,19 @@ void MainWindow::on_actionTab_buyouts_triggered() {
 
 void MainWindow::on_actionItems_refresh_interval_triggered() {
     int interval = QInputDialog::getText(this, "Auto refresh items", "Refresh items every X minutes",
-        QLineEdit::Normal, QString::number(items_manager_->auto_update_interval())).toInt();
+        QLineEdit::Normal, QString::number(app_->items_manager()->auto_update_interval())).toInt();
     if (interval > 0)
-        items_manager_->SetAutoUpdateInterval(interval);
+        app_->items_manager()->SetAutoUpdateInterval(interval);
 }
 
 void MainWindow::on_actionRefresh_triggered() {
-    items_manager_->Update();
+    app_->items_manager()->Update();
 }
 
 void MainWindow::on_actionAutomatically_refresh_items_triggered() {
-    items_manager_->SetAutoUpdate(ui->actionAutomatically_refresh_items->isChecked());
+    app_->items_manager()->SetAutoUpdate(ui->actionAutomatically_refresh_items->isChecked());
 }
 
 void MainWindow::on_actionUpdate_shop_triggered() {
-    shop_->SubmitShopToForum();
+    app_->shop()->SubmitShopToForum();
 }

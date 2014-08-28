@@ -19,14 +19,15 @@
 
 #include "search.h"
 
-#include "filters.h"
-#include "column.h"
+#include "application.h"
 #include "bucket.h"
+#include "column.h"
+#include "filters.h"
 #include "porting.h"
 
 #include <iostream>
 
-Search::Search(MainWindow *app, std::string caption, std::vector<Filter*> filters):
+Search::Search(Application *app, std::string caption, std::vector<Filter*> filters):
     app_(app),
     caption_(caption),
     model_(new ItemsModel(this))

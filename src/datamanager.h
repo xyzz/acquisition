@@ -22,18 +22,18 @@
 #include "sqlite/sqlite3.h"
 #include <string>
 
-class MainWindow;
+class Application;
 
 class DataManager {
 public:
-    DataManager(MainWindow *app, const std::string &directory_);
+    DataManager(Application *app, const std::string &directory_);
     ~DataManager();
     void Set(const std::string &key, const std::string &value);
     std::string Get(const std::string &key, const std::string &default_value = "");
     void SetBool(const std::string &key, bool value);
     bool GetBool(const std::string &key, bool default_value = false);
 private:
-    MainWindow *app_;
+    Application *app_;
     std::string email_;
     std::string league_;
     std::string filename_;

@@ -22,12 +22,12 @@
 #include <QObject>
 #include <string>
 
-class MainWindow;
+class Application;
 
 class Shop : public QObject {
     Q_OBJECT
 public:
-    explicit Shop(MainWindow *app);
+    explicit Shop(Application *app);
     void SetThread(const std::string &thread);
     void SetAutoUpdate(bool update);
     void Update();
@@ -41,7 +41,7 @@ public slots:
     void OnShopSubmitted();
 private:
     std::string ShopEditUrl();
-    MainWindow *app_;
+    Application *app_;
     std::string thread_;
     std::string shop_data_;
     bool shop_data_outdated_;

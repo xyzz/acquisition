@@ -39,7 +39,8 @@ SOURCES += \
     src/porting.cpp \
     src/bucket.cpp \
     src/itemlocation.cpp \
-    src/version.cpp
+    src/version.cpp \
+    src/application.cpp
 
 HEADERS += \
     src/item.h \
@@ -65,7 +66,8 @@ HEADERS += \
     src/bucket.h \
     src/itemlocation.h \
     src/itemconstants.h \
-    src/version_defines.h
+    src/version_defines.h \
+    src/application.h
 
 FORMS += \
     forms/mainwindow.ui \

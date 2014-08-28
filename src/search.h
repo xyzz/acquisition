@@ -26,14 +26,14 @@
 #include "column.h"
 #include "bucket.h"
 
+class Application;
 class Filter;
 class FilterData;
 class ItemsModel;
-class MainWindow;
 
 class Search {
 public:
-    explicit Search(MainWindow *app, std::string caption, std::vector<Filter*> filters);
+    explicit Search(Application *app, std::string caption, std::vector<Filter*> filters);
     ~Search();
     void FilterItems(const Items &items);
     void FromForm();
@@ -47,7 +47,7 @@ public:
     QString GetCaption();
     int GetItemsCount();
 private:
-    MainWindow *app_;
+    Application *app_;
     std::vector<FilterData*> filters_;
     std::vector<Column*> columns_;
     std::string caption_;

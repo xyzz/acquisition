@@ -30,7 +30,7 @@
 #include "jsoncpp/json.h"
 #include "QsLog.h"
 
-#include "mainwindow.h"
+#include "application.h"
 #include "datamanager.h"
 #include "shop.h"
 #include "util.h"
@@ -39,7 +39,7 @@ const char *POE_STASH_ITEMS_URL = "https://www.pathofexile.com/character-window/
 const char *POE_ITEMS_URL = "https://www.pathofexile.com/character-window/get-items";
 const char *POE_GET_CHARACTERS_URL = "https://www.pathofexile.com/character-window/get-characters";
 
-ItemsManager::ItemsManager(MainWindow *app):
+ItemsManager::ItemsManager(Application *app) :
     app_(app),
     signal_mapper_(new QSignalMapper),
     auto_update_(true),

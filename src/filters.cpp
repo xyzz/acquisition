@@ -344,7 +344,7 @@ void BooleanFilter::ResetForm() {
     checkbox_->setChecked(false);
 }
 
-bool BooleanFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+bool BooleanFilter::Matches(const std::shared_ptr<Item> & /* item */, FilterData * /* data */) {
     return true;
 }
 

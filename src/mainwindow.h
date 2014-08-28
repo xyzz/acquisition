@@ -36,11 +36,8 @@ class QLabel;
 class QNetworkAccessManager;
 class QNetworkReply;
 
-class DataManager;
+class Application;
 class Filter;
-class ItemsManager;
-class BuyoutManager;
-class Shop;
 class FlowLayout;
 class TabBuyoutsDialog;
 
@@ -48,29 +45,18 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
-
 public:
-    MainWindow(QWidget *parent, QNetworkAccessManager *login_manager,
-               const std::string &league, const std::string &email);
+    MainWindow(Application *app);
     ~MainWindow();
     std::vector<Column*> columns;
-    const std::string &league() const { return league_; }
-    const std::string &email() const { return email_; }
-    const Items &items() const { return items_; }
-    DataManager *data_manager() const { return data_manager_; }
-    BuyoutManager *buyout_manager() const { return buyout_manager_; }
-    QNetworkAccessManager *logged_in_nm() const { return logged_in_nm_; }
-    const std::vector<std::string> &tabs() const { return tabs_; }
-    Shop *shop() const { return shop_; }
 public slots:
     void OnTreeChange(const QModelIndex &index, const QModelIndex &prev);
     void OnSearchFormChange();
     void OnTabChange(int index);
     void OnImageFetched(QNetworkReply *reply);
-    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
+    void OnItemsRefreshed();
     void OnItemsManagerStatusUpdate(int fetched, int total, bool throttled);
     void OnBuyoutChange();
     void ResizeTreeColumns();
@@ -82,7 +68,6 @@ private slots:
     void on_actionRefresh_triggered();
     void on_actionAutomatically_refresh_items_triggered();
     void on_actionUpdate_shop_triggered();
-
 private:
     void UpdateCurrentItem();
     void UpdateCurrentItemMinimap();
@@ -95,9 +80,9 @@ private:
     void AddSearchGroup(FlowLayout *layout, std::string name);
     bool eventFilter(QObject *o, QEvent *e);
     void UpdateShopMenu();
+
+    Application *app_;
     Ui::MainWindow *ui;
-    Items items_;
-    std::vector<std::string> tabs_;
     std::shared_ptr<Item> current_item_;
     std::vector<Search*> searches_;
     Search *current_search_;
@@ -106,14 +91,7 @@ private:
     int search_count_;
     QNetworkAccessManager *image_network_manager_;
     ImageCache *image_cache_;
-    ItemsManager *items_manager_;
     QLabel *status_bar_label_;
-    DataManager *data_manager_;
-    std::string league_;
-    std::string email_;
-    BuyoutManager *buyout_manager_;
-    Shop *shop_;
-    QNetworkAccessManager *logged_in_nm_;
     TabBuyoutsDialog *tab_buyouts_dialog_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;

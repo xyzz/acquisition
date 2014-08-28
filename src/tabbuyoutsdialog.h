@@ -27,7 +27,7 @@ namespace Ui {
 class TabBuyoutsDialog;
 }
 
-class MainWindow;
+class Application;
 class QSignalMapper;
 
 class TabBuyoutsDialog : public QDialog
@@ -35,7 +35,7 @@ class TabBuyoutsDialog : public QDialog
     Q_OBJECT
 
 public:
-    TabBuyoutsDialog(QWidget *parent, MainWindow *app);
+    TabBuyoutsDialog(QWidget *parent, Application *app);
     ~TabBuyoutsDialog();
     void Populate();
 
@@ -44,7 +44,7 @@ private slots:
     void OnBuyoutChanged(int row);
 
 private:
-    MainWindow *app_;
+    Application *app_;
     Ui::TabBuyoutsDialog *ui;
     std::vector<std::string> tab_titles_;
     QSignalMapper *signal_mapper_;

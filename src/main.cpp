@@ -26,8 +26,9 @@
 #include "QsLogDest.h"
 #include <limits>
 
-#include "version.h"
+#include "application.h"
 #include "porting.h"
+#include "version.h"
 
 #ifdef CRASHRPT
 #include "CrashRpt.h"
@@ -50,7 +51,7 @@ int main(int argc, char *argv[])
 
     QsLogging::Logger& logger = QsLogging::Logger::instance();
     logger.setLoggingLevel(QsLogging::InfoLevel);
-    const QString sLogPath(QDir(porting::UserDir()).filePath("log.txt"));
+    const QString sLogPath(QDir(porting::UserDir().c_str()).filePath("log.txt"));
 
     QsLogging::DestinationPtr fileDestination(
         QsLogging::DestinationFactory::MakeFileDestination(sLogPath, true, 10 * 1024 * 1024, 0) );
@@ -62,7 +63,9 @@ int main(int argc, char *argv[])
     QLOG_INFO() << "--------------------------------------------------------------------------------";
     QLOG_INFO() << "Built with Qt" << QT_VERSION_STR << "running on" << qVersion();
 
-    LoginDialog login;
+    Application *app = new Application;
+
+    LoginDialog login(app);
     login.show();
 
     return a.exec();

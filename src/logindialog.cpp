@@ -35,17 +35,18 @@
 #include "jsoncpp/json.h"
 #include "QsLog.h"
 
+#include "application.h"
 #include "mainwindow.h"
-#include "version.h"
 #include "porting.h"
 #include "util.h"
+#include "version.h"
 
 const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
 const char* POE_MAIN_PAGE = "https://www.pathofexile.com/";
 
-LoginDialog::LoginDialog(QWidget *parent) :
-    QDialog(parent),
+LoginDialog::LoginDialog(Application *app) :
+    app_(app),
     ui(new Ui::LoginDialog)
 {
     ui->setupUi(this);
@@ -175,14 +176,15 @@ void LoginDialog::OnMainPageFinished() {
     QString account = regexp.cap(1);
     QLOG_INFO() << "Logged in as:" << account;
 
-    std::string league(ui->leagueComboBox->currentText().toUtf8().constData());
-    MainWindow *w = new MainWindow(0, login_manager_, league, account.toStdString());
+    std::string league(ui->leagueComboBox->currentText().toStdString());
+    app_->InitLogin(login_manager_, league, account.toStdString());
+    MainWindow *w = new MainWindow(app_);
     w->show();
     close();
 }
 
 void LoginDialog::LoadSettings() {
-    QSettings settings(settings_path_, QSettings::IniFormat);
+    QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
     ui->emailLineEdit->setText(settings.value("email", "").toString());
     ui->sessionIDLineEdit->setText(settings.value("session_id", "").toString());
     ui->sessIDCheckBox->setChecked(settings.value("session_id_checked").toBool());
@@ -198,7 +200,7 @@ void LoginDialog::LoadSettings() {
 }
 
 void LoginDialog::SaveSettings() {
-    QSettings settings(settings_path_, QSettings::IniFormat);
+    QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
     if(ui->rembmeCheckBox->isChecked()) {
         settings.setValue("email", ui->emailLineEdit->text());
         settings.setValue("session_id", ui->sessionIDLineEdit->text());
