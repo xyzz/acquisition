@@ -25,6 +25,8 @@
 class QComboBox;
 class QNetworkReply;
 
+struct Buyout;
+
 namespace Util {
 std::string Md5(const std::string &value);
 double AverageDamage(const std::string &s);
@@ -41,4 +43,6 @@ int GroupWidth();
 void ParseJson(QNetworkReply *reply, Json::Value *root);
 std::string GetCsrfToken(const std::string &page, const std::string &name);
 std::string FindTextBetween(const std::string &page, const std::string &left, const std::string &right);
+
+std::string BuyoutAsText(const Buyout &bo);
 }

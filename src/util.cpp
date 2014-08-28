@@ -133,3 +133,7 @@ std::string Util::FindTextBetween(const std::string &page, const std::string &le
         return "";
     return page.substr(first + left.size(), last - first - left.size());
 }
+
+std::string Util::BuyoutAsText(const Buyout &bo) {
+    return BuyoutTypeAsTag[bo.type] + " " + QString::number(bo.value).toStdString() + " " + CurrencyAsTag[bo.currency];
+}

@@ -22,6 +22,7 @@
 #include <cmath>
 
 #include "buyoutmanager.h"
+#include "util.h"
 
 const double EPS = 1e-6;
 
@@ -163,5 +164,5 @@ std::string PriceColumn::value(const Item &item) {
     if (!bo_manager_->Exists(item))
         return "";
     const Buyout &bo = bo_manager_->Get(item);
-    return BuyoutTypeAsTag[bo.type] + " " + QString::number(bo.value).toStdString() + " " + CurrencyAsTag[bo.currency];
+    return Util::BuyoutAsText(bo);
 }

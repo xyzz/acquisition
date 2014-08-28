@@ -30,7 +30,7 @@
 Search::Search(Application *app, std::string caption, std::vector<Filter*> filters):
     app_(app),
     caption_(caption),
-    model_(new ItemsModel(this))
+    model_(new ItemsModel(app, this))
 {
     columns_ = {
         new NameColumn,
@@ -97,7 +97,7 @@ void Search::FilterItems(const Items &items) {
     for (const auto &item : items_) {
         ItemLocation location = item->location();
         if (!bucketed_tabs.count(location))
-            bucketed_tabs[location] = std::make_unique<Bucket>(location.GetHeader());
+            bucketed_tabs[location] = std::make_unique<Bucket>(location);
         bucketed_tabs[location]->AddItem(item);
     }
 

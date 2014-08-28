@@ -9,11 +9,11 @@
 class Bucket {
 public:
     Bucket();
-    explicit Bucket(const std::string &name);
+    explicit Bucket(const ItemLocation &location);
     void AddItem(const std::shared_ptr<Item> item);
-    const std::string &name() const { return name_; }
     const Items &items() const { return items_; }
+    const ItemLocation &location() const { return location_; }
 private:
-    std::string name_;
     Items items_;
+    ItemLocation location_;
 };

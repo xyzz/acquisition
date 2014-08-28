@@ -18,9 +18,16 @@
 */
 
 #include "items_model.h"
-#include "search.h"
 
-ItemsModel::ItemsModel(Search *search) :
+#include "application.h"
+#include "bucket.h"
+#include "buyoutmanager.h"
+#include "itemlocation.h"
+#include "search.h"
+#include "util.h"
+
+ItemsModel::ItemsModel(Application *app, Search *search) :
+    app_(app),
     search_(search)
 {
 }
@@ -71,8 +78,13 @@ QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, 
 QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     // Bucket title
     if (index.internalId() == 0) {
-        if (role == Qt::DisplayRole && index.column() == 0)
-            return QString(search_->buckets()[index.row()]->name().c_str());
+        if (role == Qt::DisplayRole && index.column() == 0) {
+            const ItemLocation &location = search_->buckets()[index.row()]->location();
+            QString title(location.GetHeader().c_str());
+            if (app_->buyout_manager()->ExistsTab(location.GetUniqueHash()))
+                title += QString(" [%1]").arg(Util::BuyoutAsText(app_->buyout_manager()->GetTab(location.GetUniqueHash())).c_str());
+            return title;
+        }
         return QVariant();
     }
     Column *column = search_->columns()[index.column()];

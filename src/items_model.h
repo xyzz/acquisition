@@ -24,23 +24,20 @@
 #include "column.h"
 #include "item.h"
 
+class Application;
 class Search;
 
-class ItemsModel : public QAbstractItemModel
-{
+class ItemsModel : public QAbstractItemModel {
     Q_OBJECT
 public:
-    ItemsModel(Search *search);
+    ItemsModel(Application *app, Search *search);
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     QModelIndex parent(const QModelIndex &index) const;
     QModelIndex index(int row, int column, const QModelIndex &parent) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-signals:
-
-public slots:
-
 private:
+    Application *app_;
     Search *search_;
 };
