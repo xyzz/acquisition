@@ -35,7 +35,6 @@ SOURCES += \
     src/buyoutmanager.cpp \
     src/util.cpp \
     src/shop.cpp \
-    src/tabbuyoutsdialog.cpp \
     src/porting.cpp \
     src/bucket.cpp \
     src/itemlocation.cpp \
@@ -60,7 +59,6 @@ HEADERS += \
     src/buyoutmanager.h \
     src/util.h \
     src/shop.h \
-    src/tabbuyoutsdialog.h \
     src/version.h \
     src/porting.h \
     src/bucket.h \
@@ -71,8 +69,7 @@ HEADERS += \
 
 FORMS += \
     forms/mainwindow.ui \
-    forms/logindialog.ui \
-    forms/tabbuyoutsdialog.ui
+    forms/logindialog.ui
 
 CONFIG += c++11
 

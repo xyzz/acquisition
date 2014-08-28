@@ -39,7 +39,6 @@ class QNetworkReply;
 class Application;
 class Filter;
 class FlowLayout;
-class TabBuyoutsDialog;
 
 struct Buyout;
 
@@ -98,7 +97,6 @@ private:
     QNetworkAccessManager *image_network_manager_;
     ImageCache *image_cache_;
     QLabel *status_bar_label_;
-    TabBuyoutsDialog *tab_buyouts_dialog_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif

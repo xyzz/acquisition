@@ -142,7 +142,6 @@
     <property name="title">
      <string>Shop</string>
     </property>
-    <addaction name="actionTab_buyouts"/>
     <addaction name="actionForum_shop_thread"/>
     <addaction name="actionCopy_shop_data_to_clipboard"/>
     <addaction name="actionUpdate_shop"/>
@@ -160,11 +159,6 @@
    <addaction name="menuShop"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionTab_buyouts">
-   <property name="text">
-    <string>Tab buyouts...</string>
-   </property>
-  </action>
   <action name="actionForum_shop_thread">
    <property name="text">
     <string>Forum shop thread...</string>

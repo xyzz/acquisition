@@ -47,7 +47,6 @@
 #include "itemsmanager.h"
 #include "porting.h"
 #include "shop.h"
-#include "tabbuyoutsdialog.h"
 #include "util.h"
 
 const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
@@ -56,8 +55,7 @@ MainWindow::MainWindow(Application *app):
     app_(app),
     ui(new Ui::MainWindow),
     current_search_(nullptr),
-    search_count_(0),
-    tab_buyouts_dialog_(new TabBuyoutsDialog(0, app_))
+    search_count_(0)
 {
 #ifdef Q_OS_WIN32
     createWinId();
@@ -579,8 +577,6 @@ void MainWindow::on_actionCopy_shop_data_to_clipboard_triggered() {
 }
 
 void MainWindow::on_actionTab_buyouts_triggered() {
-    tab_buyouts_dialog_->Populate();
-    tab_buyouts_dialog_->show();
 }
 
 void MainWindow::on_actionItems_refresh_interval_triggered() {
