@@ -20,8 +20,7 @@
 #include "items_model.h"
 #include "search.h"
 
-ItemsModel::ItemsModel(QObject *parent, Search *search) :
-    QAbstractItemModel(parent),
+ItemsModel::ItemsModel(Search *search) :
     search_(search)
 {
 }

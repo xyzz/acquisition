@@ -29,7 +29,7 @@
 Search::Search(MainWindow *app, std::string caption, std::vector<Filter*> filters):
     app_(app),
     caption_(caption),
-    model_(new ItemsModel(0, this))
+    model_(new ItemsModel(this))
 {
     columns_ = {
         new NameColumn,
