@@ -198,7 +198,7 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
 
     image_cache_->Set(url, image);
 
-    if (url == current_item_->icon() || url == POE_WEBCDN + current_item_->icon())
+    if (current_item_ && (url == current_item_->icon() || url == POE_WEBCDN + current_item_->icon()))
         UpdateCurrentItemIcon(image);
 }
 
