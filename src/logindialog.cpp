@@ -44,6 +44,13 @@
 const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
 const char* POE_MAIN_PAGE = "https://www.pathofexile.com/";
+const char* POE_COOKIE_NAME = "PHPSESSID";
+
+enum {
+    LOGIN_PASSWORD,
+    LOGIN_STEAM,
+    LOGIN_SESSIONID
+};
 
 LoginDialog::LoginDialog(Application *app) :
     app_(app),
@@ -114,8 +121,8 @@ void LoginDialog::OnLoginButtonClicked() {
 }
 
 void LoginDialog::OnLoginPageFinished() {
-    if(ui->sessIDCheckBox->isChecked()) {
-        QNetworkCookie poeCookie("PHPSESSID", ui->sessionIDLineEdit->text().toUtf8());
+    if (ui->loginTabs->currentIndex() == LOGIN_SESSIONID) {
+        QNetworkCookie poeCookie(POE_COOKIE_NAME, ui->sessionIDLineEdit->text().toUtf8());
         poeCookie.setPath("/");
         poeCookie.setDomain("www.pathofexile.com");
 
@@ -158,6 +165,11 @@ void LoginDialog::OnLoggedIn() {
         return;
     }
 
+    QList<QNetworkCookie> cookies = reply->manager()->cookieJar()->cookiesForUrl(QUrl(POE_MAIN_PAGE));
+    for (auto &cookie : cookies)
+        if (QString(cookie.name()) == POE_COOKIE_NAME)
+            session_id_ = cookie.value();
+
     // we need one more request to get account name
     QNetworkReply *main_page = login_manager_->get(QNetworkRequest(QUrl(POE_MAIN_PAGE)));
     connect(main_page, SIGNAL(finished()), this, SLOT(OnMainPageFinished()));
@@ -185,12 +197,11 @@ void LoginDialog::OnMainPageFinished() {
 
 void LoginDialog::LoadSettings() {
     QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
-    ui->emailLineEdit->setText(settings.value("email", "").toString());
     ui->sessionIDLineEdit->setText(settings.value("session_id", "").toString());
-    ui->sessIDCheckBox->setChecked(settings.value("session_id_checked").toBool());
     ui->rembmeCheckBox->setChecked(settings.value("remember_me_checked").toBool());
-    ui->sessionIDLineEdit->setVisible(ui->sessIDCheckBox->isChecked());
-    ui->sessIDLabel->setVisible(ui->sessIDCheckBox->isChecked());
+
+    if (ui->rembmeCheckBox->isChecked())
+        ui->loginTabs->setCurrentIndex(LOGIN_SESSIONID);
 
     saved_league_ = settings.value("league", "").toString();
     if (saved_league_.size() > 0) {
@@ -202,15 +213,12 @@ void LoginDialog::LoadSettings() {
 void LoginDialog::SaveSettings() {
     QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
     if(ui->rembmeCheckBox->isChecked()) {
-        settings.setValue("email", ui->emailLineEdit->text());
-        settings.setValue("session_id", ui->sessionIDLineEdit->text());
+        settings.setValue("session_id", session_id_);
         settings.setValue("league", ui->leagueComboBox->currentText());
     } else {
-        settings.setValue("email", "");
         settings.setValue("session_id", "");
         settings.setValue("league", "");
     }
-    settings.setValue("session_id_checked", ui->sessIDCheckBox->isChecked());
     settings.setValue("remember_me_checked", ui->rembmeCheckBox->isChecked());
 }
 
