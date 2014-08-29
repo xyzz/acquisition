@@ -38,6 +38,7 @@
 #include "application.h"
 #include "mainwindow.h"
 #include "porting.h"
+#include "steamlogindialog.h"
 #include "util.h"
 #include "version.h"
 
@@ -54,7 +55,8 @@ enum {
 
 LoginDialog::LoginDialog(Application *app) :
     app_(app),
-    ui(new Ui::LoginDialog)
+    ui(new Ui::LoginDialog),
+    steam_login_dialog_(new SteamLoginDialog)
 {
     ui->setupUi(this);
     ui->errorLabel->hide();
@@ -72,6 +74,7 @@ LoginDialog::LoginDialog(Application *app) :
     connect(version_check, SIGNAL(finished()), this, SLOT(OnUpdateCheckCompleted()));
 
     connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(OnLoginButtonClicked()));
+    connect(steam_login_dialog_, SIGNAL(CookieReceived(const QString&)), this, SLOT(OnSteamCookieReceived(const QString&)));
 }
 
 void LoginDialog::OnUpdateCheckCompleted() {
@@ -121,39 +124,41 @@ void LoginDialog::OnLoginButtonClicked() {
 }
 
 void LoginDialog::OnLoginPageFinished() {
-    if (ui->loginTabs->currentIndex() == LOGIN_SESSIONID) {
-        QNetworkCookie poeCookie(POE_COOKIE_NAME, ui->sessionIDLineEdit->text().toUtf8());
-        poeCookie.setPath("/");
-        poeCookie.setDomain("www.pathofexile.com");
+    switch (ui->loginTabs->currentIndex()) {
+        case LOGIN_PASSWORD: {
+            QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
+            QByteArray bytes = reply->readAll();
+            std::string page(bytes.constData(), bytes.size());
+            std::string hash = Util::GetCsrfToken(page, "hash");
+            if (hash.empty()) {
+                DisplayError("Failed to log in (can't extract form hash from page)");
+                return;
+            }
 
-        login_manager_->cookieJar()->insertCookie(poeCookie);
+            QUrlQuery query;
+            query.addQueryItem("login_email", ui->emailLineEdit->text());
+            query.addQueryItem("login_password", ui->passwordLineEdit->text());
+            query.addQueryItem("hash", QString(hash.c_str()));
+            query.addQueryItem("login", "Login");
 
-        QNetworkReply *login_page = login_manager_->get(QNetworkRequest(QUrl(POE_LOGIN_URL)));
-        connect(login_page, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
-
-        return;
+            QUrl url(POE_LOGIN_URL);
+            QByteArray data(query.query().toUtf8());
+            QNetworkRequest request(url);
+            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+            QNetworkReply *logged_in = login_manager_->post(request, data);
+            connect(logged_in, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
+            break;
+        }
+        case LOGIN_STEAM: {
+            steam_login_dialog_->show();
+            steam_login_dialog_->Init();
+            break;
+        }
+        case LOGIN_SESSIONID: {
+            LoginWithCookie(ui->sessionIDLineEdit->text());
+            break;
+        }
     }
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    QByteArray bytes = reply->readAll();
-    std::string page(bytes.constData(), bytes.size());
-    std::string hash = Util::GetCsrfToken(page, "hash");
-    if (hash.empty()) {
-        DisplayError("Failed to log in (can't extract form hash from page)");
-        return;
-    }
-
-    QUrlQuery query;
-    query.addQueryItem("login_email", ui->emailLineEdit->text());
-    query.addQueryItem("login_password", ui->passwordLineEdit->text());
-    query.addQueryItem("hash", QString(hash.c_str()));
-    query.addQueryItem("login", "Login");
-
-    QUrl url(POE_LOGIN_URL);
-    QByteArray data(query.query().toUtf8());
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    QNetworkReply *logged_in = login_manager_->post(request, data);
-    connect(logged_in, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
 }
 
 void LoginDialog::OnLoggedIn() {
@@ -173,6 +178,25 @@ void LoginDialog::OnLoggedIn() {
     // we need one more request to get account name
     QNetworkReply *main_page = login_manager_->get(QNetworkRequest(QUrl(POE_MAIN_PAGE)));
     connect(main_page, SIGNAL(finished()), this, SLOT(OnMainPageFinished()));
+}
+
+void LoginDialog::OnSteamCookieReceived(const QString &cookie) {
+    if (cookie.isEmpty()) {
+        DisplayError("Failed to log in, the received cookie is empty.");
+        return;
+    }
+    LoginWithCookie(cookie);
+}
+
+void LoginDialog::LoginWithCookie(const QString &cookie) {
+    QNetworkCookie poeCookie(POE_COOKIE_NAME, cookie.toUtf8());
+    poeCookie.setPath("/");
+    poeCookie.setDomain("www.pathofexile.com");
+
+    login_manager_->cookieJar()->insertCookie(poeCookie);
+
+    QNetworkReply *login_page = login_manager_->get(QNetworkRequest(QUrl(POE_LOGIN_URL)));
+    connect(login_page, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
 }
 
 void LoginDialog::OnMainPageFinished() {
@@ -197,7 +221,8 @@ void LoginDialog::OnMainPageFinished() {
 
 void LoginDialog::LoadSettings() {
     QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
-    ui->sessionIDLineEdit->setText(settings.value("session_id", "").toString());
+    session_id_ = settings.value("session_id", "").toString();
+    ui->sessionIDLineEdit->setText(session_id_);
     ui->rembmeCheckBox->setChecked(settings.value("remember_me_checked").toBool());
 
     if (ui->rembmeCheckBox->isChecked())
@@ -219,7 +244,7 @@ void LoginDialog::SaveSettings() {
         settings.setValue("session_id", "");
         settings.setValue("league", "");
     }
-    settings.setValue("remember_me_checked", ui->rembmeCheckBox->isChecked());
+    settings.setValue("remember_me_checked", ui->rembmeCheckBox->isChecked() && !session_id_.isEmpty());
 }
 
 void LoginDialog::DisplayError(const QString &error) {

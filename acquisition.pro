@@ -1,4 +1,4 @@
-QT += core gui network
+QT += core gui network webkitwidgets
 
 win32 {
     QT += winextras
@@ -39,7 +39,8 @@ SOURCES += \
     src/bucket.cpp \
     src/itemlocation.cpp \
     src/version.cpp \
-    src/application.cpp
+    src/application.cpp \
+    src/steamlogindialog.cpp
 
 HEADERS += \
     src/item.h \
@@ -65,11 +66,13 @@ HEADERS += \
     src/itemlocation.h \
     src/itemconstants.h \
     src/version_defines.h \
-    src/application.h
+    src/application.h \
+    src/steamlogindialog.h
 
 FORMS += \
     forms/mainwindow.ui \
-    forms/logindialog.ui
+    forms/logindialog.ui \
+    forms/steamlogindialog.ui
 
 CONFIG += c++11
 

@@ -25,8 +25,10 @@
 
 class QNetworkAccessManager;
 class QNetworkReply;
+class QString;
 
 class Application;
+class SteamLoginDialog;
 
 namespace Ui {
 class LoginDialog;
@@ -44,10 +46,12 @@ public slots:
     void OnLoggedIn();
     void OnUpdateCheckCompleted();
     void OnMainPageFinished();
+    void OnSteamCookieReceived(const QString &cookie);
 private:
     void SaveSettings();
     void LoadSettings();
     void DisplayError(const QString &error);
+    void LoginWithCookie(const QString &cookie);
     Application *app_;
     Ui::LoginDialog *ui;
     std::string settings_path_;
@@ -55,4 +59,5 @@ private:
     QString session_id_;
     QNetworkAccessManager *login_manager_;
     std::vector<std::string> leagues_;
+    SteamLoginDialog *steam_login_dialog_;
 };
