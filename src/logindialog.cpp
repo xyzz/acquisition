@@ -45,6 +45,7 @@
 const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
 const char* POE_MAIN_PAGE = "https://www.pathofexile.com/";
+const char* POE_MY_ACCOUNT = "https://www.pathofexile.com/my-account";
 const char* POE_COOKIE_NAME = "PHPSESSID";
 
 enum {
@@ -180,7 +181,7 @@ void LoginDialog::OnLoggedIn() {
             session_id_ = cookie.value();
 
     // we need one more request to get account name
-    QNetworkReply *main_page = login_manager_->get(QNetworkRequest(QUrl(POE_MAIN_PAGE)));
+    QNetworkReply *main_page = login_manager_->get(QNetworkRequest(QUrl(POE_MY_ACCOUNT)));
     connect(main_page, SIGNAL(finished()), this, SLOT(OnMainPageFinished()));
 }
 
