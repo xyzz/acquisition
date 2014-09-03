@@ -252,15 +252,18 @@ void ItemsManager::OnTabReceived(int request_id) {
     Json::Value root;
     Util::ParseJson(reply.network_reply, &root);
 
+    bool error = false;
     if (root.isMember("error")) {
         // this can happen if user is browsing stash in background and we can't know about it
         QLOG_WARN() << request_id << "got 'error' instead of stash tab contents";
         QueueRequest(reply.request.network_request, reply.request.location);
-        return;
+        error = true;
     }
 
     ++requests_completed_;
-    ++total_completed_;
+
+    if (!error)
+        ++total_completed_;
 
     bool throttled = false;
     if (requests_completed_ == requests_needed_ && queue_.size() > 0) {
@@ -269,6 +272,9 @@ void ItemsManager::OnTabReceived(int request_id) {
         QTimer::singleShot(THROTTLE_SLEEP * 1000, this, SLOT(FetchItems()));
     }
     emit StatusUpdate(total_completed_, total_needed_, throttled);
+
+    if (error)
+        return;
 
     ParseItems(root["items"], reply.request.location);
 
