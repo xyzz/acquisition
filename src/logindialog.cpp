@@ -124,9 +124,13 @@ void LoginDialog::OnLoginButtonClicked() {
 }
 
 void LoginDialog::OnLoginPageFinished() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
+    if (reply->error()) {
+        DisplayError("Network error: " + reply->errorString());
+        return;
+    }
     switch (ui->loginTabs->currentIndex()) {
         case LOGIN_PASSWORD: {
-            QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
             QByteArray bytes = reply->readAll();
             std::string page(bytes.constData(), bytes.size());
             std::string hash = Util::GetCsrfToken(page, "hash");
