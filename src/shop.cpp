@@ -55,7 +55,7 @@ void Shop::SetAutoUpdate(bool update) {
 
 void Shop::Update() {
     shop_data_outdated_ = false;
-    std::string data;
+    std::string data = "[spoiler]";
     for (auto &item : app_->items()) {
         Buyout bo;
         bo.type = BUYOUT_TYPE_NONE;
@@ -77,6 +77,7 @@ void Shop::Update() {
         data += QString::number(bo.value).toUtf8().constData();
         data += " " + CurrencyAsTag[bo.currency];
     }
+    data += "[/spoiler]";
 
     shop_data_ = data;
 }
