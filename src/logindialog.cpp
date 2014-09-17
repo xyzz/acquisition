@@ -100,17 +100,23 @@ void LoginDialog::OnLeaguesRequestFinished() {
     std::string json(bytes.constData(), bytes.size());
     Json::Value root;
     Json::Reader reader;
+
+    leagues_.clear();
     if (!reader.parse(json, root)) {
         QLOG_ERROR() << "Failed to parse leagues. The output was:";
         QLOG_ERROR() << QString(bytes);
-        return;
+
+        // But let's do our best and try to add at least some leagues!
+        // It's in case GGG's API is broken and suddenly starts returning empty pages,
+        // which of course will never happen.
+        leagues_ = { "Rampage", "Beyond", "Standard", "Hardcore" };
+    } else {
+        for (auto league : root)
+            leagues_.push_back(league["id"].asString());
     }
     ui->leagueComboBox->clear();
-    for (auto league : root) {
-        std::string name = league["id"].asString();
-        leagues_.push_back(name);
-        ui->leagueComboBox->addItem(name.c_str());
-    }
+    for (auto &league : leagues_)
+        ui->leagueComboBox->addItem(league.c_str());
     ui->leagueComboBox->setEnabled(true);
 
     if (saved_league_.size() > 0)
