@@ -44,7 +44,7 @@ double Util::AverageDamage(const std::string &s) {
 }
 
 void Util::PopulateBuyoutTypeComboBox(QComboBox *combobox) {
-    combobox->addItems(QStringList({"No price", "Buyout", "Fixed price"}));
+    combobox->addItems(QStringList({"Ignore", "Buyout", "Fixed price", "No price"}));
 }
 
 void Util::PopulateBuyoutCurrencyComboBox(QComboBox *combobox) {
