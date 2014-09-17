@@ -1,4 +1,4 @@
-QT += core gui network webkitwidgets
+QT += core gui network webkitwidgets testlib
 
 win32 {
     QT += winextras
@@ -40,7 +40,9 @@ SOURCES += \
     src/itemlocation.cpp \
     src/version.cpp \
     src/application.cpp \
-    src/steamlogindialog.cpp
+    src/steamlogindialog.cpp \
+    test/testmain.cpp \
+    test/testitem.cpp
 
 HEADERS += \
     src/item.h \
@@ -67,7 +69,9 @@ HEADERS += \
     src/itemconstants.h \
     src/version_defines.h \
     src/application.h \
-    src/steamlogindialog.h
+    src/steamlogindialog.h \
+    test/testmain.h \
+    test/testitem.h
 
 FORMS += \
     forms/mainwindow.ui \

@@ -20,6 +20,7 @@
 #include "logindialog.h"
 
 #include <QApplication>
+#include <QCommandLineParser>
 #include <QDir>
 #include <QLocale>
 #include "QsLog.h"
@@ -29,6 +30,7 @@
 #include "application.h"
 #include "porting.h"
 #include "version.h"
+#include "test/testmain.h"
 
 #ifdef CRASHRPT
 #include "CrashRpt.h"
@@ -47,7 +49,16 @@ int main(int argc, char *argv[])
 #endif
 
     QLocale::setDefault(QLocale::C);
+
     QApplication a(argc, argv);
+
+    QCommandLineParser parser;
+    QCommandLineOption option_test("test");
+    parser.addOption(option_test);
+    parser.process(a);
+
+    if (parser.isSet(option_test))
+        return test_main();
 
     QsLogging::Logger& logger = QsLogging::Logger::instance();
     logger.setLoggingLevel(QsLogging::InfoLevel);
