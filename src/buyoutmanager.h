@@ -89,6 +89,13 @@ const std::vector<std::string> BuyoutTypeAsTag({
     "",
     "b/o",
     "price",
+    "no price",
+});
+
+const std::vector<std::string> BuyoutTypeAsPrefix({
+    "",
+    " ~b/o ",
+    " ~price ",
     "",
 });
 

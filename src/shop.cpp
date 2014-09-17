@@ -70,8 +70,9 @@ void Shop::Update() {
 
         data += item->location().GetForumCode(app_->league());
 
+        data += BuyoutTypeAsPrefix[bo.type];
+
         if (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED) {
-            data += " ~" + BuyoutTypeAsTag[bo.type] + " ";
             data += QString::number(bo.value).toUtf8().constData();
             data += " " + CurrencyAsTag[bo.currency];
         }
