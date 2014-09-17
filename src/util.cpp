@@ -137,3 +137,13 @@ std::string Util::FindTextBetween(const std::string &page, const std::string &le
 std::string Util::BuyoutAsText(const Buyout &bo) {
     return BuyoutTypeAsTag[bo.type] + " " + QString::number(bo.value).toStdString() + " " + CurrencyAsTag[bo.currency];
 }
+
+std::string Util::ModListAsString(const Json::Value &list) {
+    std::string mods;
+    bool first = true;
+    for (auto mod : list) {
+        mods += (first ? "" : "<br>") + mod.asString();
+        first = false;
+    }
+    return mods;
+}

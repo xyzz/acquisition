@@ -402,34 +402,10 @@ void MainWindow::UpdateCurrentItemProperties() {
     if (requirements_text.size() > 0)
         sections.push_back("Requires " + requirements_text);
 
-    if (json["implicitMods"].size() > 0) {
-        std::string implicit;
-        bool first_impl = true;
-        for (auto &mod : json["implicitMods"]) {
-            if (!first_impl)
-                implicit += "<br>";
-            first_impl = false;
-            implicit += mod.asString();
-        }
-        sections.push_back(implicit);
-    }
-
-    std::string explicit_text;
-    {
-        bool first = true;
-        for (auto mod : current_item_->explicitMods()) {
-            explicit_text += (first ? "" : "<br>") + mod;
-            first = false;
-        }
-        if (explicit_text.size() > 0)
-            sections.push_back(explicit_text);
-    }
-
-    if (current_item_->json().isMember("cosmeticMods")) {
-        std::string cosmetic_mods;
-        for (auto mod : current_item_->json()["cosmeticMods"])
-            cosmetic_mods += mod.asString() + "<br>";
-        sections.push_back(cosmetic_mods);
+    for (auto mod_type : { "implicitMods", "explicitMods", "craftedMods", "cosmeticMods" }) {
+        std::string mod_list = Util::ModListAsString(current_item_->json()[mod_type]);
+        if (!mod_list.empty())
+            sections.push_back(mod_list);
     }
 
     std::string text;

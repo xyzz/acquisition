@@ -45,4 +45,6 @@ std::string GetCsrfToken(const std::string &page, const std::string &name);
 std::string FindTextBetween(const std::string &page, const std::string &left, const std::string &right);
 
 std::string BuyoutAsText(const Buyout &bo);
+
+std::string ModListAsString(const Json::Value &list);
 }
