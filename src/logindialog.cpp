@@ -57,7 +57,8 @@ enum {
 LoginDialog::LoginDialog(Application *app) :
     app_(app),
     ui(new Ui::LoginDialog),
-    steam_login_dialog_(new SteamLoginDialog)
+    steam_login_dialog_(new SteamLoginDialog),
+    mw(0)
 {
     ui->setupUi(this);
     ui->errorLabel->hide();
@@ -225,8 +226,8 @@ void LoginDialog::OnMainPageFinished() {
 
     std::string league(ui->leagueComboBox->currentText().toStdString());
     app_->InitLogin(login_manager_, league, account.toStdString());
-    MainWindow *w = new MainWindow(app_);
-    w->show();
+    mw = new MainWindow(app_);
+    mw->show();
     close();
 }
 
@@ -268,4 +269,7 @@ void LoginDialog::DisplayError(const QString &error) {
 LoginDialog::~LoginDialog() {
     SaveSettings();
     delete ui;
+
+    if (mw)
+        delete mw;
 }
