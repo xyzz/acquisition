@@ -44,7 +44,7 @@ double Util::AverageDamage(const std::string &s) {
 }
 
 void Util::PopulateBuyoutTypeComboBox(QComboBox *combobox) {
-    combobox->addItems(QStringList({"No price", "Buyout", "Fixed price"}));
+    combobox->addItems(QStringList({"Ignore", "Buyout", "Fixed price", "No price"}));
 }
 
 void Util::PopulateBuyoutCurrencyComboBox(QComboBox *combobox) {
@@ -135,7 +135,11 @@ std::string Util::FindTextBetween(const std::string &page, const std::string &le
 }
 
 std::string Util::BuyoutAsText(const Buyout &bo) {
-    return BuyoutTypeAsTag[bo.type] + " " + QString::number(bo.value).toStdString() + " " + CurrencyAsTag[bo.currency];
+    if (bo.type != BUYOUT_TYPE_NO_PRICE) {
+        return BuyoutTypeAsTag[bo.type] + " " + QString::number(bo.value).toStdString() + " " + CurrencyAsTag[bo.currency];
+    } else {
+        return BuyoutTypeAsTag[bo.type];
+    }
 }
 
 std::string Util::ModListAsString(const Json::Value &list) {

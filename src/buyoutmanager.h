@@ -81,13 +81,22 @@ const std::vector<std::string> CurrencyAsTag({
 enum BuyoutType {
     BUYOUT_TYPE_NONE,
     BUYOUT_TYPE_BUYOUT,
-    BUYOUT_TYPE_FIXED
+    BUYOUT_TYPE_FIXED,
+    BUYOUT_TYPE_NO_PRICE
 };
 
 const std::vector<std::string> BuyoutTypeAsTag({
     "",
     "b/o",
-    "price"
+    "price",
+    "no price",
+});
+
+const std::vector<std::string> BuyoutTypeAsPrefix({
+    "",
+    " ~b/o ",
+    " ~price ",
+    "",
 });
 
 struct Buyout {

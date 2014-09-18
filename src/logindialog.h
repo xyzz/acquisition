@@ -29,6 +29,7 @@ class QString;
 
 class Application;
 class SteamLoginDialog;
+class MainWindow;
 
 namespace Ui {
 class LoginDialog;
@@ -54,6 +55,7 @@ private:
     void LoginWithCookie(const QString &cookie);
     Application *app_;
     Ui::LoginDialog *ui;
+    MainWindow *mw;
     std::string settings_path_;
     QString saved_league_;
     QString session_id_;
