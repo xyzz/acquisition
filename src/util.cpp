@@ -60,56 +60,26 @@ int Util::TagAsCurrency(const std::string &tag) {
     return std::find(CurrencyAsTag.begin(), CurrencyAsTag.end(), tag) - CurrencyAsTag.begin();
 }
 
-int Util::MinMaxWidth() {
+static std::vector<std::string> width_strings = {
+    "max#",
+    "R. Level",
+    "R##",
+    "Defense"
+};
+
+int Util::TextWidth(TextWidthId id) {
     static bool calculated = false;
-    static int result;
+    static std::vector<int> result;
 
     if (!calculated) {
         calculated = true;
+        result.resize(width_strings.size());
         QLineEdit textbox;
         QFontMetrics fm(textbox.fontMetrics());
-        result = fm.width("max#");
+        for (size_t i = 0; i < width_strings.size(); ++i)
+            result[i] = fm.width(width_strings[i].c_str());
     }
-    return result;
-}
-
-int Util::LabelWidth() {
-    static bool calculated = false;
-    static int result;
-
-    if (!calculated) {
-        calculated = true;
-        QLabel label;
-        QFontMetrics fm(label.fontMetrics());
-        result = fm.width("R. Level");
-    }
-    return result;
-}
-
-int Util::RGBWidth() {
-    static bool calculated = false;
-    static int result;
-
-    if (!calculated) {
-        calculated = true;
-        QLineEdit textbox;
-        QFontMetrics fm(textbox.fontMetrics());
-        result = fm.width("R##");
-    }
-    return result;
-}
-
-int Util::GroupWidth() {
-    static bool calculated = false;
-    static int result;
-
-    if (!calculated) {
-        calculated = true;
-        QLabel label;
-        QFontMetrics fm(label.fontMetrics());
-        result = fm.width("Defense");
-    }
-    return result;
+    return result[static_cast<int>(id)];
 }
 
 void Util::ParseJson(QNetworkReply *reply, Json::Value *root) {

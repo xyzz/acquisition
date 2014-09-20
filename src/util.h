@@ -27,6 +27,13 @@ class QNetworkReply;
 
 struct Buyout;
 
+enum class TextWidthId {
+    WIDTH_MIN_MAX,
+    WIDTH_LABEL,
+    WIDTH_RGB,
+    WIDTH_GROUP
+};
+
 namespace Util {
 std::string Md5(const std::string &value);
 double AverageDamage(const std::string &s);
@@ -35,10 +42,7 @@ void PopulateBuyoutCurrencyComboBox(QComboBox *combobox);
 int TagAsCurrency(const std::string &tag);
 int TagAsBuyoutType(const std::string &tag);
 
-int MinMaxWidth();
-int LabelWidth();
-int RGBWidth();
-int GroupWidth();
+int TextWidth(TextWidthId id);
 
 void ParseJson(QNetworkReply *reply, Json::Value *root);
 std::string GetCsrfToken(const std::string &page, const std::string &name);

@@ -112,9 +112,9 @@ void MinMaxFilter::Initialize(QLayout *parent) {
     parent->addWidget(group);
     textbox_min_->setPlaceholderText("min");
     textbox_max_->setPlaceholderText("max");
-    textbox_min_->setFixedWidth(Util::MinMaxWidth());
-    textbox_max_->setFixedWidth(Util::MinMaxWidth());
-    label->setFixedWidth(Util::LabelWidth());
+    textbox_min_->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_MIN_MAX));
+    textbox_max_->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_MIN_MAX));
+    label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
     QObject::connect(textbox_min_, SIGNAL(textEdited(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
     QObject::connect(textbox_max_, SIGNAL(textEdited(const QString&)),
@@ -213,10 +213,10 @@ void SocketsColorsFilter::Initialize(QLayout *parent, const char* caption) {
     layout->addWidget(textbox_b_);
     group->setLayout(layout);
     parent->addWidget(group);
-    textbox_r_->setFixedWidth(Util::RGBWidth());
-    textbox_g_->setFixedWidth(Util::RGBWidth());
-    textbox_b_->setFixedWidth(Util::RGBWidth());
-    label->setFixedWidth(Util::LabelWidth());
+    textbox_r_->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_RGB));
+    textbox_g_->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_RGB));
+    textbox_b_->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_RGB));
+    label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
     QObject::connect(textbox_r_, SIGNAL(textEdited(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
     QObject::connect(textbox_g_, SIGNAL(textEdited(const QString&)),
@@ -327,7 +327,7 @@ void BooleanFilter::Initialize(QLayout *parent) {
     layout->addWidget(checkbox_);
     group->setLayout(layout);
     parent->addWidget(group);
-    label->setFixedWidth(Util::LabelWidth());
+    label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
     QObject::connect(checkbox_, SIGNAL(stateChanged(int)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
 }

@@ -250,7 +250,7 @@ void MainWindow::OnTabChange(int index) {
 void MainWindow::AddSearchGroup(FlowLayout *layout, std::string name) {
     ui->searchFormLayout->addLayout(layout);
     QLabel *label = new QLabel(("<h3>" + name + "</h3>").c_str());
-    label->setFixedWidth(Util::GroupWidth());
+    label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
     layout->addWidget(label);
 }
 
