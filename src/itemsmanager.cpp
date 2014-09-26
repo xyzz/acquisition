@@ -78,6 +78,8 @@ void ItemsManager::Update() {
     items_.clear();
 
     // first get character list
+    if (!app_->logged_in_nm())
+        return;
     QNetworkReply *characters = app_->logged_in_nm()->get(QNetworkRequest(QUrl(POE_GET_CHARACTERS_URL)));
     connect(characters, SIGNAL(finished()), this, SLOT(OnCharacterListReceived()));
 }

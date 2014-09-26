@@ -36,6 +36,7 @@ public:
     void SubmitShopToForum();
     bool auto_update() const { return auto_update_; }
     const std::string &thread() const { return thread_; }
+    const std::string &shop_data() const { return shop_data_; }
 public slots:
     void OnEditPageFinished();
     void OnShopSubmitted();

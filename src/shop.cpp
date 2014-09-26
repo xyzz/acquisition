@@ -57,6 +57,8 @@ void Shop::Update() {
     shop_data_outdated_ = false;
     std::string data = "[spoiler]";
     for (auto &item : app_->items()) {
+        if (item->location().socketed())
+            continue;
         Buyout bo;
         bo.type = BUYOUT_TYPE_NONE;
 

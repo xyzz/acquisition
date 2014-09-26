@@ -42,7 +42,8 @@ SOURCES += \
     src/application.cpp \
     src/steamlogindialog.cpp \
     test/testmain.cpp \
-    test/testitem.cpp
+    test/testitem.cpp \
+    test/testshop.cpp
 
 HEADERS += \
     src/item.h \
@@ -71,7 +72,8 @@ HEADERS += \
     src/application.h \
     src/steamlogindialog.h \
     test/testmain.h \
-    test/testitem.h
+    test/testitem.h \
+    test/testshop.h
 
 FORMS += \
     forms/mainwindow.ui \
