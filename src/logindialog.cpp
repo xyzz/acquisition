@@ -57,8 +57,8 @@ enum {
 LoginDialog::LoginDialog(Application *app) :
     app_(app),
     ui(new Ui::LoginDialog),
-    steam_login_dialog_(new SteamLoginDialog),
-    mw(0)
+    mw(0),
+    steam_login_dialog_(new SteamLoginDialog)
 {
     ui->setupUi(this);
     ui->errorLabel->hide();
@@ -227,6 +227,7 @@ void LoginDialog::OnMainPageFinished() {
     std::string league(ui->leagueComboBox->currentText().toStdString());
     app_->InitLogin(login_manager_, league, account.toStdString());
     mw = new MainWindow(app_);
+    mw->setWindowTitle(QString("Acquisition - %1").arg(league.c_str()));
     mw->show();
     close();
 }
