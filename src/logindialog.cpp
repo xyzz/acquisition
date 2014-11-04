@@ -227,6 +227,7 @@ void LoginDialog::OnMainPageFinished() {
     std::string league(ui->leagueComboBox->currentText().toStdString());
     app_->InitLogin(login_manager_, league, account.toStdString());
     mw = new MainWindow(app_);
+    mw->setWindowTitle(QString("Acquisition - %1").arg(league.c_str()));
     mw->show();
     close();
 }
