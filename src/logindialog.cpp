@@ -57,8 +57,8 @@ enum {
 LoginDialog::LoginDialog(Application *app) :
     app_(app),
     ui(new Ui::LoginDialog),
-    steam_login_dialog_(new SteamLoginDialog),
-    mw(0)
+    mw(0),
+    steam_login_dialog_(new SteamLoginDialog)
 {
     ui->setupUi(this);
     ui->errorLabel->hide();
