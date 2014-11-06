@@ -103,7 +103,8 @@ void LoginDialog::OnLeaguesRequestFinished() {
     Json::Reader reader;
 
     leagues_.clear();
-    if (!reader.parse(json, root)) {
+    // ignore actual response completely since it's broken anyway (at the moment of writing!)
+    if (true || !reader.parse(json, root)) {
         QLOG_ERROR() << "Failed to parse leagues. The output was:";
         QLOG_ERROR() << QString(bytes);
 
