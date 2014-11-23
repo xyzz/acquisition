@@ -279,7 +279,7 @@ void MainWindow::InitializeSearchForm() {
         new SimplePropertyFilter(offense_layout, "Attacks per Second", "APS"),
         // Defense
         new SimplePropertyFilter(defense_layout, "Armour"),
-        new SimplePropertyFilter(defense_layout, "Evasion"),
+        new SimplePropertyFilter(defense_layout, "Evasion Rating", "Evasion"),
         new SimplePropertyFilter(defense_layout, "Energy Shield", "Shield"),
         new SimplePropertyFilter(defense_layout, "Chance to Block", "Block"),
         // Sockets

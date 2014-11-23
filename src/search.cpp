@@ -48,7 +48,7 @@ Search::Search(Application *app, std::string caption, std::vector<Filter*> filte
         new eDPSColumn,
         new PropertyColumn("Crit", "Critical Strike Chance"),
         new PropertyColumn("Ar", "Armour"),
-        new PropertyColumn("Ev", "Evasion"),
+        new PropertyColumn("Ev", "Evasion Rating"),
         new PropertyColumn("ES", "Energy Shield"),
         new PropertyColumn("B", "Chance to Block"),
         new PropertyColumn("Lvl", "Level"),
