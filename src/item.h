@@ -23,18 +23,17 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "jsoncpp/json.h"
+#include "rapidjson/document.h"
 
 #include "itemconstants.h"
 #include "itemlocation.h"
 
 class Item {
 public:
-    Item(const Json::Value &json);
+    explicit Item(const rapidjson::Value &json);
     std::string name() const { return name_; }
     std::string typeLine() const { return typeLine_; }
     std::string PrettyName() const;
-    const Json::Value &json() const { return json_; }
     bool corrupted() const { return corrupted_; }
     int w() const { return w_; }
     int h() const { return h_; }
@@ -56,10 +55,8 @@ public:
     int sockets_w() const { return sockets_w_; }
     const ItemLocation &location() const { return location_; }
     int count() const { return count_; };
-private:
-    std::string UniqueProperties(const std::string &name);
 
-    Json::Value json_;
+private:
     ItemLocation location_;
     std::string name_;
     std::string typeLine_;

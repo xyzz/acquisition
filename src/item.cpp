@@ -21,22 +21,35 @@
 
 #include <utility>
 #include <QString>
-#include "jsoncpp/json.h"
+#include "rapidjson/document.h"
 
 #include "util.h"
 #include "porting.h"
 #include "itemlocation.h"
 
-Item::Item(const Json::Value &json) :
-    json_(json),
+static std::string item_unique_properties(const rapidjson::Value &json, const std::string &name) {
+    const char *name_p = name.c_str();
+    if (!json.HasMember(name_p))
+        return "";
+    std::string result;
+    for (auto prop_it = json[name_p].Begin(); prop_it != json[name_p].End(); ++prop_it) {
+        auto &prop = *prop_it;
+        result += std::string(prop["name"].GetString()) + "~";
+        for (auto value_it = prop["values"].Begin(); value_it != prop["values"].End(); ++value_it)
+            result += std::string((*value_it)[0].GetString()) + "~";
+    }
+    return result;
+}
+
+Item::Item(const rapidjson::Value &json) :
     location_(ItemLocation(json)),
-    name_(json["name"].asString()),
-    typeLine_(json["typeLine"].asString()),
-    corrupted_(json["corrupted"].asBool()),
-    w_(json["w"].asInt()),
-    h_(json["h"].asInt()),
-    frameType_(json["frameType"].asInt()),
-    icon_(json["icon"].asString()),
+    name_(json["name"].GetString()),
+    typeLine_(json["typeLine"].GetString()),
+    corrupted_(json["corrupted"].GetBool()),
+    w_(json["w"].GetInt()),
+    h_(json["h"].GetInt()),
+    frameType_(json["frameType"].GetInt()),
+    icon_(json["icon"].GetString()),
     sockets_(0),
     links_(0),
     sockets_r_(0),
@@ -44,62 +57,78 @@ Item::Item(const Json::Value &json) :
     sockets_b_(0),
     sockets_w_(0)
 {
-    for (auto mod : json["explicitMods"])
-        explicitMods_.push_back(mod.asString());
+    if (json.HasMember("explicitMods"))
+        for (auto mod = json["explicitMods"].Begin(); mod != json["explicitMods"].End(); ++mod)
+            explicitMods_.push_back(mod->GetString());
 
-    for (auto &property : json["properties"]) {
-        std::string name = property["name"].asString();
-        if (name == "Map Level")
-            name = "Level";
-        if (name == "Elemental Damage") {
-            for (auto &value : property["values"])
-                elemental_damage_.push_back(std::make_pair(value[0].asString(), value[1].asInt()));
-        } else {
-            properties_[name] = property["values"][0][0].asString();
+    if (json.HasMember("properties")) {
+        for (auto prop_it = json["properties"].Begin(); prop_it != json["properties"].End(); ++prop_it) {
+            auto &prop = *prop_it;
+            std::string name = prop["name"].GetString();
+            if (name == "Map Level")
+                name = "Level";
+            if (name == "Elemental Damage") {
+                for (auto value_it = prop["values"].Begin(); value_it != prop["values"].End(); ++value_it)
+                    elemental_damage_.push_back(std::make_pair((*value_it)[0].GetString(), (*value_it)[1].GetInt()));
+            }
+            else {
+                if (prop["values"].Size())
+                    properties_[name] = prop["values"][0][0].GetString();
+            }
         }
     }
 
-    for (auto &requirement : json["requirements"]) {
-        int value = QString(requirement["values"][0][0].asString().c_str()).toInt();
-        requirements_[requirement["name"].asString()] = value;
-    }
-
-    sockets_ = json["sockets"].size();
-    int counter = 0, prev = -1;
-    for (auto &socket : json["sockets"]) {
-        int cur = socket["group"].asInt();
-        if (prev != cur)
-            counter = 0;
-        prev = cur;
-        ++counter;
-        links_ = std::max(links_, counter);
-        switch (socket["attr"].asString()[0]) {
-        case 'S':
-            sockets_r_++;
-            break;
-        case 'D':
-            sockets_g_++;
-            break;
-        case 'I':
-            sockets_b_++;
-            break;
-        case 'G':
-            sockets_w_++;
-            break;
+    if (json.HasMember("requirements")) {
+        for (auto req_it = json["requirements"].Begin(); req_it != json["requirements"].End(); ++req_it) {
+            auto &req = *req_it;
+            int value = QString(req["values"][0][0].GetString()).toInt();
+            requirements_[req["name"].GetString()] = value;
         }
     }
 
-    std::string unique;
-    unique += json["name"].asString() + "~" + json["typeLine"].asString() + "~";
-    for (auto &mod : json["explicitMods"])
-        unique += mod.asString() + "~";
-    for (auto &mod : json["implicitMods"])
-        unique += mod.asString() + "~";
-    unique += UniqueProperties("properties") + "~";
-    unique += UniqueProperties("additionalProperties") + "~";
+    if (json.HasMember("sockets")) {
+        sockets_ = json["sockets"].Size();
+        int counter = 0, prev = -1;
+        for (auto socket_it = json["sockets"].Begin(); socket_it != json["sockets"].End(); ++socket_it) {
+            int cur = (*socket_it)["group"].GetInt();
+            if (prev != cur)
+                counter = 0;
+            prev = cur;
+            ++counter;
+            links_ = std::max(links_, counter);
+            switch ((*socket_it)["attr"].GetString()[0]) {
+            case 'S':
+                sockets_r_++;
+                break;
+            case 'D':
+                sockets_g_++;
+                break;
+            case 'I':
+                sockets_b_++;
+                break;
+            case 'G':
+                sockets_w_++;
+                break;
+            }
+        }
+    }
 
-    for (auto &socket : json["sockets"])
-        unique += std::to_string(socket["group"].asInt()) + "~" + socket["attr"].asString() + "~";
+    std::string unique(std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~");
+
+    if (json.HasMember("explicitMods"))
+        for (auto mod_it = json["explicitMods"].Begin(); mod_it != json["explicitMods"].End(); ++mod_it)
+            unique += std::string(mod_it->GetString()) + "~";
+
+    if (json.HasMember("implicitMods"))
+        for (auto mod_it = json["implicitMods"].Begin(); mod_it != json["implicitMods"].End(); ++mod_it)
+            unique += std::string(mod_it->GetString()) + "~";
+
+    unique += item_unique_properties(json, "properties") + "~";
+    unique += item_unique_properties(json, "additionalProperties") + "~";
+
+    if (json.HasMember("sockets"))
+        for (auto socket_it = json["sockets"].Begin(); socket_it != json["sockets"].End(); ++socket_it)
+            unique += std::to_string((*socket_it)["group"].GetInt()) + "~" + (*socket_it)["attr"].GetString() + "~";
 
     hash_ = Util::Md5(unique);
 
@@ -111,16 +140,6 @@ Item::Item(const Json::Value &json) :
             count_ = std::stoi(size);
         }
     }
-}
-
-std::string Item::UniqueProperties(const std::string &name) {
-    std::string result;
-    for (auto &property : json_[name]) {
-        result += property["name"].asString() + "~";
-        for (auto value : property["values"])
-            result += value[0].asString() + "~";
-    }
-    return result;
 }
 
 std::string Item::PrettyName() const {

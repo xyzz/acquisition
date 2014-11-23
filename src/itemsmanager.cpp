@@ -29,6 +29,7 @@
 #include <stdexcept>
 #include "jsoncpp/json.h"
 #include "QsLog.h"
+#include "rapidjson/document.h"
 
 #include "application.h"
 #include "datamanager.h"
@@ -209,6 +210,7 @@ void ItemsManager::OnFirstTabReceived() {
 }
 
 void ItemsManager::ParseItems(const Json::Value &root, const ItemLocation &base_location) {
+#if 0
     for (auto item : root) {
         ItemLocation location(base_location);
         location.FromItemJson(item);
@@ -218,17 +220,17 @@ void ItemsManager::ParseItems(const Json::Value &root, const ItemLocation &base_
         location.set_socketed(true);
         ParseItems(item["socketedItems"], location);
     }
+#endif
 }
 
 void ItemsManager::LoadSavedData() {
     items_.clear();
     std::string items = app_->data_manager()->Get("items");
     if (items.size() != 0) {
-        Json::Value root;
-        Json::Reader reader;
-        reader.parse(items, root);
-        for (auto &item : root)
-            items_.push_back(std::make_shared<Item>(item));
+        rapidjson::Document doc;
+        doc.Parse(items.c_str());
+        for (auto item = doc.Begin(); item != doc.End(); ++item)
+            items_.push_back(std::make_shared<Item>(*item));
     }
 
     tabs_.clear();

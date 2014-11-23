@@ -356,6 +356,7 @@ void MainWindow::UpdateCurrentItem() {
 }
 
 void MainWindow::UpdateCurrentItemProperties() {
+#if 0
     const auto &json = current_item_->json();
     std::vector<std::string> sections;
 
@@ -417,9 +418,11 @@ void MainWindow::UpdateCurrentItemProperties() {
         text += s;
     }
     ui->propertiesLabel->setText(text.c_str());
+#endif
 }
 
 void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
+#if 0
     QPixmap pixmap = QPixmap::fromImage(image);
     QPainter painter(&pixmap);
 
@@ -469,6 +472,7 @@ void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
     }
 
     ui->imageLabel->setPixmap(pixmap);
+#endif
 }
 
 void MainWindow::UpdateCurrentItemMinimap() {

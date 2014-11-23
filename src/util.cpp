@@ -27,6 +27,7 @@
 #include <QLabel>
 #include <QFontMetrics>
 #include <QNetworkReply>
+#include "jsoncpp/json.h"
 
 #include "buyoutmanager.h"
 #include "porting.h"

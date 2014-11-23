@@ -276,6 +276,8 @@ LinksColorsFilter::LinksColorsFilter(QLayout *parent) {
 bool LinksColorsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     if (!data->r_filled && !data->g_filled && !data->b_filled)
         return true;
+    return false;
+#if 0
     int need_r = 0, need_g = 0, need_b = 0;
     if (data->r_filled)
         need_r = data->r;
@@ -307,6 +309,7 @@ bool LinksColorsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *d
         }
     }
     return Check(need_r, need_g, need_b, got_r, got_g, got_b, got_w);
+#endif
 }
 
 BooleanFilter::BooleanFilter(QLayout *parent, std::string property, std::string caption):
@@ -349,7 +352,10 @@ bool BooleanFilter::Matches(const std::shared_ptr<Item> & /* item */, FilterData
 }
 
 bool MTXFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    return true;
+#if 0
     return (!data->checked || item->json().isMember("cosmeticMods"));
+#endif
 }
 
 bool AltartFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {

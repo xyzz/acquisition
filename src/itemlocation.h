@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QRectF>
-#include "jsoncpp/json.h"
+#include "rapidjson/document.h"
 
 #include "itemconstants.h"
 
@@ -13,9 +13,9 @@ enum class ItemLocationType {
 class ItemLocation {
 public:
     ItemLocation();
-    explicit ItemLocation(const Json::Value &root);
-    void ToItemJson(Json::Value *root);
-    void FromItemJson(const Json::Value &root);
+    explicit ItemLocation(const rapidjson::Value &root);
+    void ToItemJson(rapidjson::Value *root);
+    void FromItemJson(const rapidjson::Value &root);
     std::string GetHeader() const;
     QRectF GetRect() const;
     std::string GetForumCode(const std::string &league) const;

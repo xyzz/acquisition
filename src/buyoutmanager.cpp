@@ -77,6 +77,7 @@ void BuyoutManager::DeleteTab(const std::string &tab) {
 }
 
 std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyouts) {
+#if 0
     Json::Value root;
 
     for (auto &bo : buyouts) {
@@ -96,9 +97,12 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
 
     Json::FastWriter writer;
     return writer.write(root);
+#endif
+    return "";
 }
 
 void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts) {
+#if 0
     buyouts->clear();
     Json::Value root;
     Json::Reader reader;
@@ -120,6 +124,7 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
         bo.value = root[key]["value"].asDouble();
         (*buyouts)[key] = bo;
     }
+#endif
 }
 
 void BuyoutManager::Save() {
