@@ -111,7 +111,7 @@ void LoginDialog::OnLeaguesRequestFinished() {
         // But let's do our best and try to add at least some leagues!
         // It's in case GGG's API is broken and suddenly starts returning empty pages,
         // which of course will never happen.
-        leagues_ = { "Rampage", "Beyond", "Standard", "Hardcore" };
+        leagues_ = { "One Week Rampage/Beyond", "One Week HC Rampage/Beyond", "Standard", "Hardcore" };
     } else {
         for (auto league : root)
             leagues_.push_back(league["id"].asString());
