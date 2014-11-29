@@ -4,6 +4,7 @@
 #include "rapidjson/document.h"
 
 #include "itemconstants.h"
+#include "rapidjson_util.h"
 
 enum class ItemLocationType {
     STASH,
@@ -14,7 +15,7 @@ class ItemLocation {
 public:
     ItemLocation();
     explicit ItemLocation(const rapidjson::Value &root);
-    void ToItemJson(rapidjson::Value *root);
+    void ToItemJson(rapidjson::Value *root, rapidjson_allocator &alloc);
     void FromItemJson(const rapidjson::Value &root);
     std::string GetHeader() const;
     QRectF GetRect() const;

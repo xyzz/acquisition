@@ -33,6 +33,7 @@
 
 #include "application.h"
 #include "datamanager.h"
+#include "rapidjson_util.h"
 #include "shop.h"
 #include "util.h"
 
@@ -75,8 +76,9 @@ void ItemsManager::Update() {
     queue_ = std::queue<ItemsRequest>();
     queue_id_ = 0;
     replies_.clear();
-    items_as_json_.clear();
     items_.clear();
+    tabs_as_string_ = "";
+    items_as_string_ = "[ "; // space here is important, see ParseItems and OnTabReceived when all requests are completed
 
     // first get character list
     if (!app_->logged_in_nm())
@@ -161,34 +163,35 @@ void ItemsManager::FetchItems(int limit) {
 
 void ItemsManager::OnFirstTabReceived() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    Json::Value root;
-    Util::ParseJson(reply, &root);
+    QByteArray bytes = reply->readAll();
+    rapidjson::Document doc;
+    doc.Parse(bytes.constData());
 
     int index = 0;
-    if (!root.isObject()) {
+    if (!doc.IsObject()) {
         QLOG_ERROR() << "Can't even fetch first tab. Failed to update items.";
         updating_ = false;
         return;
     }
-    if (!root.isMember("tabs") || root["tabs"].size() == 0) {
+    if (!doc.HasMember("tabs") || doc["tabs"].Size() == 0) {
         QLOG_WARN() << "There are no tabs, this should not happen, bailing out.";
         updating_ = false;
         return;
     }
+
+    tabs_as_string_ = Util::RapidjsonSerialize(doc["tabs"]);
+
+    QLOG_INFO() << "Received tabs list, there are" << doc["tabs"].Size() << "tabs";
     tabs_.clear();
-    tabs_as_json_ = root["tabs"];
-
-    QLOG_INFO() << "Received tabs list, there are" << tabs_as_json_.size() << "tabs";
-
-    for (auto &tab : root["tabs"]) {
-        std::string label = tab["n"].asString();
+    for (auto &tab : doc["tabs"]) {
+        std::string label = tab["n"].GetString();
         tabs_.push_back(label);
         if (index > 0) {
             ItemLocation location;
             location.set_type(ItemLocationType::STASH);
             location.set_tab_id(index);
             location.set_tab_label(label);
-            if (!tab["hidden"].asBool())
+            if (!tab.HasMember("hidden") || !tab["hidden"].GetBool())
                 QueueRequest(MakeTabRequest(index), location);
         }
         ++index;
@@ -198,8 +201,8 @@ void ItemsManager::OnFirstTabReceived() {
     first_tab_location.set_type(ItemLocationType::STASH);
     first_tab_location.set_tab_id(0);
     first_tab_location.set_tab_label(tabs_[0]);
-    if (!root["tabs"][0]["hidden"].asBool())
-        ParseItems(root["items"], first_tab_location);
+    if (!doc["tabs"][0].HasMember("hidden") || !doc["tabs"][0]["hidden"].GetBool())
+        ParseItems(&doc["items"], first_tab_location, doc.GetAllocator());
 
     total_needed_ = queue_.size() + 1;
     total_completed_ = 1;
@@ -209,18 +212,17 @@ void ItemsManager::OnFirstTabReceived() {
     reply->deleteLater();
 }
 
-void ItemsManager::ParseItems(const Json::Value &root, const ItemLocation &base_location) {
-#if 0
-    for (auto item : root) {
+void ItemsManager::ParseItems(rapidjson::Value *value_ptr, const ItemLocation &base_location, rapidjson_allocator &alloc) {
+    auto &value = *value_ptr;
+    for (auto &item : value) {
         ItemLocation location(base_location);
         location.FromItemJson(item);
-        location.ToItemJson(&item);
-        items_as_json_.append(item);
+        location.ToItemJson(&item, alloc);
+        items_as_string_ += Util::RapidjsonSerialize(item) + ",";
         items_.push_back(std::make_shared<Item>(item));
         location.set_socketed(true);
-        ParseItems(item["socketedItems"], location);
+        ParseItems(&item["socketedItems"], location, alloc);
     }
-#endif
 }
 
 void ItemsManager::LoadSavedData() {
@@ -253,11 +255,12 @@ void ItemsManager::OnTabReceived(int request_id) {
 
     ItemsReply reply = replies_[request_id];
     QLOG_INFO() << "Received a reply for" << reply.request.location.GetHeader().c_str();
-    Json::Value root;
-    Util::ParseJson(reply.network_reply, &root);
+    QByteArray bytes = reply.network_reply->readAll();
+    rapidjson::Document doc;
+    doc.Parse(bytes.constData());
 
     bool error = false;
-    if (root.isMember("error")) {
+    if (doc.HasMember("error")) {
         // this can happen if user is browsing stash in background and we can't know about it
         QLOG_WARN() << request_id << "got 'error' instead of stash tab contents";
         QueueRequest(reply.request.network_request, reply.request.location);
@@ -280,15 +283,17 @@ void ItemsManager::OnTabReceived(int request_id) {
     if (error)
         return;
 
-    ParseItems(root["items"], reply.request.location);
+    ParseItems(&doc["items"], reply.request.location, doc.GetAllocator());
 
     if (total_completed_ == total_needed_) {
         // all requests completed
         emit ItemsRefreshed(items_, tabs_);
 
-        Json::FastWriter writer;
-        app_->data_manager()->Set("items", writer.write(items_as_json_));
-        app_->data_manager()->Set("tabs", writer.write(tabs_as_json_));
+        // since we build items_as_string_ in a hackish way inside ParseItems last character will either be
+        // ' ' when no items were parsed or ',' when at least one item is parsed, and the first character is '['
+        items_as_string_[items_as_string_.size() - 1] = ']';
+        app_->data_manager()->Set("items", items_as_string_);
+        app_->data_manager()->Set("tabs", tabs_as_string_);
 
         updating_ = false;
         QLOG_INFO() << "Finished updating stash.";

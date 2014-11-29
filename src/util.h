@@ -53,6 +53,6 @@ std::string BuyoutAsText(const Buyout &bo);
 
 std::string ModListAsString(const Json::Value &list);
 
-std::string RapidjsonSerialize(const rapidjson::Document &doc);
+std::string RapidjsonSerialize(const rapidjson::Value &val);
 void RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const std::string &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc);
 }

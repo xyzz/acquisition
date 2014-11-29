@@ -28,7 +28,7 @@
 
 #include "application.h"
 #include "datamanager.h"
-#include "rapidjson_iterators.h"
+#include "rapidjson_util.h"
 #include "util.h"
 
 BuyoutManager::BuyoutManager(Application *app) :

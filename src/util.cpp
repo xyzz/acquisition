@@ -125,10 +125,10 @@ std::string Util::ModListAsString(const Json::Value &list) {
     return mods;
 }
 
-std::string Util::RapidjsonSerialize(const rapidjson::Document &doc) {
+std::string Util::RapidjsonSerialize(const rapidjson::Value &val) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
+    val.Accept(writer);
     return buffer.GetString();
 }
 

@@ -57,7 +57,7 @@ void Application::InitLogin(QNetworkAccessManager *login_manager, const std::str
         this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>)));
 
     items_manager_->LoadSavedData();
-    // items_manager_->Update();
+    items_manager_->Update();
 }
 
 void Application::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {

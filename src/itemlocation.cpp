@@ -1,8 +1,9 @@
 #include "itemlocation.h"
 
 #include <QString>
-#include "rapidjson/document.h"
 #include "jsoncpp/json.h"
+
+#include "rapidjson_util.h"
 
 ItemLocation::ItemLocation():
     socketed_(false)
@@ -36,24 +37,27 @@ void ItemLocation::FromItemJson(const rapidjson::Value &root) {
     }
     w_ = root["w"].GetInt();
     h_ = root["h"].GetInt();
-    //inventory_id_ = root["inventoryId"].GetString();
+    if (root.HasMember("inventoryId"))
+        inventory_id_ = root["inventoryId"].GetString();
 }
 
-void ItemLocation::ToItemJson(rapidjson::Value *root) {
-#if 0
-    (*root)["_type"] = static_cast<int>(type_);
+void ItemLocation::ToItemJson(rapidjson::Value *root_ptr, rapidjson_allocator &alloc) {
+    auto &root = *root_ptr;
+    rapidjson::Value string_val(rapidjson::kStringType);
+    root.AddMember("_type", static_cast<int>(type_), alloc);
     if (type_ == ItemLocationType::STASH) {
-        (*root)["_tab"] = tab_id_;
-        (*root)["_tab_label"] = tab_label_;
+        root.AddMember("_tab", tab_id_, alloc);
+        string_val.SetString(tab_label_.c_str(), alloc);
+        root.AddMember("_tab_label", string_val, alloc);
     } else {
-        (*root)["_character"] = character_;
+        string_val.SetString(character_.c_str(), alloc);
+        root.AddMember("_character", string_val, alloc);
     }
     if (socketed_) {
-        (*root)["_x"] = x_;
-        (*root)["_y"] = y_;
+        root.AddMember("_x", x_, alloc);
+        root.AddMember("_y", y_, alloc);
     }
-    (*root)["_socketed"] = socketed_;
-#endif
+    root.AddMember("_socketed", socketed_, alloc);
 }
 
 std::string ItemLocation::GetHeader() const {
