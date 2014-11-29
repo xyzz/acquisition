@@ -28,9 +28,29 @@
 #include "itemconstants.h"
 #include "itemlocation.h"
 
+extern const std::vector<std::string> ITEM_MOD_TYPES;
+
 struct ItemSocketGroup {
     int r, g, b, w;
 };
+
+struct ItemProperty {
+    std::string name;
+    std::vector<std::string> values;
+    int display_mode;
+};
+
+struct ItemRequirement {
+    std::string name;
+    std::string value;
+};
+
+struct ItemSocket {
+    unsigned char group;
+    char attr;
+};
+
+typedef std::vector<std::string> ItemMods;
 
 class Item {
 public:
@@ -43,8 +63,11 @@ public:
     int h() const { return h_; }
     int frameType() const { return frameType_; }
     const std::string &icon() const { return icon_; }
-    const std::vector<std::string>& explicitMods() const { return explicitMods_; }
     const std::map<std::string, std::string> &properties() const { return properties_; }
+    const std::vector<ItemProperty> &text_properties() const { return text_properties_; }
+    const std::vector<ItemRequirement> &text_requirements() const { return text_requirements_; }
+    const std::map<std::string, ItemMods> &text_mods() const { return text_mods_; }
+    const std::vector<ItemSocket> &text_sockets() const { return text_sockets_; }
     const std::string &hash() const { return hash_; }
     const std::vector<std::pair<std::string, int>> &elemental_damage() const { return elemental_damage_; }
     const std::map<std::string, int> &requirements() const { return requirements_; }
@@ -67,7 +90,6 @@ private:
     int w_, h_;
     int frameType_;
     std::string icon_;
-    std::vector<std::string> explicitMods_;
     std::map<std::string, std::string> properties_;
     std::string hash_;
     // vector of pairs [damage, type]
@@ -78,6 +100,10 @@ private:
     std::map<std::string, int> requirements_;
     int count_;
     bool has_mtx_;
+    std::vector<ItemProperty> text_properties_;
+    std::vector<ItemRequirement> text_requirements_;
+    std::map<std::string, ItemMods> text_mods_;
+    std::vector<ItemSocket> text_sockets_;
 };
 
 typedef std::vector<std::shared_ptr<Item>> Items;

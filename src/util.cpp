@@ -115,11 +115,11 @@ std::string Util::BuyoutAsText(const Buyout &bo) {
     }
 }
 
-std::string Util::ModListAsString(const Json::Value &list) {
+std::string Util::ModListAsString(const ItemMods &list) {
     std::string mods;
     bool first = true;
-    for (auto mod : list) {
-        mods += (first ? "" : "<br>") + mod.asString();
+    for (auto &mod : list) {
+        mods += (first ? "" : "<br>") + mod;
         first = false;
     }
     return mods;

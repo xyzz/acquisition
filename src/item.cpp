@@ -27,6 +27,10 @@
 #include "porting.h"
 #include "itemlocation.h"
 
+const std::vector<std::string> ITEM_MOD_TYPES = {
+    "implicitMods", "explicitMods", "craftedMods", "cosmeticMods"
+};
+
 static std::string item_unique_properties(const rapidjson::Value &json, const std::string &name) {
     const char *name_p = name.c_str();
     if (!json.HasMember(name_p))
@@ -55,9 +59,14 @@ Item::Item(const rapidjson::Value &json) :
     sockets_({ 0, 0, 0, 0 }),
     has_mtx_(false)
 {
-    if (json.HasMember("explicitMods"))
-        for (auto mod = json["explicitMods"].Begin(); mod != json["explicitMods"].End(); ++mod)
-            explicitMods_.push_back(mod->GetString());
+    for (auto &mod_type : ITEM_MOD_TYPES) {
+        text_mods_[mod_type] = std::vector<std::string>();
+        if (json.HasMember(mod_type.c_str())) {
+            auto &mods = text_mods_[mod_type];
+            for (auto &mod : json[mod_type.c_str()])
+                mods.push_back(mod.GetString());
+        }
+    }
 
     if (json.HasMember("properties")) {
         for (auto prop_it = json["properties"].Begin(); prop_it != json["properties"].End(); ++prop_it) {
@@ -73,32 +82,41 @@ Item::Item(const rapidjson::Value &json) :
                 if (prop["values"].Size())
                     properties_[name] = prop["values"][0][0].GetString();
             }
+
+            ItemProperty property;
+            property.name = name;
+            property.display_mode = prop["displayMode"].GetInt();
+            for (auto &value : prop["values"])
+                property.values.push_back(value[0].GetString());
+            text_properties_.push_back(property);
         }
     }
 
     if (json.HasMember("requirements")) {
-        for (auto req_it = json["requirements"].Begin(); req_it != json["requirements"].End(); ++req_it) {
-            auto &req = *req_it;
-            int value = QString(req["values"][0][0].GetString()).toInt();
-            requirements_[req["name"].GetString()] = value;
+        for (auto &req : json["requirements"]) {
+            std::string name = req["name"].GetString();
+            std::string value = req["values"][0][0].GetString();
+            requirements_[name] = std::atoi(value.c_str());
+            text_requirements_.push_back({ name, value });
         }
     }
 
     if (json.HasMember("sockets")) {
         ItemSocketGroup current_group = { 0, 0, 0, 0 };
         sockets_cnt_ = json["sockets"].Size();
-        int counter = 0, prev = -1;
-        for (auto socket_it = json["sockets"].Begin(); socket_it != json["sockets"].End(); ++socket_it) {
-            int cur = (*socket_it)["group"].GetInt();
-            if (prev != cur) {
+        int counter = 0, prev_group = -1;
+        for (auto &socket : json["sockets"]) {
+            ItemSocket current_socket = { socket["group"].GetInt(), socket["attr"].GetString()[0] };
+            text_sockets_.push_back(current_socket);
+            if (prev_group != current_socket.group) {
                 counter = 0;
                 socket_groups_.push_back(current_group);
                 current_group = { 0, 0, 0, 0 };
             }
-            prev = cur;
+            prev_group = current_socket.group;
             ++counter;
             links_cnt_ = std::max(links_cnt_, counter);
-            switch ((*socket_it)["attr"].GetString()[0]) {
+            switch (current_socket.attr) {
             case 'S':
                 sockets_.r++;
                 current_group.r++;

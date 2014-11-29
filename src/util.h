@@ -23,6 +23,8 @@
 #include "jsoncpp/json-forwards.h"
 #include "rapidjson/document.h"
 
+#include "item.h"
+
 class QComboBox;
 class QNetworkReply;
 
@@ -51,7 +53,7 @@ std::string FindTextBetween(const std::string &page, const std::string &left, co
 
 std::string BuyoutAsText(const Buyout &bo);
 
-std::string ModListAsString(const Json::Value &list);
+std::string ModListAsString(const ItemMods &list);
 
 std::string RapidjsonSerialize(const rapidjson::Value &val);
 void RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const std::string &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc);

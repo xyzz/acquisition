@@ -356,35 +356,30 @@ void MainWindow::UpdateCurrentItem() {
 }
 
 void MainWindow::UpdateCurrentItemProperties() {
-#if 0
-    const auto &json = current_item_->json();
     std::vector<std::string> sections;
 
     std::string properties_text;
     bool first_prop = true;
-    for (auto &property : json["properties"]) {
+    for (auto &property : current_item_->text_properties()) {
         if (!first_prop)
             properties_text += "<br>";
         first_prop = false;
-        if (property["displayMode"].asInt() == 3) {
-            QString format(property["name"].asString().c_str());
-            for (int i = 0; i < property["values"].size(); ++i) {
-                const auto &value = property["values"][i];
-                format = format.arg(value[0].asString().c_str());
-            }
-            properties_text += format.toUtf8().constData();
+        if (property.display_mode == 3) {
+            QString format(property.name.c_str());
+            for (auto &value : property.values)
+                format = format.arg(value.c_str());
+            properties_text += format.toStdString();
         } else {
-            std::string name = property["name"].asString();
-            properties_text += name;
-            if (property["values"].size() > 0) {
-                if (name.size() > 0)
+            properties_text += property.name;
+            if (property.values.size()) {
+                if (property.name.size() > 0)
                     properties_text += ": ";
                 bool first_val = true;
-                for (auto &value : property["values"]) {
+                for (auto &value : property.values) {
                     if (!first_val)
                         properties_text += ", ";
                     first_val = false;
-                    properties_text += value[0].asString();
+                    properties_text += value;
                 }
             }
         }
@@ -394,17 +389,18 @@ void MainWindow::UpdateCurrentItemProperties() {
 
     std::string requirements_text;
     bool first_req = true;
-    for (auto &requirement : current_item_->json()["requirements"]) {
+    for (auto &requirement : current_item_->text_requirements()) {
         if (!first_req)
             requirements_text += ", ";
         first_req = false;
-        requirements_text += requirement["name"].asString() + ": " + requirement["values"][0][0].asString();
+        requirements_text += requirement.name + ": " + requirement.value;
     }
     if (requirements_text.size() > 0)
         sections.push_back("Requires " + requirements_text);
 
-    for (auto mod_type : { "implicitMods", "explicitMods", "craftedMods", "cosmeticMods" }) {
-        std::string mod_list = Util::ModListAsString(current_item_->json()[mod_type]);
+    auto &mods = current_item_->text_mods();
+    for (auto &mod_type : ITEM_MOD_TYPES) {
+        std::string mod_list = Util::ModListAsString(mods.at(mod_type));
         if (!mod_list.empty())
             sections.push_back(mod_list);
     }
@@ -418,22 +414,19 @@ void MainWindow::UpdateCurrentItemProperties() {
         text += s;
     }
     ui->propertiesLabel->setText(text.c_str());
-#endif
 }
 
 void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
-#if 0
     QPixmap pixmap = QPixmap::fromImage(image);
     QPainter painter(&pixmap);
 
-    QImage link_h(":/sockets/linkH.png");
-    QImage link_v(":/sockets/linkV.png");
-
-    auto &json = current_item_->json();
-    for (int i = 0; i < json["sockets"].size(); ++i) {
-        auto &socket = json["sockets"][i];
-        bool link = (i > 0) && (socket["group"].asInt() == json["sockets"][i - 1]["group"].asInt());
-        QImage socket_image(":/sockets/" + QString(socket["attr"].asString().c_str()) + ".png");
+    static const QImage link_h(":/sockets/linkH.png");
+    static const QImage link_v(":/sockets/linkV.png");
+    ItemSocket prev = { -1, '-' };
+    size_t i = 0;
+    for (auto &socket : current_item_->text_sockets()) {
+        bool link = socket.group == prev.group;
+        QImage socket_image(":/sockets/" + QString(socket.attr) + ".png");
         if (current_item_->w() == 1) {
             painter.drawImage(0, PIXELS_PER_SLOT * i, socket_image);
             if (link)
@@ -469,10 +462,12 @@ void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
                 }
             }
         }
+
+        prev = socket;
+        ++i;
     }
 
     ui->imageLabel->setPixmap(pixmap);
-#endif
 }
 
 void MainWindow::UpdateCurrentItemMinimap() {
