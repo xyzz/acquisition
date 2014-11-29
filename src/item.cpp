@@ -50,12 +50,9 @@ Item::Item(const rapidjson::Value &json) :
     h_(json["h"].GetInt()),
     frameType_(json["frameType"].GetInt()),
     icon_(json["icon"].GetString()),
-    sockets_(0),
-    links_(0),
-    sockets_r_(0),
-    sockets_g_(0),
-    sockets_b_(0),
-    sockets_w_(0)
+    sockets_cnt_(0),
+    links_cnt_(0),
+    sockets_({ 0, 0, 0, 0 })
 {
     if (json.HasMember("explicitMods"))
         for (auto mod = json["explicitMods"].Begin(); mod != json["explicitMods"].End(); ++mod)
@@ -87,30 +84,39 @@ Item::Item(const rapidjson::Value &json) :
     }
 
     if (json.HasMember("sockets")) {
-        sockets_ = json["sockets"].Size();
+        ItemSocketGroup current_group = { 0, 0, 0, 0 };
+        sockets_cnt_ = json["sockets"].Size();
         int counter = 0, prev = -1;
         for (auto socket_it = json["sockets"].Begin(); socket_it != json["sockets"].End(); ++socket_it) {
             int cur = (*socket_it)["group"].GetInt();
-            if (prev != cur)
+            if (prev != cur) {
                 counter = 0;
+                socket_groups_.push_back(current_group);
+                current_group = { 0, 0, 0, 0 };
+            }
             prev = cur;
             ++counter;
-            links_ = std::max(links_, counter);
+            links_cnt_ = std::max(links_cnt_, counter);
             switch ((*socket_it)["attr"].GetString()[0]) {
             case 'S':
-                sockets_r_++;
+                sockets_.r++;
+                current_group.r++;
                 break;
             case 'D':
-                sockets_g_++;
+                sockets_.g++;
+                current_group.g++;
                 break;
             case 'I':
-                sockets_b_++;
+                sockets_.b++;
+                current_group.b++;
                 break;
             case 'G':
-                sockets_w_++;
+                sockets_.w++;
+                current_group.w++;
                 break;
             }
         }
+        socket_groups_.push_back(current_group);
     }
 
     std::string unique(std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~");

@@ -24,10 +24,10 @@ void TestItem::Parse() {
 
     // no need to check everything, just some basic properties
     QCOMPARE(item.name().c_str(), "Demon Ward");
-    QCOMPARE(item.sockets_b(), 0);
-    QCOMPARE(item.sockets_g(), 1);
-    QCOMPARE(item.sockets_r(), 0);
-    QCOMPARE(item.sockets_w(), 0);
+    QCOMPARE(item.sockets().b, 0);
+    QCOMPARE(item.sockets().g, 1);
+    QCOMPARE(item.sockets().r, 0);
+    QCOMPARE(item.sockets().w, 0);
 
     // the hash should be the same between different versions of Acquisition and OSes
     QCOMPARE(item.hash().c_str(), "5f083f2f5ceb10ed720bd4c1771ed09d");

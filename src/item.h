@@ -28,6 +28,10 @@
 #include "itemconstants.h"
 #include "itemlocation.h"
 
+struct ItemSocketGroup {
+    int r, g, b, w;
+};
+
 class Item {
 public:
     explicit Item(const rapidjson::Value &json);
@@ -47,12 +51,10 @@ public:
     double DPS() const;
     double pDPS() const;
     double eDPS() const;
-    int sockets() const { return sockets_; }
-    int links() const { return links_; }
-    int sockets_r() const { return sockets_r_; }
-    int sockets_g() const { return sockets_g_; }
-    int sockets_b() const { return sockets_b_; }
-    int sockets_w() const { return sockets_w_; }
+    int sockets_cnt() const { return sockets_cnt_; }
+    int links_cnt() const { return links_cnt_; }
+    const ItemSocketGroup &sockets() const { return sockets_; }
+    const std::vector<ItemSocketGroup> &socket_groups() const { return socket_groups_; }
     const ItemLocation &location() const { return location_; }
     int count() const { return count_; };
 
@@ -69,8 +71,9 @@ private:
     std::string hash_;
     // vector of pairs [damage, type]
     std::vector<std::pair<std::string, int>> elemental_damage_;
-    int sockets_, links_;
-    int sockets_r_, sockets_g_, sockets_b_, sockets_w_;
+    int sockets_cnt_, links_cnt_;
+    ItemSocketGroup sockets_;
+    std::vector<ItemSocketGroup> socket_groups_;
     std::map<std::string, int> requirements_;
     int count_;
 };

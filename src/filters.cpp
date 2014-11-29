@@ -182,11 +182,11 @@ double ItemMethodFilter::GetValue(const std::shared_ptr<Item> &item) {
 }
 
 double SocketsFilter::GetValue(const std::shared_ptr<Item> &item) {
-    return item->sockets();
+    return item->sockets_cnt();
 }
 
 double LinksFilter::GetValue(const std::shared_ptr<Item> &item) {
-    return item->links();
+    return item->links_cnt();
 }
 
 SocketsColorsFilter::SocketsColorsFilter(QLayout *parent) {
@@ -265,8 +265,8 @@ bool SocketsColorsFilter::Matches(const std::shared_ptr<Item> &item, FilterData 
         need_g = data->g;
     if (data->b_filled)
         need_b = data->b;
-    return Check(need_r, need_g, need_b, item->sockets_r(), item->sockets_g(), item->sockets_b(),
-        item->sockets_w());
+    const ItemSocketGroup &sockets = item->sockets();
+    return Check(need_r, need_g, need_b, sockets.r, sockets.g, sockets.b, sockets.w);
 }
 
 LinksColorsFilter::LinksColorsFilter(QLayout *parent) {
@@ -276,8 +276,6 @@ LinksColorsFilter::LinksColorsFilter(QLayout *parent) {
 bool LinksColorsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     if (!data->r_filled && !data->g_filled && !data->b_filled)
         return true;
-    return false;
-#if 0
     int need_r = 0, need_g = 0, need_b = 0;
     if (data->r_filled)
         need_r = data->r;
@@ -285,31 +283,11 @@ bool LinksColorsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *d
         need_g = data->g;
     if (data->b_filled)
         need_b = data->b;
-    int current = 0, got_r = 0, got_g = 0, got_b = 0, got_w = 0;
-    for (auto &socket : item->json()["sockets"]) {
-        if (current != socket["group"].asInt()) {
-            if (Check(need_r, need_g, need_b, got_r, got_g, got_b, got_w))
-                return true;
-            got_r = got_g = got_b = 0;
-        }
-        current = socket["group"].asInt();
-        switch (socket["attr"].asString()[0]) {
-        case 'S':
-            ++got_r;
-            break;
-        case 'D':
-            ++got_g;
-            break;
-        case 'I':
-            ++got_b;
-            break;
-        case 'G':
-            ++got_w;
-            break;
-        }
+    for (auto &group : item->socket_groups()) {
+        if (Check(need_r, need_g, need_b, group.r, group.g, group.b, group.w))
+            return true;
     }
-    return Check(need_r, need_g, need_b, got_r, got_g, got_b, got_w);
-#endif
+    return false;
 }
 
 BooleanFilter::BooleanFilter(QLayout *parent, std::string property, std::string caption):
