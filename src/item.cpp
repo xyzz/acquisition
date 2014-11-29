@@ -52,7 +52,8 @@ Item::Item(const rapidjson::Value &json) :
     icon_(json["icon"].GetString()),
     sockets_cnt_(0),
     links_cnt_(0),
-    sockets_({ 0, 0, 0, 0 })
+    sockets_({ 0, 0, 0, 0 }),
+    has_mtx_(false)
 {
     if (json.HasMember("explicitMods"))
         for (auto mod = json["explicitMods"].Begin(); mod != json["explicitMods"].End(); ++mod)
@@ -146,6 +147,8 @@ Item::Item(const rapidjson::Value &json) :
             count_ = std::stoi(size);
         }
     }
+
+    has_mtx_ = json.HasMember("cosmeticMods");
 }
 
 std::string Item::PrettyName() const {

@@ -330,10 +330,7 @@ bool BooleanFilter::Matches(const std::shared_ptr<Item> & /* item */, FilterData
 }
 
 bool MTXFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
-    return true;
-#if 0
-    return (!data->checked || item->json().isMember("cosmeticMods"));
-#endif
+    return !data->checked || item->has_mtx();
 }
 
 bool AltartFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {

@@ -57,6 +57,7 @@ public:
     const std::vector<ItemSocketGroup> &socket_groups() const { return socket_groups_; }
     const ItemLocation &location() const { return location_; }
     int count() const { return count_; };
+    bool has_mtx() const { return has_mtx_; }
 
 private:
     ItemLocation location_;
@@ -76,6 +77,7 @@ private:
     std::vector<ItemSocketGroup> socket_groups_;
     std::map<std::string, int> requirements_;
     int count_;
+    bool has_mtx_;
 };
 
 typedef std::vector<std::shared_ptr<Item>> Items;
