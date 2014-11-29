@@ -28,6 +28,8 @@
 #include <QFontMetrics>
 #include <QNetworkReply>
 #include "jsoncpp/json.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
 
 #include "buyoutmanager.h"
 #include "porting.h"
@@ -121,4 +123,19 @@ std::string Util::ModListAsString(const Json::Value &list) {
         first = false;
     }
     return mods;
+}
+
+std::string Util::RapidjsonSerialize(const rapidjson::Document &doc) {
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    doc.Accept(writer);
+    return buffer.GetString();
+}
+
+void Util::RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const std::string &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc) {
+    rapidjson::Value rjson_name;
+    rjson_name.SetString(name, strlen(name));
+    rapidjson::Value rjson_val;
+    rjson_val.SetString(value.c_str(), value.size());
+    object->AddMember(rjson_name, rjson_val, alloc);
 }
