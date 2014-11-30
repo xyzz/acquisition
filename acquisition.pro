@@ -21,7 +21,6 @@ SOURCES += \
     src/main.cpp\
     src/mainwindow.cpp \
     src/item.cpp \
-    deps/jsoncpp/jsoncpp.cpp \
     src/column.cpp \
     src/filters.cpp \
     src/search.cpp \
@@ -47,8 +46,6 @@ SOURCES += \
 
 HEADERS += \
     src/item.h \
-    deps/jsoncpp/json.h \
-    deps/jsoncpp/json-forwards.h \
     src/column.h \
     src/filters.h \
     src/search.h \
@@ -71,6 +68,7 @@ HEADERS += \
     src/version_defines.h \
     src/application.h \
     src/steamlogindialog.h \
+    src/rapidjson_util.h \
     test/testmain.h \
     test/testitem.h \
     test/testshop.h

@@ -20,7 +20,9 @@
 #pragma once
 
 #include <string>
-#include "jsoncpp/json-forwards.h"
+#include "rapidjson/document.h"
+
+#include "item.h"
 
 class QComboBox;
 class QNetworkReply;
@@ -44,11 +46,14 @@ int TagAsBuyoutType(const std::string &tag);
 
 int TextWidth(TextWidthId id);
 
-void ParseJson(QNetworkReply *reply, Json::Value *root);
+void ParseJson(QNetworkReply *reply, rapidjson::Document *doc);
 std::string GetCsrfToken(const std::string &page, const std::string &name);
 std::string FindTextBetween(const std::string &page, const std::string &left, const std::string &right);
 
 std::string BuyoutAsText(const Buyout &bo);
 
-std::string ModListAsString(const Json::Value &list);
+std::string ModListAsString(const ItemMods &list);
+
+std::string RapidjsonSerialize(const rapidjson::Value &val);
+void RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const std::string &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc);
 }

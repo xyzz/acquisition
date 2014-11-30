@@ -22,9 +22,13 @@
 #include <cassert>
 #include <sstream>
 #include "QsLog.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/error/en.h"
 
 #include "application.h"
 #include "datamanager.h"
+#include "rapidjson_util.h"
 #include "util.h"
 
 BuyoutManager::BuyoutManager(Application *app) :
@@ -77,7 +81,9 @@ void BuyoutManager::DeleteTab(const std::string &tab) {
 }
 
 std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyouts) {
-    Json::Value root;
+    rapidjson::Document doc;
+    doc.SetObject();
+    auto &alloc = doc.GetAllocator();
 
     for (auto &bo : buyouts) {
         if (bo.second.currency == CURRENCY_NONE || bo.second.type == BUYOUT_TYPE_NONE)
@@ -87,38 +93,41 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
                 << "currency:" << bo.second.currency;
             continue;
         }
-        Json::Value item;
-        item["value"] = bo.second.value;
-        item["type"] = BuyoutTypeAsTag[bo.second.type];
-        item["currency"] = CurrencyAsTag[bo.second.currency];
-        root[bo.first] = item;
+        rapidjson::Value item(rapidjson::kObjectType);
+        item.AddMember("value", bo.second.value, alloc);
+        Util::RapidjsonAddConstString(&item, "type", BuyoutTypeAsTag[bo.second.type], alloc);
+        Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[bo.second.currency], alloc);
+
+        rapidjson::Value name(bo.first.c_str(), alloc);
+        doc.AddMember(name, item, alloc);
     }
 
-    Json::FastWriter writer;
-    return writer.write(root);
+    return Util::RapidjsonSerialize(doc);
 }
 
 void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts) {
     buyouts->clear();
-    Json::Value root;
-    Json::Reader reader;
+
     // if data is empty (on first use) we shouldn't make user panic by showing ERROR messages
     if (data.empty())
         return;
-    if (!reader.parse(data, root)) {
+
+    rapidjson::Document doc;
+    if (doc.Parse(data.c_str()).HasParseError()) {
         QLOG_ERROR() << "Error while parsing buyouts.";
-        QLOG_ERROR() << reader.getFormattedErrorMessages().c_str();
+        QLOG_ERROR() << rapidjson::GetParseError_En(doc.GetParseError());
         return;
     }
-    if (!root.isObject())
+    if (!doc.IsObject())
         return;
-    std::vector<std::string> keys = root.getMemberNames();
-    for (auto &key : keys) {
+    for (auto itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr) {
+        auto &object = itr->value;
+        const std::string &name = itr->name.GetString();
         Buyout bo;
-        bo.currency = static_cast<Currency>(Util::TagAsCurrency(root[key]["currency"].asString()));
-        bo.type = static_cast<BuyoutType>(Util::TagAsBuyoutType(root[key]["type"].asString()));
-        bo.value = root[key]["value"].asDouble();
-        (*buyouts)[key] = bo;
+        bo.currency = static_cast<Currency>(Util::TagAsCurrency(object["currency"].GetString()));
+        bo.type = static_cast<BuyoutType>(Util::TagAsBuyoutType(object["type"].GetString()));
+        bo.value = object["value"].GetDouble();
+        (*buyouts)[name] = bo;
     }
 }
 

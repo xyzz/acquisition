@@ -32,7 +32,6 @@
 #include <QUrl>
 #include <QUrlQuery>
 #include <iostream>
-#include "jsoncpp/json.h"
 #include "QsLog.h"
 
 #include "application.h"
@@ -98,13 +97,12 @@ void LoginDialog::OnUpdateCheckCompleted() {
 void LoginDialog::OnLeaguesRequestFinished() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
-    std::string json(bytes.constData(), bytes.size());
-    Json::Value root;
-    Json::Reader reader;
+    rapidjson::Document doc;
+    doc.Parse(bytes.constData());
 
     leagues_.clear();
     // ignore actual response completely since it's broken anyway (at the moment of writing!)
-    if (true || !reader.parse(json, root)) {
+    if (true) {
         QLOG_ERROR() << "Failed to parse leagues. The output was:";
         QLOG_ERROR() << QString(bytes);
 
@@ -113,8 +111,8 @@ void LoginDialog::OnLeaguesRequestFinished() {
         // which of course will never happen.
         leagues_ = { "One Week Rampage/Beyond", "One Week HC Rampage/Beyond", "Standard", "Hardcore" };
     } else {
-        for (auto league : root)
-            leagues_.push_back(league["id"].asString());
+        for (auto &league : doc)
+            leagues_.push_back(league["id"].GetString());
     }
     ui->leagueComboBox->clear();
     for (auto &league : leagues_)

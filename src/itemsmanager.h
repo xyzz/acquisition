@@ -24,7 +24,7 @@
 #include <string>
 #include <unordered_map>
 #include <queue>
-#include "jsoncpp/json.h"
+#include "rapidjson/document.h"
 
 #include "item.h"
 #include "itemlocation.h"
@@ -78,7 +78,7 @@ signals:
     void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
     void StatusUpdate(int fetched, int total, bool throttled);
 private:
-    void ParseItems(const Json::Value &root, const ItemLocation &location);
+    void ParseItems(rapidjson::Value *value_ptr, const ItemLocation &base_location, rapidjson_allocator &alloc);
 
     QNetworkRequest MakeTabRequest(int tab_index, bool tabs=false);
     QNetworkRequest MakeCharacterRequest(const std::string &name);
@@ -92,8 +92,8 @@ private:
     int total_completed_, total_needed_;
     int requests_completed_, requests_needed_;
     QSignalMapper *signal_mapper_;
-    Json::Value items_as_json_;
-    Json::Value tabs_as_json_;
+    std::string items_as_string_;
+    std::string tabs_as_string_;
     // should items be automatically refreshed
     bool auto_update_;
     // items will be automatically updated every X minutes

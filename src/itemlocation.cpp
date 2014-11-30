@@ -1,56 +1,62 @@
 #include "itemlocation.h"
 
 #include <QString>
-#include "jsoncpp/json.h"
+
+#include "rapidjson_util.h"
 
 ItemLocation::ItemLocation():
     socketed_(false)
 {}
 
-ItemLocation::ItemLocation(const Json::Value &root) {
+ItemLocation::ItemLocation(const rapidjson::Value &root) {
     FromItemJson(root);
 }
 
-void ItemLocation::FromItemJson(const Json::Value &root) {
-    if (root.isMember("_type")) {
-        type_ = static_cast<ItemLocationType>(root["_type"].asInt());
+void ItemLocation::FromItemJson(const rapidjson::Value &root) {
+    if (root.HasMember("_type")) {
+        type_ = static_cast<ItemLocationType>(root["_type"].GetInt());
         if (type_ == ItemLocationType::STASH) {
-            tab_label_ = root["_tab_label"].asString();
-            tab_id_ = root["_tab"].asInt();
+            tab_label_ = root["_tab_label"].GetString();
+            tab_id_ = root["_tab"].GetInt();
         } else {
-            character_ = root["_character"].asString();
+            character_ = root["_character"].GetString();
         }
         socketed_ = false;
-        if (root.isMember("_socketed"))
-            socketed_ = root["_socketed"].asBool();
+        if (root.HasMember("_socketed"))
+            socketed_ = root["_socketed"].GetBool();
         // socketed items have x/y pointing to parent
         if (socketed_) {
-            x_ = root["_x"].asInt();
-            y_ = root["_y"].asInt();
+            x_ = root["_x"].GetInt();
+            y_ = root["_y"].GetInt();
         }
     }
-    if (root.isMember("x") && root.isMember("y")) {
-        x_ = root["x"].asInt();
-        y_ = root["y"].asInt();
+    if (root.HasMember("x") && root.HasMember("y")) {
+        x_ = root["x"].GetInt();
+        y_ = root["y"].GetInt();
     }
-    w_ = root["w"].asInt();
-    h_ = root["h"].asInt();
-    inventory_id_ = root["inventoryId"].asString();
+    w_ = root["w"].GetInt();
+    h_ = root["h"].GetInt();
+    if (root.HasMember("inventoryId"))
+        inventory_id_ = root["inventoryId"].GetString();
 }
 
-void ItemLocation::ToItemJson(Json::Value *root) {
-    (*root)["_type"] = static_cast<int>(type_);
+void ItemLocation::ToItemJson(rapidjson::Value *root_ptr, rapidjson_allocator &alloc) {
+    auto &root = *root_ptr;
+    rapidjson::Value string_val(rapidjson::kStringType);
+    root.AddMember("_type", static_cast<int>(type_), alloc);
     if (type_ == ItemLocationType::STASH) {
-        (*root)["_tab"] = tab_id_;
-        (*root)["_tab_label"] = tab_label_;
+        root.AddMember("_tab", tab_id_, alloc);
+        string_val.SetString(tab_label_.c_str(), alloc);
+        root.AddMember("_tab_label", string_val, alloc);
     } else {
-        (*root)["_character"] = character_;
+        string_val.SetString(character_.c_str(), alloc);
+        root.AddMember("_character", string_val, alloc);
     }
     if (socketed_) {
-        (*root)["_x"] = x_;
-        (*root)["_y"] = y_;
+        root.AddMember("_x", x_, alloc);
+        root.AddMember("_y", y_, alloc);
     }
-    (*root)["_socketed"] = socketed_;
+    root.AddMember("_socketed", socketed_, alloc);
 }
 
 std::string ItemLocation::GetHeader() const {

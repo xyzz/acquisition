@@ -1,6 +1,6 @@
 #include "test/testshop.h"
 
-#include "jsoncpp/json.h"
+#include "rapidjson/document.h"
 
 #include "application.h"
 #include "buyoutmanager.h"
@@ -23,11 +23,10 @@ void TestShop::SocketedGemsNotLinked() {
     Application app;
     app.InitLogin(nullptr, "TestLeague", "testuser");
 
-    Json::Value root;
-    Json::Reader reader;
-    reader.parse(item_string, root);
+    rapidjson::Document doc;
+    doc.Parse(item_string.c_str());
 
-    Items items = { std::make_shared<Item>(root) };
+    Items items = { std::make_shared<Item>(doc) };
     app.OnItemsRefreshed(items, {});
 
     Buyout bo;

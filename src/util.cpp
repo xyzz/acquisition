@@ -27,6 +27,8 @@
 #include <QLabel>
 #include <QFontMetrics>
 #include <QNetworkReply>
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
 
 #include "buyoutmanager.h"
 #include "porting.h"
@@ -82,11 +84,9 @@ int Util::TextWidth(TextWidthId id) {
     return result[static_cast<int>(id)];
 }
 
-void Util::ParseJson(QNetworkReply *reply, Json::Value *root) {
+void Util::ParseJson(QNetworkReply *reply, rapidjson::Document *doc) {
     QByteArray bytes = reply->readAll();
-    std::string json(bytes.constData(), bytes.size());
-    Json::Reader reader;
-    reader.parse(json, *root);
+    doc->Parse(bytes.constData());
 }
 
 std::string Util::GetCsrfToken(const std::string &page, const std::string &name) {
@@ -112,12 +112,27 @@ std::string Util::BuyoutAsText(const Buyout &bo) {
     }
 }
 
-std::string Util::ModListAsString(const Json::Value &list) {
+std::string Util::ModListAsString(const ItemMods &list) {
     std::string mods;
     bool first = true;
-    for (auto mod : list) {
-        mods += (first ? "" : "<br>") + mod.asString();
+    for (auto &mod : list) {
+        mods += (first ? "" : "<br>") + mod;
         first = false;
     }
     return mods;
+}
+
+std::string Util::RapidjsonSerialize(const rapidjson::Value &val) {
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    val.Accept(writer);
+    return buffer.GetString();
+}
+
+void Util::RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const std::string &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc) {
+    rapidjson::Value rjson_name;
+    rjson_name.SetString(name, strlen(name));
+    rapidjson::Value rjson_val;
+    rjson_val.SetString(value.c_str(), value.size());
+    object->AddMember(rjson_name, rjson_val, alloc);
 }
