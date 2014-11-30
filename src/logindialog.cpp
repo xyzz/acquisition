@@ -32,7 +32,6 @@
 #include <QUrl>
 #include <QUrlQuery>
 #include <iostream>
-#include "jsoncpp/json.h"
 #include "QsLog.h"
 
 #include "application.h"

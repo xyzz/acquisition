@@ -27,7 +27,6 @@
 #include <QLabel>
 #include <QFontMetrics>
 #include <QNetworkReply>
-#include "jsoncpp/json.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 

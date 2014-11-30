@@ -24,7 +24,6 @@
 #include <string>
 #include <unordered_map>
 #include <queue>
-#include "jsoncpp/json.h"
 #include "rapidjson/document.h"
 
 #include "item.h"

@@ -27,7 +27,6 @@
 #include <QTimer>
 #include <iostream>
 #include <stdexcept>
-#include "jsoncpp/json.h"
 #include "QsLog.h"
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"

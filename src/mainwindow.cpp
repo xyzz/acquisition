@@ -34,7 +34,6 @@
 #include <QPushButton>
 #include <QStringList>
 #include <QTabBar>
-#include "jsoncpp/json.h"
 #include "QsLog.h"
 
 #include "application.h"

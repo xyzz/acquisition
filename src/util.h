@@ -20,7 +20,6 @@
 #pragma once
 
 #include <string>
-#include "jsoncpp/json-forwards.h"
 #include "rapidjson/document.h"
 
 #include "item.h"

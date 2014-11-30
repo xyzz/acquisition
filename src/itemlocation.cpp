@@ -1,7 +1,6 @@
 #include "itemlocation.h"
 
 #include <QString>
-#include "jsoncpp/json.h"
 
 #include "rapidjson_util.h"
 
