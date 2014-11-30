@@ -30,6 +30,7 @@
 #include "jsoncpp/json.h"
 #include "QsLog.h"
 #include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
 
 #include "application.h"
 #include "datamanager.h"
@@ -118,19 +119,32 @@ void ItemsManager::QueueRequest(const QNetworkRequest &request, const ItemLocati
 
 void ItemsManager::OnCharacterListReceived() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    Json::Value root;
-    Util::ParseJson(reply, &root);
+    QByteArray bytes = reply->readAll();
+    rapidjson::Document doc;
+    doc.Parse(bytes.constData());
 
-    QLOG_INFO() << "Received character list, there are" << root.size() << "characters";
+    if (doc.HasParseError() || !doc.IsArray()) {
+        QLOG_ERROR() << "Received invalid reply instead of character list. The reply was"
+            << bytes.constData();
+        if (doc.HasParseError())
+            QLOG_ERROR() << "The error was" << rapidjson::GetParseError_En(doc.GetParseError());
+        return;
+    }
 
-    for (auto &character : root)
-        if (character["league"].asString() == app_->league()) {
-            std::string name = character["name"].asString();
+    QLOG_INFO() << "Received character list, there are" << doc.Size() << "characters";
+    for (auto &character : doc) {
+        if (!character.HasMember("league") || !character.HasMember("name") || !character["league"].IsString() || !character["name"].IsString()) {
+            QLOG_ERROR() << "Malformed character entry, the reply is most likely invalid" << bytes.constData();
+            continue;
+        }
+        if (character["league"].GetString() == app_->league()) {
+            std::string name = character["name"].GetString();
             ItemLocation location;
             location.set_type(ItemLocationType::CHARACTER);
             location.set_character(name);
             QueueRequest(MakeCharacterRequest(name), location);
         }
+    }
 
     // now get first tab and tab list
     QNetworkReply *first_tab = app_->logged_in_nm()->get(MakeTabRequest(0, true));
@@ -238,11 +252,19 @@ void ItemsManager::LoadSavedData() {
     tabs_.clear();
     std::string tabs = app_->data_manager()->Get("tabs");
     if (tabs.size() != 0) {
-        Json::Value root;
-        Json::Reader reader;
-        reader.parse(tabs, root);
-        for (auto &tab : root)
-            tabs_.push_back(tab["n"].asString());
+        rapidjson::Document doc;
+        if (doc.Parse(tabs.c_str()).HasParseError()) {
+            QLOG_ERROR() << "Malformed tabs data:" << tabs.c_str() << "The error was"
+                << rapidjson::GetParseError_En(doc.GetParseError());
+            return;
+        }
+        for (auto &tab : doc) {
+            if (!tab.HasMember("n") || !tab["n"].IsString()) {
+                QLOG_ERROR() << "Malformed tabs data:" << tabs.c_str() << "Tab doesn't contain its name (field 'n').";
+                continue;
+            }
+            tabs_.push_back(tab["n"].GetString());
+        }
     }
     emit ItemsRefreshed(items_, tabs_);
 }

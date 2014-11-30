@@ -47,7 +47,7 @@ int TagAsBuyoutType(const std::string &tag);
 
 int TextWidth(TextWidthId id);
 
-void ParseJson(QNetworkReply *reply, Json::Value *root);
+void ParseJson(QNetworkReply *reply, rapidjson::Document *doc);
 std::string GetCsrfToken(const std::string &page, const std::string &name);
 std::string FindTextBetween(const std::string &page, const std::string &left, const std::string &right);
 

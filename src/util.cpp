@@ -85,11 +85,9 @@ int Util::TextWidth(TextWidthId id) {
     return result[static_cast<int>(id)];
 }
 
-void Util::ParseJson(QNetworkReply *reply, Json::Value *root) {
+void Util::ParseJson(QNetworkReply *reply, rapidjson::Document *doc) {
     QByteArray bytes = reply->readAll();
-    std::string json(bytes.constData(), bytes.size());
-    Json::Reader reader;
-    reader.parse(json, *root);
+    doc->Parse(bytes.constData());
 }
 
 std::string Util::GetCsrfToken(const std::string &page, const std::string &name) {
