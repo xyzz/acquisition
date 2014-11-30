@@ -125,8 +125,9 @@ void ItemsManager::OnCharacterListReceived() {
     if (doc.HasParseError() || !doc.IsArray()) {
         QLOG_ERROR() << "Received invalid reply instead of character list. The reply was"
             << bytes.constData();
-        if (doc.HasParseError())
+        if (doc.HasParseError()) {
             QLOG_ERROR() << "The error was" << rapidjson::GetParseError_En(doc.GetParseError());
+        }
         return;
     }
 

@@ -106,7 +106,7 @@ Item::Item(const rapidjson::Value &json) :
         sockets_cnt_ = json["sockets"].Size();
         int counter = 0, prev_group = -1;
         for (auto &socket : json["sockets"]) {
-            ItemSocket current_socket = { socket["group"].GetInt(), socket["attr"].GetString()[0] };
+            ItemSocket current_socket = { static_cast<unsigned char>(socket["group"].GetInt()), socket["attr"].GetString()[0] };
             text_sockets_.push_back(current_socket);
             if (prev_group != current_socket.group) {
                 counter = 0;

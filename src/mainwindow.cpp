@@ -421,7 +421,7 @@ void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
 
     static const QImage link_h(":/sockets/linkH.png");
     static const QImage link_v(":/sockets/linkV.png");
-    ItemSocket prev = { -1, '-' };
+    ItemSocket prev = { 255, '-' };
     size_t i = 0;
     for (auto &socket : current_item_->text_sockets()) {
         bool link = socket.group == prev.group;
