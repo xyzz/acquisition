@@ -81,9 +81,7 @@ void ItemsManager::Update() {
     items_as_string_ = "[ "; // space here is important, see ParseItems and OnTabReceived when all requests are completed
 
     // first get character list
-    if (!app_.logged_in_nm())
-        return;
-    QNetworkReply *characters = app_.logged_in_nm()->get(QNetworkRequest(QUrl(POE_GET_CHARACTERS_URL)));
+    QNetworkReply *characters = app_.logged_in_nm().get(QNetworkRequest(QUrl(POE_GET_CHARACTERS_URL)));
     connect(characters, SIGNAL(finished()), this, SLOT(OnCharacterListReceived()));
 }
 
@@ -147,7 +145,7 @@ void ItemsManager::OnCharacterListReceived() {
     }
 
     // now get first tab and tab list
-    QNetworkReply *first_tab = app_.logged_in_nm()->get(MakeTabRequest(0, true));
+    QNetworkReply *first_tab = app_.logged_in_nm().get(MakeTabRequest(0, true));
     connect(first_tab, SIGNAL(finished()), this, SLOT(OnFirstTabReceived()));
     reply->deleteLater();
 }
@@ -159,7 +157,7 @@ void ItemsManager::FetchItems(int limit) {
         ItemsRequest request = queue_.front();
         queue_.pop();
 
-        QNetworkReply *fetched = app_.logged_in_nm()->get(request.network_request);
+        QNetworkReply *fetched = app_.logged_in_nm().get(request.network_request);
         signal_mapper_->setMapping(fetched, request.id);
         connect(fetched, SIGNAL(finished()), signal_mapper_, SLOT(map()));
 

@@ -67,7 +67,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     settings_path_ = porting::UserDir() + "/settings.ini";
     LoadSettings();
 
-    login_manager_ = new QNetworkAccessManager;
+    login_manager_ = std::make_unique<QNetworkAccessManager>();
     QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
     connect(leagues_reply, SIGNAL(finished()), this, SLOT(OnLeaguesRequestFinished()));
 
@@ -224,7 +224,7 @@ void LoginDialog::OnMainPageFinished() {
     QLOG_INFO() << "Logged in as:" << account;
 
     std::string league(ui->leagueComboBox->currentText().toStdString());
-    app_->InitLogin(login_manager_, league, account.toStdString());
+    app_->InitLogin(std::move(login_manager_), league, account.toStdString());
     mw = new MainWindow(std::move(app_));
     mw->setWindowTitle(QString("Acquisition - %1").arg(league.c_str()));
     mw->show();

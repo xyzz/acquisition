@@ -19,11 +19,11 @@
 
 #pragma once
 
+#include <QNetworkAccessManager>
 #include <QObject>
 
 #include "item.h"
 
-class QNetworkAccessManager;
 class QNetworkReply;
 
 class DataManager;
@@ -39,14 +39,14 @@ public:
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
     // Should be called by login dialog after login
-    void InitLogin(QNetworkAccessManager *login_manager, const std::string &league, const std::string &email);
+    void InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager, const std::string &league, const std::string &email);
     const std::string &league() const { return league_; }
     const std::string &email() const { return email_; }
     const Items &items() const { return items_; }
     ItemsManager &items_manager() { return *items_manager_; }
     DataManager &data_manager() const { return *data_manager_; }
     BuyoutManager &buyout_manager() const { return *buyout_manager_; }
-    QNetworkAccessManager *logged_in_nm() const { return logged_in_nm_; }
+    QNetworkAccessManager &logged_in_nm() const { return *logged_in_nm_; }
     const std::vector<std::string> &tabs() const { return tabs_; }
     Shop &shop() const { return *shop_; }
 public slots:
@@ -59,6 +59,6 @@ private:
     std::unique_ptr<DataManager> data_manager_;
     std::unique_ptr<BuyoutManager> buyout_manager_;
     std::unique_ptr<Shop> shop_;
-    QNetworkAccessManager *logged_in_nm_;
+    std::unique_ptr<QNetworkAccessManager> logged_in_nm_;
     std::unique_ptr<ItemsManager> items_manager_;
 };

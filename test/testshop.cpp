@@ -1,10 +1,13 @@
 #include "test/testshop.h"
 
+#include <QNetworkAccessManager>
+#include <memory>
 #include "rapidjson/document.h"
 
 #include "application.h"
 #include "buyoutmanager.h"
 #include "itemsmanager.h"
+#include "porting.h"
 #include "shop.h"
 
 const std::string item_string =
@@ -21,7 +24,9 @@ const std::string item_string =
     
 void TestShop::SocketedGemsNotLinked() {
     Application app;
-    app.InitLogin(nullptr, "TestLeague", "testuser");
+    auto null_nm = std::make_unique<QNetworkAccessManager>();
+    null_nm->setNetworkAccessible(QNetworkAccessManager::NotAccessible);
+    app.InitLogin(std::move(null_nm), "TestLeague", "testuser");
 
     rapidjson::Document doc;
     doc.Parse(item_string.c_str());

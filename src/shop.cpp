@@ -102,7 +102,7 @@ void Shop::SubmitShopToForum() {
         Update();
 
     // first, get to the edit-thread page
-    QNetworkReply *fetched = app_.logged_in_nm()->get(QNetworkRequest(QUrl(ShopEditUrl().c_str())));
+    QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopEditUrl().c_str())));
     connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
 }
 
@@ -134,14 +134,14 @@ void Shop::OnEditPageFinished() {
     QByteArray data(query.query().toUtf8());
     QNetworkRequest request((QUrl(ShopEditUrl().c_str())));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    QNetworkReply *submitted = app_.logged_in_nm()->post(request, data);
+    QNetworkReply *submitted = app_.logged_in_nm().post(request, data);
     connect(submitted, SIGNAL(finished()), this, SLOT(OnShopSubmitted()));
 }
 
 void Shop::OnShopSubmitted() {
     // now let's hope that shop was submitted successfully and notify poe.xyz.is
     QNetworkRequest request(QUrl(("http://verify.xyz.is/" + thread_ + "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").c_str()));
-    app_.logged_in_nm()->get(request);
+    app_.logged_in_nm().get(request);
 }
 
 void Shop::CopyToClipboard() {

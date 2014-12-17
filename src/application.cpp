@@ -33,10 +33,10 @@ Application::~Application() {
     buyout_manager_->Save();
 }
 
-void Application::InitLogin(QNetworkAccessManager *login_manager, const std::string &league, const std::string &email) {
+void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager, const std::string &league, const std::string &email) {
     league_ = league;
     email_ = email;
-    logged_in_nm_ = login_manager;
+    logged_in_nm_ = std::move(login_manager);
 
     data_manager_ = std::make_unique<DataManager>(porting::UserDir() + "/data/" + DataManager::MakeFilename(email, league));
     buyout_manager_ = std::make_unique<BuyoutManager>(*data_manager_);
