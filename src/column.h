@@ -89,9 +89,9 @@ private:
 
 class PriceColumn : public Column {
 public:
-    explicit PriceColumn(BuyoutManager *bo_manager);
+    explicit PriceColumn(BuyoutManager &bo_manager);
     std::string name();
     std::string value(const Item &item);
 private:
-    BuyoutManager *bo_manager_;
+    BuyoutManager &bo_manager_;
 };

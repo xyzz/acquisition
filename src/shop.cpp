@@ -35,42 +35,42 @@
 
 const std::string POE_EDIT_THREAD = "https://www.pathofexile.com/forum/edit-thread/";
 
-Shop::Shop(Application *app) :
+Shop::Shop(Application &app) :
     app_(app),
     shop_data_outdated_(true)
 {
-    thread_ = app_->data_manager()->Get("shop");
-    auto_update_ = app_->data_manager()->GetBool("shop_update", true);
+    thread_ = app_.data_manager().Get("shop");
+    auto_update_ = app_.data_manager().GetBool("shop_update", true);
 }
 
 void Shop::SetThread(const std::string &thread) {
     thread_ = thread;
-    app_->data_manager()->Set("shop", thread);
+    app_.data_manager().Set("shop", thread);
 }
 
 void Shop::SetAutoUpdate(bool update) {
     auto_update_ = update;
-    app_->data_manager()->SetBool("shop_update", update);
+    app_.data_manager().SetBool("shop_update", update);
 }
 
 void Shop::Update() {
     shop_data_outdated_ = false;
     std::string data = "[spoiler]";
-    for (auto &item : app_->items()) {
+    for (auto &item : app_.items()) {
         if (item->location().socketed())
             continue;
         Buyout bo;
         bo.type = BUYOUT_TYPE_NONE;
 
         std::string hash = item->location().GetUniqueHash();
-        if (app_->buyout_manager()->ExistsTab(hash))
-            bo = app_->buyout_manager()->GetTab(hash);
-        if (app_->buyout_manager()->Exists(*item))
-            bo = app_->buyout_manager()->Get(*item);
+        if (app_.buyout_manager().ExistsTab(hash))
+            bo = app_.buyout_manager().GetTab(hash);
+        if (app_.buyout_manager().Exists(*item))
+            bo = app_.buyout_manager().Get(*item);
         if (bo.type == BUYOUT_TYPE_NONE)
             continue;
 
-        data += item->location().GetForumCode(app_->league());
+        data += item->location().GetForumCode(app_.league());
 
         data += BuyoutTypeAsPrefix[bo.type];
 
@@ -102,7 +102,7 @@ void Shop::SubmitShopToForum() {
         Update();
 
     // first, get to the edit-thread page
-    QNetworkReply *fetched = app_->logged_in_nm()->get(QNetworkRequest(QUrl(ShopEditUrl().c_str())));
+    QNetworkReply *fetched = app_.logged_in_nm()->get(QNetworkRequest(QUrl(ShopEditUrl().c_str())));
     connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
 }
 
@@ -134,14 +134,14 @@ void Shop::OnEditPageFinished() {
     QByteArray data(query.query().toUtf8());
     QNetworkRequest request((QUrl(ShopEditUrl().c_str())));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    QNetworkReply *submitted = app_->logged_in_nm()->post(request, data);
+    QNetworkReply *submitted = app_.logged_in_nm()->post(request, data);
     connect(submitted, SIGNAL(finished()), this, SLOT(OnShopSubmitted()));
 }
 
 void Shop::OnShopSubmitted() {
     // now let's hope that shop was submitted successfully and notify poe.xyz.is
     QNetworkRequest request(QUrl(("http://verify.xyz.is/" + thread_ + "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").c_str()));
-    app_->logged_in_nm()->get(request);
+    app_.logged_in_nm()->get(request);
 }
 
 void Shop::CopyToClipboard() {

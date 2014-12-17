@@ -26,6 +26,7 @@
 #include "QsLog.h"
 #include "QsLogDest.h"
 #include <limits>
+#include <memory>
 
 #include "application.h"
 #include "porting.h"
@@ -74,9 +75,7 @@ int main(int argc, char *argv[])
     QLOG_INFO() << "--------------------------------------------------------------------------------";
     QLOG_INFO() << "Built with Qt" << QT_VERSION_STR << "running on" << qVersion();
 
-    Application *app = new Application;
-
-    LoginDialog login(app);
+    LoginDialog login(std::make_unique<Application>());
     login.show();
 
     return a.exec();

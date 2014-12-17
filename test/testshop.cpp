@@ -33,9 +33,9 @@ void TestShop::SocketedGemsNotLinked() {
     bo.type = BUYOUT_TYPE_FIXED;
     bo.value = 10;
     bo.currency = CURRENCY_CHAOS_ORB;
-    app.buyout_manager()->Set(*items[0], bo);
+    app.buyout_manager().Set(*items[0], bo);
 
-    app.shop()->Update();
-    std::string shop = app.shop()->shop_data();
+    app.shop().Update();
+    std::string shop = app.shop().shop_data();
     QVERIFY(shop.find("~price") == std::string::npos);
 }

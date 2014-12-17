@@ -20,6 +20,7 @@
 #pragma once
 
 #include <QDialog>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -38,7 +39,7 @@ class LoginDialog;
 class LoginDialog : public QDialog {
     Q_OBJECT
 public:
-    explicit LoginDialog(Application *app);
+    explicit LoginDialog(std::unique_ptr<Application> app);
     ~LoginDialog();
 public slots:
     void OnLeaguesRequestFinished();
@@ -53,7 +54,7 @@ private:
     void LoadSettings();
     void DisplayError(const QString &error);
     void LoginWithCookie(const QString &cookie);
-    Application *app_;
+    std::unique_ptr<Application> app_;
     Ui::LoginDialog *ui;
     MainWindow *mw;
     std::string settings_path_;

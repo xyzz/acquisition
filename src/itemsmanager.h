@@ -51,7 +51,7 @@ struct ItemsReply {
 class ItemsManager : public QObject {
     Q_OBJECT
 public:
-    explicit ItemsManager(Application *app);
+    explicit ItemsManager(Application &app);
     ~ItemsManager();
     ItemsManager(const ItemsManager&) = delete;
     ItemsManager& operator=(const ItemsManager&) = delete;
@@ -84,7 +84,7 @@ private:
     QNetworkRequest MakeCharacterRequest(const std::string &name);
     void QueueRequest(const QNetworkRequest &request, const ItemLocation &location);
 
-    Application *app_;
+    Application &app_;
     std::vector<std::string> tabs_;
     std::queue<ItemsRequest> queue_;
     std::map<int, ItemsReply> replies_;

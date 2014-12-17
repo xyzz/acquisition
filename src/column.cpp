@@ -152,7 +152,7 @@ QColor ElementalDamageColumn::color(const Item &item) {
     return QColor();
 }
 
-PriceColumn::PriceColumn(BuyoutManager *bo_manager):
+PriceColumn::PriceColumn(BuyoutManager &bo_manager):
     bo_manager_(bo_manager)
 {}
 
@@ -161,8 +161,8 @@ std::string PriceColumn::name() {
 }
 
 std::string PriceColumn::value(const Item &item) {
-    if (!bo_manager_->Exists(item))
+    if (!bo_manager_.Exists(item))
         return "";
-    const Buyout &bo = bo_manager_->Get(item);
+    const Buyout &bo = bo_manager_.Get(item);
     return Util::BuyoutAsText(bo);
 }

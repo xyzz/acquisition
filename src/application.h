@@ -43,12 +43,12 @@ public:
     const std::string &league() const { return league_; }
     const std::string &email() const { return email_; }
     const Items &items() const { return items_; }
-    ItemsManager *items_manager() { return items_manager_; }
-    DataManager *data_manager() const { return data_manager_; }
-    BuyoutManager *buyout_manager() const { return buyout_manager_; }
+    ItemsManager &items_manager() { return *items_manager_; }
+    DataManager &data_manager() const { return *data_manager_; }
+    BuyoutManager &buyout_manager() const { return *buyout_manager_; }
     QNetworkAccessManager *logged_in_nm() const { return logged_in_nm_; }
     const std::vector<std::string> &tabs() const { return tabs_; }
-    Shop *shop() const { return shop_; }
+    Shop &shop() const { return *shop_; }
 public slots:
     void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
 private:
@@ -56,9 +56,9 @@ private:
     std::vector<std::string> tabs_;
     std::string league_;
     std::string email_;
-    DataManager *data_manager_;
-    BuyoutManager *buyout_manager_;
-    Shop *shop_;
+    std::unique_ptr<DataManager> data_manager_;
+    std::unique_ptr<BuyoutManager> buyout_manager_;
+    std::unique_ptr<Shop> shop_;
     QNetworkAccessManager *logged_in_nm_;
-    ItemsManager *items_manager_;
+    std::unique_ptr<ItemsManager> items_manager_;
 };

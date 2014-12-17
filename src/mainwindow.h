@@ -49,7 +49,7 @@ class MainWindow;
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
-    MainWindow(Application *app);
+    MainWindow(std::unique_ptr<Application> app);
     ~MainWindow();
     std::vector<Column*> columns;
 public slots:
@@ -84,7 +84,7 @@ private:
     void ResetBuyoutWidgets();
     void UpdateBuyoutWidgets(const Buyout &bo);
 
-    Application *app_;
+    std::unique_ptr<Application> app_;
     Ui::MainWindow *ui;
     std::shared_ptr<Item> current_item_;
     Bucket current_bucket_;

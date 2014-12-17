@@ -26,7 +26,7 @@
 #include "search.h"
 #include "util.h"
 
-ItemsModel::ItemsModel(Application *app, Search *search) :
+ItemsModel::ItemsModel(Application &app, Search &search) :
     app_(app),
     search_(search)
 {
@@ -49,10 +49,10 @@ ItemsModel::ItemsModel(Application *app, Search *search) :
 int ItemsModel::rowCount(const QModelIndex &parent) const {
     // Root element, contains buckets
     if (!parent.isValid())
-        return search_->buckets().size();
+        return search_.buckets().size();
     // Bucket, contains elements
     if (parent.isValid() && !parent.parent().isValid()) {
-        return search_->buckets()[parent.row()]->items().size();
+        return search_.buckets()[parent.row()]->items().size();
     }
     // Element, contains nothing
     return 0;
@@ -61,17 +61,17 @@ int ItemsModel::rowCount(const QModelIndex &parent) const {
 int ItemsModel::columnCount(const QModelIndex &parent) const {
     // Root element, contains buckets
     if (!parent.isValid())
-        return search_->columns().size();
+        return search_.columns().size();
     // Bucket, contains elements
     if (parent.isValid() && !parent.parent().isValid())
-        return search_->columns().size();
+        return search_.columns().size();
     // Element, contains nothing
     return 0;
 }
 
 QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, int role) const {
     if (role == Qt::DisplayRole)
-        return QString(search_->columns()[section]->name().c_str());
+        return QString(search_.columns()[section]->name().c_str());
     return QVariant();
 }
 
@@ -79,16 +79,16 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     // Bucket title
     if (index.internalId() == 0) {
         if (role == Qt::DisplayRole && index.column() == 0) {
-            const ItemLocation &location = search_->buckets()[index.row()]->location();
+            const ItemLocation &location = search_.buckets()[index.row()]->location();
             QString title(location.GetHeader().c_str());
-            if (app_->buyout_manager()->ExistsTab(location.GetUniqueHash()))
-                title += QString(" [%1]").arg(Util::BuyoutAsText(app_->buyout_manager()->GetTab(location.GetUniqueHash())).c_str());
+            if (app_.buyout_manager().ExistsTab(location.GetUniqueHash()))
+                title += QString(" [%1]").arg(Util::BuyoutAsText(app_.buyout_manager().GetTab(location.GetUniqueHash())).c_str());
             return title;
         }
         return QVariant();
     }
-    Column *column = search_->columns()[index.column()];
-    const Item &item = *search_->buckets()[index.parent().row()]->items()[index.row()];
+    Column *column = search_.columns()[index.column()];
+    const Item &item = *search_.buckets()[index.parent().row()]->items()[index.row()];
     if (role == Qt::DisplayRole)
         return QString(column->value(item).c_str());
     else if (role == Qt::ForegroundRole)

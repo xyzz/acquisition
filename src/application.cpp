@@ -27,20 +27,10 @@
 #include "porting.h"
 #include "shop.h"
 
-Application::Application() :
-    data_manager_(nullptr),
-    buyout_manager_(nullptr),
-    shop_(nullptr),
-    logged_in_nm_(nullptr),
-    items_manager_(nullptr)
-{}
+Application::Application() {}
 
 Application::~Application() {
-    delete items_manager_;
-    delete shop_;
-    delete buyout_manager_;
-    delete data_manager_;
-    delete logged_in_nm_;
+    buyout_manager_->Save();
 }
 
 void Application::InitLogin(QNetworkAccessManager *login_manager, const std::string &league, const std::string &email) {
@@ -48,12 +38,12 @@ void Application::InitLogin(QNetworkAccessManager *login_manager, const std::str
     email_ = email;
     logged_in_nm_ = login_manager;
 
-    data_manager_ = new DataManager(porting::UserDir() + "/data/" + DataManager::MakeFilename(email, league));
-    buyout_manager_ = new BuyoutManager(*data_manager_);
-    shop_ = new Shop(this);
-    items_manager_ = new ItemsManager(this);
+    data_manager_ = std::make_unique<DataManager>(porting::UserDir() + "/data/" + DataManager::MakeFilename(email, league));
+    buyout_manager_ = std::make_unique<BuyoutManager>(*data_manager_);
+    shop_ = std::make_unique<Shop>(*this);
+    items_manager_ = std::make_unique<ItemsManager>(*this);
     items_manager_->Init();
-    connect(items_manager_, SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
+    connect(items_manager_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
         this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>)));
 
     items_manager_->LoadSavedData();

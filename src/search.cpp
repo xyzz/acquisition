@@ -27,14 +27,14 @@
 
 #include <iostream>
 
-Search::Search(Application *app, std::string caption, std::vector<Filter*> filters):
+Search::Search(Application &app, std::string caption, std::vector<Filter*> filters):
     app_(app),
     caption_(caption),
-    model_(new ItemsModel(app, this))
+    model_(new ItemsModel(app, *this))
 {
     columns_ = {
         new NameColumn,
-        new PriceColumn(app_->buyout_manager()),
+        new PriceColumn(app_.buyout_manager()),
         new PropertyColumn("Q", "Quality"),
         new PropertyColumn("Stack", "Stack Size"),
         new CorruptedColumn,

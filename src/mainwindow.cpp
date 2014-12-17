@@ -50,8 +50,8 @@
 
 const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
 
-MainWindow::MainWindow(Application *app):
-    app_(app),
+MainWindow::MainWindow(std::unique_ptr<Application> app):
+    app_(std::move(app)),
     ui(new Ui::MainWindow),
     current_search_(nullptr),
     search_count_(0)
@@ -71,9 +71,9 @@ MainWindow::MainWindow(Application *app):
     connect(image_network_manager_, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(OnImageFetched(QNetworkReply*)));
 
-    connect(app_->items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
+    connect(&app_->items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
         this, SLOT(OnItemsRefreshed()));
-    connect(app_->items_manager(), SIGNAL(StatusUpdate(int, int, bool)),
+    connect(&app_->items_manager(), SIGNAL(StatusUpdate(int, int, bool)),
         this, SLOT(OnItemsManagerStatusUpdate(int, int, bool)));
 }
 
@@ -102,7 +102,7 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutTypeComboBox, SIGNAL(activated(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutValueLineEdit, SIGNAL(textEdited(QString)), this, SLOT(OnBuyoutChange()));
 
-    ui->actionAutomatically_refresh_items->setChecked(app_->items_manager()->auto_update());
+    ui->actionAutomatically_refresh_items->setChecked(app_->items_manager().auto_update());
     UpdateShopMenu();
 }
 
@@ -112,7 +112,7 @@ void MainWindow::ResizeTreeColumns() {
 }
 
 void MainWindow::OnBuyoutChange() {
-    app_->shop()->ExpireShopData();
+    app_->shop().ExpireShopData();
 
     Buyout bo;
     bo.type = static_cast<BuyoutType>(ui->buyoutTypeComboBox->currentIndex());
@@ -129,15 +129,15 @@ void MainWindow::OnBuyoutChange() {
 
     if (current_item_) {
         if (bo.type == BUYOUT_TYPE_NONE)
-            app_->buyout_manager()->Delete(*current_item_);
+            app_->buyout_manager().Delete(*current_item_);
         else
-            app_->buyout_manager()->Set(*current_item_, bo);
+            app_->buyout_manager().Set(*current_item_, bo);
     } else {
         std::string tab = current_bucket_.location().GetUniqueHash();
         if (bo.type == BUYOUT_TYPE_NONE)
-            app_->buyout_manager()->DeleteTab(tab);
+            app_->buyout_manager().DeleteTab(tab);
         else
-            app_->buyout_manager()->SetTab(tab, bo);
+            app_->buyout_manager().SetTab(tab, bo);
     }
     // refresh treeView to immediately reflect price changes
     ui->treeView->model()->layoutChanged();
@@ -202,7 +202,7 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
 }
 
 void MainWindow::OnSearchFormChange() {
-    app_->buyout_manager()->Save();
+    app_->buyout_manager().Save();
     current_search_->FromForm();
     current_search_->FilterItems(app_->items());
     ui->treeView->setModel(current_search_->model());
@@ -300,7 +300,7 @@ void MainWindow::InitializeSearchForm() {
 }
 
 void MainWindow::NewSearch() {
-    current_search_ = new Search(app_, QString("Search %1").arg(++search_count_).toStdString(), filters_);
+    current_search_ = new Search(*app_, QString("Search %1").arg(++search_count_).toStdString(), filters_);
     tab_bar_->setTabText(tab_bar_->count() - 1, current_search_->GetCaption());
     tab_bar_->addTab("+");
     // this can't be done in ctor because it'll call OnSearchFormChange slot
@@ -328,7 +328,7 @@ void MainWindow::UpdateCurrentItem() {
     ui->locationLabel->show();
     ui->propertiesLabel->show();
 
-    app_->buyout_manager()->Save();
+    app_->buyout_manager().Save();
     ui->typeLineLabel->setText(current_item_->typeLine().c_str());
     if (current_item_->name().empty())
         ui->nameLabel->hide();
@@ -500,16 +500,16 @@ void MainWindow::UpdateBuyoutWidgets(const Buyout &bo) {
 
 void MainWindow::UpdateCurrentBuyout() {
     if (current_item_) {
-        if (!app_->buyout_manager()->Exists(*current_item_))
+        if (!app_->buyout_manager().Exists(*current_item_))
             ResetBuyoutWidgets();
         else
-            UpdateBuyoutWidgets(app_->buyout_manager()->Get(*current_item_));
+            UpdateBuyoutWidgets(app_->buyout_manager().Get(*current_item_));
     } else {
         std::string tab = current_bucket_.location().GetUniqueHash();
-        if (!app_->buyout_manager()->ExistsTab(tab))
+        if (!app_->buyout_manager().ExistsTab(tab))
             ResetBuyoutWidgets();
         else
-            UpdateBuyoutWidgets(app_->buyout_manager()->GetTab(tab));
+            UpdateBuyoutWidgets(app_->buyout_manager().GetTab(tab));
     }
 }
 
@@ -523,9 +523,7 @@ void MainWindow::OnItemsRefreshed() {
 }
 
 MainWindow::~MainWindow() {
-    app_->buyout_manager()->Save();
     delete ui;
-    delete app_;
 #ifdef Q_OS_WIN32
     delete taskbar_button_;
 #endif
@@ -533,38 +531,38 @@ MainWindow::~MainWindow() {
 
 void MainWindow::on_actionForum_shop_thread_triggered() {
     QString thread = QInputDialog::getText(this, "Shop thread", "Enter thread number", QLineEdit::Normal,
-        app_->shop()->thread().c_str());
-    app_->shop()->SetThread(thread.toStdString());
+        app_->shop().thread().c_str());
+    app_->shop().SetThread(thread.toStdString());
     UpdateShopMenu();
 }
 
 void MainWindow::UpdateShopMenu() {
     std::string title = "Forum shop thread...";
-    if (!app_->shop()->thread().empty())
-        title += " [" + app_->shop()->thread() + "]";
+    if (!app_->shop().thread().empty())
+        title += " [" + app_->shop().thread() + "]";
     ui->actionForum_shop_thread->setText(title.c_str());
-    ui->actionAutomatically_update_shop->setChecked(app_->shop()->auto_update());
+    ui->actionAutomatically_update_shop->setChecked(app_->shop().auto_update());
 }
 
 void MainWindow::on_actionCopy_shop_data_to_clipboard_triggered() {
-    app_->shop()->CopyToClipboard();
+    app_->shop().CopyToClipboard();
 }
 
 void MainWindow::on_actionItems_refresh_interval_triggered() {
     int interval = QInputDialog::getText(this, "Auto refresh items", "Refresh items every X minutes",
-        QLineEdit::Normal, QString::number(app_->items_manager()->auto_update_interval())).toInt();
+        QLineEdit::Normal, QString::number(app_->items_manager().auto_update_interval())).toInt();
     if (interval > 0)
-        app_->items_manager()->SetAutoUpdateInterval(interval);
+        app_->items_manager().SetAutoUpdateInterval(interval);
 }
 
 void MainWindow::on_actionRefresh_triggered() {
-    app_->items_manager()->Update();
+    app_->items_manager().Update();
 }
 
 void MainWindow::on_actionAutomatically_refresh_items_triggered() {
-    app_->items_manager()->SetAutoUpdate(ui->actionAutomatically_refresh_items->isChecked());
+    app_->items_manager().SetAutoUpdate(ui->actionAutomatically_refresh_items->isChecked());
 }
 
 void MainWindow::on_actionUpdate_shop_triggered() {
-    app_->shop()->SubmitShopToForum();
+    app_->shop().SubmitShopToForum();
 }

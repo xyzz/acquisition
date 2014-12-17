@@ -41,7 +41,7 @@ const char *POE_STASH_ITEMS_URL = "https://www.pathofexile.com/character-window/
 const char *POE_ITEMS_URL = "https://www.pathofexile.com/character-window/get-items";
 const char *POE_GET_CHARACTERS_URL = "https://www.pathofexile.com/character-window/get-characters";
 
-ItemsManager::ItemsManager(Application *app) :
+ItemsManager::ItemsManager(Application &app) :
     app_(app),
     signal_mapper_(new QSignalMapper),
     auto_update_(true),
@@ -56,8 +56,8 @@ ItemsManager::~ItemsManager() {
 }
 
 void ItemsManager::Init() {
-    auto_update_interval_ = std::stoi(app_->data_manager()->Get("autoupdate_interval", "30"));
-    auto_update_ = app_->data_manager()->GetBool("autoupdate", true);
+    auto_update_interval_ = std::stoi(app_.data_manager().Get("autoupdate_interval", "30"));
+    auto_update_ = app_.data_manager().GetBool("autoupdate", true);
     SetAutoUpdateInterval(auto_update_interval_);
     connect(auto_update_timer_, SIGNAL(timeout()), this, SLOT(OnAutoRefreshTimer()));
 }
@@ -81,15 +81,15 @@ void ItemsManager::Update() {
     items_as_string_ = "[ "; // space here is important, see ParseItems and OnTabReceived when all requests are completed
 
     // first get character list
-    if (!app_->logged_in_nm())
+    if (!app_.logged_in_nm())
         return;
-    QNetworkReply *characters = app_->logged_in_nm()->get(QNetworkRequest(QUrl(POE_GET_CHARACTERS_URL)));
+    QNetworkReply *characters = app_.logged_in_nm()->get(QNetworkRequest(QUrl(POE_GET_CHARACTERS_URL)));
     connect(characters, SIGNAL(finished()), this, SLOT(OnCharacterListReceived()));
 }
 
 QNetworkRequest ItemsManager::MakeTabRequest(int tab_index, bool tabs) {
     QUrlQuery query;
-    query.addQueryItem("league", app_->league().c_str());
+    query.addQueryItem("league", app_.league().c_str());
     query.addQueryItem("tabs", tabs ? "1" : "0");
     query.addQueryItem("tabIndex", QString::number(tab_index));
 
@@ -137,7 +137,7 @@ void ItemsManager::OnCharacterListReceived() {
             QLOG_ERROR() << "Malformed character entry, the reply is most likely invalid" << bytes.constData();
             continue;
         }
-        if (character["league"].GetString() == app_->league()) {
+        if (character["league"].GetString() == app_.league()) {
             std::string name = character["name"].GetString();
             ItemLocation location;
             location.set_type(ItemLocationType::CHARACTER);
@@ -147,7 +147,7 @@ void ItemsManager::OnCharacterListReceived() {
     }
 
     // now get first tab and tab list
-    QNetworkReply *first_tab = app_->logged_in_nm()->get(MakeTabRequest(0, true));
+    QNetworkReply *first_tab = app_.logged_in_nm()->get(MakeTabRequest(0, true));
     connect(first_tab, SIGNAL(finished()), this, SLOT(OnFirstTabReceived()));
     reply->deleteLater();
 }
@@ -159,7 +159,7 @@ void ItemsManager::FetchItems(int limit) {
         ItemsRequest request = queue_.front();
         queue_.pop();
 
-        QNetworkReply *fetched = app_->logged_in_nm()->get(request.network_request);
+        QNetworkReply *fetched = app_.logged_in_nm()->get(request.network_request);
         signal_mapper_->setMapping(fetched, request.id);
         connect(fetched, SIGNAL(finished()), signal_mapper_, SLOT(map()));
 
@@ -241,7 +241,7 @@ void ItemsManager::ParseItems(rapidjson::Value *value_ptr, const ItemLocation &b
 
 void ItemsManager::LoadSavedData() {
     items_.clear();
-    std::string items = app_->data_manager()->Get("items");
+    std::string items = app_.data_manager().Get("items");
     if (items.size() != 0) {
         rapidjson::Document doc;
         doc.Parse(items.c_str());
@@ -250,7 +250,7 @@ void ItemsManager::LoadSavedData() {
     }
 
     tabs_.clear();
-    std::string tabs = app_->data_manager()->Get("tabs");
+    std::string tabs = app_.data_manager().Get("tabs");
     if (tabs.size() != 0) {
         rapidjson::Document doc;
         if (doc.Parse(tabs.c_str()).HasParseError()) {
@@ -314,21 +314,21 @@ void ItemsManager::OnTabReceived(int request_id) {
         // since we build items_as_string_ in a hackish way inside ParseItems last character will either be
         // ' ' when no items were parsed or ',' when at least one item is parsed, and the first character is '['
         items_as_string_[items_as_string_.size() - 1] = ']';
-        app_->data_manager()->Set("items", items_as_string_);
-        app_->data_manager()->Set("tabs", tabs_as_string_);
+        app_.data_manager().Set("items", items_as_string_);
+        app_.data_manager().Set("tabs", tabs_as_string_);
 
         updating_ = false;
         QLOG_INFO() << "Finished updating stash.";
 
-        if (app_->shop()->auto_update())
-            app_->shop()->SubmitShopToForum();
+        if (app_.shop().auto_update())
+            app_.shop().SubmitShopToForum();
     }
 
     reply.network_reply->deleteLater();
 }
 
 void ItemsManager::SetAutoUpdate(bool update) {
-    app_->data_manager()->SetBool("autoupdate", update);
+    app_.data_manager().SetBool("autoupdate", update);
     auto_update_ = update;
     if (!auto_update_)
         auto_update_timer_->stop();
@@ -338,7 +338,7 @@ void ItemsManager::SetAutoUpdate(bool update) {
 }
 
 void ItemsManager::SetAutoUpdateInterval(int minutes) {
-    app_->data_manager()->Set("autoupdate_interval", std::to_string(minutes));
+    app_.data_manager().Set("autoupdate_interval", std::to_string(minutes));
     auto_update_interval_ = minutes;
     if (auto_update_)
         auto_update_timer_->start(auto_update_interval_ * 60 * 1000);

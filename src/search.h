@@ -33,7 +33,7 @@ class ItemsModel;
 
 class Search {
 public:
-    explicit Search(Application *app, std::string caption, std::vector<Filter*> filters);
+    explicit Search(Application &app, std::string caption, std::vector<Filter*> filters);
     ~Search();
     void FilterItems(const Items &items);
     void FromForm();
@@ -47,7 +47,7 @@ public:
     QString GetCaption();
     int GetItemsCount();
 private:
-    Application *app_;
+    Application &app_;
     std::vector<FilterData*> filters_;
     std::vector<Column*> columns_;
     std::string caption_;
