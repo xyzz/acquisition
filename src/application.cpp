@@ -30,7 +30,8 @@
 Application::Application() {}
 
 Application::~Application() {
-    buyout_manager_->Save();
+    if (buyout_manager_)
+        buyout_manager_->Save();
 }
 
 void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager, const std::string &league, const std::string &email) {
