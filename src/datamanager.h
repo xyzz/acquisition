@@ -26,16 +26,14 @@ class Application;
 
 class DataManager {
 public:
-    DataManager(Application *app, const std::string &directory_);
+    DataManager(const std::string &filename_);
     ~DataManager();
     void Set(const std::string &key, const std::string &value);
     std::string Get(const std::string &key, const std::string &default_value = "");
     void SetBool(const std::string &key, bool value);
     bool GetBool(const std::string &key, bool default_value = false);
+    static std::string MakeFilename(const std::string &name, const std::string &league);
 private:
-    Application *app_;
-    std::string email_;
-    std::string league_;
     std::string filename_;
     sqlite3 *db_;
 };

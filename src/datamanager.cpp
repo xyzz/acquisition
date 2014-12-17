@@ -27,14 +27,12 @@
 
 #include "application.h"
 
-DataManager::DataManager(Application *app, const std::string &directory) :
-    app_(app)
+DataManager::DataManager(const std::string &filename) :
+    filename_(filename)
 {
-    if (!QDir(directory.c_str()).exists())
-        QDir().mkpath(directory.c_str());
-    std::string key = app_->email() + "|" + app->league();
-    filename_ = QString(QCryptographicHash::hash(key.c_str(), QCryptographicHash::Md5).toHex()).toUtf8().constData();
-    filename_ = directory + "/" + filename_;
+    QDir dir((filename + "/..").c_str());
+    if (!dir.exists())
+        QDir().mkpath(dir.path());
     if (sqlite3_open(filename_.c_str(), &db_) != SQLITE_OK) {
         throw std::runtime_error("Failed to open sqlite3 database.");
     }
@@ -76,4 +74,9 @@ bool DataManager::GetBool(const std::string &key, bool default_value) {
 
 DataManager::~DataManager() {
     sqlite3_close(db_);
+}
+
+std::string DataManager::MakeFilename(const std::string &name, const std::string &league) {
+    std::string key = name + "|" + league;
+    return QString(QCryptographicHash::hash(key.c_str(), QCryptographicHash::Md5).toHex()).toStdString();
 }
