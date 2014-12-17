@@ -49,7 +49,7 @@ void Application::InitLogin(QNetworkAccessManager *login_manager, const std::str
     logged_in_nm_ = login_manager;
 
     data_manager_ = new DataManager(porting::UserDir() + "/data/" + DataManager::MakeFilename(email, league));
-    buyout_manager_ = new BuyoutManager(this);
+    buyout_manager_ = new BuyoutManager(*data_manager_);
     shop_ = new Shop(this);
     items_manager_ = new ItemsManager(this);
     items_manager_->Init();

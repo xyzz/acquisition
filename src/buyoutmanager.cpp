@@ -31,8 +31,8 @@
 #include "rapidjson_util.h"
 #include "util.h"
 
-BuyoutManager::BuyoutManager(Application *app) :
-    app_(app),
+BuyoutManager::BuyoutManager(DataManager &data_manager) :
+    data_manager_(data_manager),
     save_needed_(false)
 {
     Load();
@@ -136,11 +136,11 @@ void BuyoutManager::Save() {
         return;
     save_needed_ = false;
 
-    app_->data_manager()->Set("buyouts", Serialize(buyouts_));
-    app_->data_manager()->Set("tab_buyouts", Serialize(tab_buyouts_));
+    data_manager_.Set("buyouts", Serialize(buyouts_));
+    data_manager_.Set("tab_buyouts", Serialize(tab_buyouts_));
 }
 
 void BuyoutManager::Load() {
-    Deserialize(app_->data_manager()->Get("buyouts"), &buyouts_);
-    Deserialize(app_->data_manager()->Get("tab_buyouts"), &tab_buyouts_);
+    Deserialize(data_manager_.Get("buyouts"), &buyouts_);
+    Deserialize(data_manager_.Get("tab_buyouts"), &tab_buyouts_);
 }
