@@ -35,6 +35,7 @@
 class QLabel;
 class QNetworkAccessManager;
 class QNetworkReply;
+class QVBoxLayout;
 
 class Application;
 class Filter;
@@ -96,6 +97,8 @@ private:
     QNetworkAccessManager *image_network_manager_;
     ImageCache *image_cache_;
     QLabel *status_bar_label_;
+
+    QVBoxLayout *search_form_layout_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif

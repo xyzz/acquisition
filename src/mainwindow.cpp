@@ -32,6 +32,7 @@
 #include <QNetworkReply>
 #include <QPainter>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QStringList>
 #include <QTabBar>
 #include "QsLog.h"
@@ -104,6 +105,26 @@ void MainWindow::InitializeUi() {
 
     ui->actionAutomatically_refresh_items->setChecked(app_->items_manager().auto_update());
     UpdateShopMenu();
+
+    search_form_layout_ = new QVBoxLayout;
+    search_form_layout_->setAlignment(Qt::AlignTop);
+    search_form_layout_->setContentsMargins(0, 0, 0, 0);
+
+    auto search_form_container = new QWidget;
+    search_form_container->setLayout(search_form_layout_);
+
+    auto scroll_area = new QScrollArea;
+    scroll_area->setFrameShape(QFrame::NoFrame);
+    scroll_area->setWidgetResizable(true);
+    scroll_area->setWidget(search_form_container);
+    scroll_area->setMinimumWidth(150); // TODO(xyz): remove magic numbers
+
+    ui->horizontalLayout_2->insertWidget(0, scroll_area);
+    search_form_container->show();
+
+    ui->horizontalLayout_2->setStretchFactor(scroll_area, 1);
+    ui->horizontalLayout_2->setStretchFactor(ui->itemListAndSearchFormLayout, 4);
+    ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 1);
 }
 
 void MainWindow::ResizeTreeColumns() {
@@ -246,26 +267,32 @@ void MainWindow::OnTabChange(int index) {
     OnSearchFormChange();
 }
 
-void MainWindow::AddSearchGroup(FlowLayout *layout, std::string name) {
-    ui->searchFormLayout->addLayout(layout);
-    QLabel *label = new QLabel(("<h3>" + name + "</h3>").c_str());
-    label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
-    layout->addWidget(label);
+void MainWindow::AddSearchGroup(FlowLayout *layout, std::string name="") {
+    if (!name.empty()) {
+        auto label = new QLabel(("<h3>" + name + "</h3>").c_str());
+        search_form_layout_->addWidget(label);
+    }
+    layout->setContentsMargins(0, 0, 0, 0);
+    auto layout_container = new QWidget;
+    layout_container->setLayout(layout);
+    search_form_layout_->addWidget(layout_container);
 }
 
 void MainWindow::InitializeSearchForm() {
-    NameSearchFilter *name_search = new NameSearchFilter(ui->searchFormLayout);
-    FlowLayout *offense_layout = new FlowLayout;
-    FlowLayout *defense_layout = new FlowLayout;
-    FlowLayout *sockets_layout = new FlowLayout;
-    FlowLayout *requirements_layout = new FlowLayout;
-    FlowLayout *misc_layout = new FlowLayout;
+    auto name_search = new NameSearchFilter(search_form_layout_);
+    auto offense_layout = new FlowLayout;
+    auto defense_layout = new FlowLayout;
+    auto sockets_layout = new FlowLayout;
+    auto requirements_layout = new FlowLayout;
+    auto misc_layout = new FlowLayout;
+    auto misc_flags_layout = new FlowLayout;
 
     AddSearchGroup(offense_layout, "Offense");
     AddSearchGroup(defense_layout, "Defense");
     AddSearchGroup(sockets_layout, "Sockets");
-    AddSearchGroup(requirements_layout, "Reqs.");
+    AddSearchGroup(requirements_layout, "Requirements");
     AddSearchGroup(misc_layout, "Misc");
+    AddSearchGroup(misc_flags_layout);
 
     filters_ = {
         name_search,
@@ -294,8 +321,8 @@ void MainWindow::InitializeSearchForm() {
         // Misc
         new SimplePropertyFilter(misc_layout, "Quality"),
         new SimplePropertyFilter(misc_layout, "Level"),
-        new MTXFilter(misc_layout, "", "MTX"),
-        new AltartFilter(misc_layout, "", "Alt. art"),
+        new MTXFilter(misc_flags_layout, "", "MTX"),
+        new AltartFilter(misc_flags_layout, "", "Alt. art"),
     };
 }
 
