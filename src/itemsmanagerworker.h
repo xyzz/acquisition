@@ -20,6 +20,7 @@
 #pragma once
 
 #include <queue>
+#include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QObject>
 
@@ -27,7 +28,6 @@
 
 class Application;
 class DataManager;
-class QNetworkAccessManager;
 class QNetworkReply;
 class QSignalMapper;
 class QTimer;
@@ -55,6 +55,7 @@ class ItemsManagerWorker : public QObject {
     Q_OBJECT
 public:
     ItemsManagerWorker(Application &app, QThread *thread);
+    ~ItemsManagerWorker();
 public slots:
     void Init();
     void Update();
@@ -78,21 +79,17 @@ private:
     void ParseItems(rapidjson::Value *value_ptr, const ItemLocation &base_location, rapidjson_allocator &alloc);
 
     DataManager &data_manager_;
-    QNetworkAccessManager *network_manager_;
+    QNetworkAccessManager network_manager_;
+    QSignalMapper *signal_mapper_;
     std::vector<std::string> tabs_;
     std::queue<ItemsRequest> queue_;
     std::map<int, ItemsReply> replies_;
     Items items_;
     int total_completed_, total_needed_;
     int requests_completed_, requests_needed_;
-    QSignalMapper *signal_mapper_;
+    
     std::string items_as_string_;
     std::string tabs_as_string_;
-    // should items be automatically refreshed
-    bool auto_update_;
-    // items will be automatically updated every X minutes
-    int auto_update_interval_;
-    QTimer *auto_update_timer_;
     // set to true if updating right now
     bool updating_;
     int queue_id_;

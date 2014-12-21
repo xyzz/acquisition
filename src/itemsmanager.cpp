@@ -54,16 +54,17 @@ ItemsManager::ItemsManager(Application &app) :
 
 ItemsManager::~ItemsManager() {
     thread_->quit();
+    thread_->wait();
 }
 
 void ItemsManager::Start() {
-    thread_ = new QThread;
-    worker_ = new ItemsManagerWorker(app_, thread_);
-    connect(thread_, SIGNAL(started()), worker_, SLOT(Init()));
-    connect(this, SIGNAL(UpdateSignal()), worker_, SLOT(Update()));
-    connect(worker_, SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnStatusUpdate(ItemsFetchStatus)));
-    connect(worker_, SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>)));
-    worker_->moveToThread(thread_);
+    thread_ = std::make_unique<QThread>();
+    worker_ = std::make_unique<ItemsManagerWorker>(app_, thread_.get());
+    connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
+    connect(this, SIGNAL(UpdateSignal()), worker_.get(), SLOT(Update()));
+    connect(worker_.get(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnStatusUpdate(ItemsFetchStatus)));
+    connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>)));
+    worker_->moveToThread(thread_.get());
     thread_->start();
 }
 

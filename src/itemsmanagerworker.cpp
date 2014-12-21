@@ -45,10 +45,14 @@ ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     league_(app.league()),
     updating_(false)
 {
-    network_manager_ = new QNetworkAccessManager;
     QUrl poe("https://www.pathofexile.com/");
-    network_manager_->cookieJar()->setCookiesFromUrl(app.logged_in_nm().cookieJar()->cookiesForUrl(poe), poe);
-    network_manager_->moveToThread(thread);
+    network_manager_.cookieJar()->setCookiesFromUrl(app.logged_in_nm().cookieJar()->cookiesForUrl(poe), poe);
+    network_manager_.moveToThread(thread);
+}
+
+ItemsManagerWorker::~ItemsManagerWorker() {
+    if (signal_mapper_)
+        delete signal_mapper_;
 }
 
 void ItemsManagerWorker::Init() {
@@ -102,7 +106,7 @@ void ItemsManagerWorker::Update() {
     items_as_string_ = "[ "; // space here is important, see ParseItems and OnTabReceived when all requests are completed
 
     // first get character list
-    QNetworkReply *characters = network_manager_->get(QNetworkRequest(QUrl(kGetCharactersUrl)));
+    QNetworkReply *characters = network_manager_.get(QNetworkRequest(QUrl(kGetCharactersUrl)));
     connect(characters, SIGNAL(finished()), this, SLOT(OnCharacterListReceived()));
 }
 
@@ -137,7 +141,7 @@ void ItemsManagerWorker::OnCharacterListReceived() {
     }
 
     // now get first tab and tab list
-    QNetworkReply *first_tab = network_manager_->get(MakeTabRequest(0, true));
+    QNetworkReply *first_tab = network_manager_.get(MakeTabRequest(0, true));
     connect(first_tab, SIGNAL(finished()), this, SLOT(OnFirstTabReceived()));
     reply->deleteLater();
 }
@@ -178,7 +182,7 @@ void ItemsManagerWorker::FetchItems(int limit) {
         ItemsRequest request = queue_.front();
         queue_.pop();
 
-        QNetworkReply *fetched = network_manager_->get(request.network_request);
+        QNetworkReply *fetched = network_manager_.get(request.network_request);
         signal_mapper_->setMapping(fetched, request.id);
         connect(fetched, SIGNAL(finished()), signal_mapper_, SLOT(map()));
 

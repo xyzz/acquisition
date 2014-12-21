@@ -75,8 +75,7 @@ private:
     // items will be automatically updated every X minutes
     int auto_update_interval_;
     std::unique_ptr<QTimer> auto_update_timer_;
-
-    ItemsManagerWorker *worker_;
-    QThread *thread_;
+    std::unique_ptr<ItemsManagerWorker> worker_;
+    std::unique_ptr<QThread> thread_;
     Application &app_;
 };
