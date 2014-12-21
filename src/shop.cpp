@@ -122,7 +122,7 @@ void Shop::OnEditPageFinished() {
     std::string page(bytes.constData(), bytes.size());
     std::string hash = Util::GetCsrfToken(page, "forum_thread");
     if (hash.empty()) {
-        QLOG_WARN() << "Can't update shop -- cannot extract CSRF token from page.";
+        QLOG_ERROR() << "Can't update shop -- cannot extract CSRF token from the page. Check if thread ID is valid.";
         return;
     }
 
@@ -131,7 +131,7 @@ void Shop::OnEditPageFinished() {
     // holy shit give me some html parser library please
     std::string title = Util::FindTextBetween(page, "<input type=\"text\" name=\"title\" id=\"title\" value=\"", "\" class=\"textInput\">");
     if (title.empty()) {
-        QLOG_WARN() << "Can't update shop -- title is empty. Check if thread ID is valid.";
+        QLOG_ERROR() << "Can't update shop -- title is empty. Check if thread ID is valid.";
         return;
     }
 
@@ -149,6 +149,15 @@ void Shop::OnEditPageFinished() {
 }
 
 void Shop::OnShopSubmitted() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
+    QByteArray bytes = reply->readAll();
+    std::string page(bytes.constData(), bytes.size());
+    std::string error = Util::FindTextBetween(page, "<ul class=\"errors\"><li>", "</li></ul>");
+    if (!error.empty()) {
+        QLOG_ERROR() << "Error while submitting shop to forums:" << error.c_str();
+        return;
+    }
+
     // now let's hope that shop was submitted successfully and notify poe.xyz.is
     QNetworkRequest request(QUrl(("http://verify.xyz.is/" + thread_ + "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").c_str()));
     app_.logged_in_nm().get(request);

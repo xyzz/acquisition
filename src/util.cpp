@@ -98,7 +98,7 @@ std::string Util::GetCsrfToken(const std::string &page, const std::string &name)
 
 std::string Util::FindTextBetween(const std::string &page, const std::string &left, const std::string &right) {
     size_t first = page.find(left);
-    size_t last = page.find(right);
+    size_t last = page.find(right, first);
     if (first == std::string::npos || last == std::string::npos || first > last)
         return "";
     return page.substr(first + left.size(), last - first - left.size());
