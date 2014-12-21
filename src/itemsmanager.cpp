@@ -34,6 +34,7 @@
 #include "application.h"
 #include "datamanager.h"
 #include "itemsmanagerworker.h"
+#include "porting.h"
 #include "rapidjson_util.h"
 #include "shop.h"
 #include "util.h"

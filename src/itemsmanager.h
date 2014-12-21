@@ -21,6 +21,7 @@
 
 #include <QNetworkRequest>
 #include <QObject>
+#include <QTimer>
 #include <string>
 #include <unordered_map>
 #include <queue>
@@ -33,7 +34,6 @@
 class QNetworkReply;
 class QNetworkAccessManager;
 class QSignalMapper;
-class QTimer;
 class Application;
 class DataManager;
 class ItemsManagerWorker;
