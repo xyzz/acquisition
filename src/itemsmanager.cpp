@@ -40,7 +40,6 @@
 #include "util.h"
 
 ItemsManager::ItemsManager(Application &app) :
-    auto_update_(true),
     auto_update_timer_(std::make_unique<QTimer>()),
     data_manager_(app.data_manager()),
     shop_(app.shop()),

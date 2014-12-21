@@ -38,7 +38,6 @@ const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-s
 const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
 const char *kGetCharactersUrl = "https://www.pathofexile.com/character-window/get-characters";
 
-
 ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     data_manager_(app.data_manager()),
     signal_mapper_(nullptr),

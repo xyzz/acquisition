@@ -90,8 +90,8 @@ private:
     
     std::string items_as_string_;
     std::string tabs_as_string_;
+    std::string league_;
     // set to true if updating right now
     bool updating_;
     int queue_id_;
-    std::string league_;
 };
