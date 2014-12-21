@@ -34,6 +34,7 @@
 class QNetworkReply;
 class QNetworkAccessManager;
 class QSignalMapper;
+class QThread;
 class Application;
 class DataManager;
 class ItemsManagerWorker;
@@ -48,6 +49,7 @@ class ItemsManager : public QObject {
     Q_OBJECT
 public:
     explicit ItemsManager(Application &app);
+    ~ItemsManager();
     // Creates and starts the worker
     void Start();
     void Update();
@@ -75,5 +77,6 @@ private:
     std::unique_ptr<QTimer> auto_update_timer_;
 
     ItemsManagerWorker *worker_;
+    QThread *thread_;
     Application &app_;
 };

@@ -52,15 +52,19 @@ ItemsManager::ItemsManager(Application &app) :
     connect(auto_update_timer_.get(), SIGNAL(timeout()), this, SLOT(OnAutoRefreshTimer()));
 }
 
+ItemsManager::~ItemsManager() {
+    thread_->quit();
+}
+
 void ItemsManager::Start() {
-    auto thread = new QThread;
-    worker_ = new ItemsManagerWorker(app_, thread);
-    connect(thread, SIGNAL(started()), worker_, SLOT(Init()));
+    thread_ = new QThread;
+    worker_ = new ItemsManagerWorker(app_, thread_);
+    connect(thread_, SIGNAL(started()), worker_, SLOT(Init()));
     connect(this, SIGNAL(UpdateSignal()), worker_, SLOT(Update()));
     connect(worker_, SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnStatusUpdate(ItemsFetchStatus)));
     connect(worker_, SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>)));
-    worker_->moveToThread(thread);
-    thread->start();
+    worker_->moveToThread(thread_);
+    thread_->start();
 }
 
 void ItemsManager::OnStatusUpdate(const ItemsFetchStatus &status) {
