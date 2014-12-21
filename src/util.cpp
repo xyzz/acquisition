@@ -136,3 +136,15 @@ void Util::RapidjsonAddConstString(rapidjson::Value *object, const char *const n
     rjson_val.SetString(value.c_str(), value.size());
     object->AddMember(rjson_name, rjson_val, alloc);
 }
+
+std::string Util::StringReplace(const std::string &haystack, const std::string &needle, const std::string &replace) {
+    std::string out = haystack;
+    for (size_t pos = 0; ; pos += replace.length()) {
+        pos = out.find(needle, pos);
+        if (pos == std::string::npos)
+            break;
+        out.erase(pos, needle.length());
+        out.insert(pos, replace);
+    }
+    return out;
+}

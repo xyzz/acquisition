@@ -22,6 +22,8 @@
 #include <QObject>
 #include <string>
 
+extern const std::string kShopTemplateItems;
+
 class Application;
 
 class Shop : public QObject {
@@ -30,6 +32,7 @@ public:
     explicit Shop(Application &app);
     void SetThread(const std::string &thread);
     void SetAutoUpdate(bool update);
+    void SetShopTemplate(const std::string &shop_template);
     void Update();
     void CopyToClipboard();
     void ExpireShopData();
@@ -37,6 +40,7 @@ public:
     bool auto_update() const { return auto_update_; }
     const std::string &thread() const { return thread_; }
     const std::string &shop_data() const { return shop_data_; }
+    const std::string &shop_template() const { return shop_template_; }
 public slots:
     void OnEditPageFinished();
     void OnShopSubmitted();
@@ -45,6 +49,7 @@ private:
     Application &app_;
     std::string thread_;
     std::string shop_data_;
+    std::string shop_template_;
     bool shop_data_outdated_;
     bool auto_update_;
 };

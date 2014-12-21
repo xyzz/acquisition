@@ -34,6 +34,7 @@
 #include "util.h"
 
 const std::string POE_EDIT_THREAD = "https://www.pathofexile.com/forum/edit-thread/";
+const std::string kShopTemplateItems = "[items]";
 
 Shop::Shop(Application &app) :
     app_(app),
@@ -41,6 +42,9 @@ Shop::Shop(Application &app) :
 {
     thread_ = app_.data_manager().Get("shop");
     auto_update_ = app_.data_manager().GetBool("shop_update", true);
+    shop_template_ = app_.data_manager().Get("shop_template");
+    if (shop_template_.empty())
+        shop_template_ = kShopTemplateItems;
 }
 
 void Shop::SetThread(const std::string &thread) {
@@ -51,6 +55,12 @@ void Shop::SetThread(const std::string &thread) {
 void Shop::SetAutoUpdate(bool update) {
     auto_update_ = update;
     app_.data_manager().SetBool("shop_update", update);
+}
+
+void Shop::SetShopTemplate(const std::string &shop_template) {
+    shop_template_ = shop_template;
+    app_.data_manager().Set("shop_template", shop_template);
+    ExpireShopData();
 }
 
 void Shop::Update() {
@@ -81,7 +91,7 @@ void Shop::Update() {
     }
     data += "[/spoiler]";
 
-    shop_data_ = data;
+    shop_data_ = Util::StringReplace(shop_template_, kShopTemplateItems, data);
 }
 
 void Shop::ExpireShopData() {

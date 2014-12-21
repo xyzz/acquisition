@@ -146,6 +146,7 @@
      <string>Shop</string>
     </property>
     <addaction name="actionForum_shop_thread"/>
+    <addaction name="actionShop_template"/>
     <addaction name="actionCopy_shop_data_to_clipboard"/>
     <addaction name="actionUpdate_shop"/>
     <addaction name="actionAutomatically_update_shop_2"/>
@@ -215,6 +216,11 @@
    </property>
    <property name="text">
     <string>Automatically update shop</string>
+   </property>
+  </action>
+  <action name="actionShop_template">
+   <property name="text">
+    <string>Shop template...</string>
    </property>
   </action>
  </widget>

@@ -43,6 +43,7 @@ SOURCES += \
     src/modsfilter.cpp \
     src/modlist.cpp \
     test/testmain.cpp \
+    test/testdata.cpp \
     test/testitem.cpp \
     test/testshop.cpp
 
@@ -74,6 +75,7 @@ HEADERS += \
     src/modsfilter.h \
     src/modlist.h \
     test/testmain.h \
+    test/testdata.h \
     test/testitem.h \
     test/testshop.h
 

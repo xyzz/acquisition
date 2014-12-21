@@ -598,3 +598,11 @@ void MainWindow::on_actionAutomatically_refresh_items_triggered() {
 void MainWindow::on_actionUpdate_shop_triggered() {
     app_->shop().SubmitShopToForum();
 }
+
+void MainWindow::on_actionShop_template_triggered() {
+    bool ok;
+    QString text = QInputDialog::getMultiLineText(this, "Shop template", "Enter shop template. [items] will be replaced with the list of items you marked for sale.",
+        app_->shop().shop_template().c_str(), &ok);
+    if (ok && !text.isEmpty())
+        app_->shop().SetShopTemplate(text.toStdString());
+}

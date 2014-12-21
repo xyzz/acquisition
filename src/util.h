@@ -56,4 +56,6 @@ std::string ModListAsString(const ItemMods &list);
 
 std::string RapidjsonSerialize(const rapidjson::Value &val);
 void RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const std::string &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc);
+
+std::string StringReplace(const std::string &haystack, const std::string &needle, const std::string &replace);
 }

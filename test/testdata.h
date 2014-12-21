@@ -19,11 +19,7 @@
 
 #pragma once
 
-#include <QtTest/QtTest>
+#include <string>
 
-class TestItem : public QObject
-{
-    Q_OBJECT
-private slots:
-    void Parse();
-};
+extern const std::string kItem1;
+extern const std::string kSocketedItem;
