@@ -1,0 +1,19 @@
+language: cpp
+
+compiler:
+ - clang
+ - gcc
+
+before_install:
+ - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+ - sudo add-apt-repository --yes ppa:beineri/opt-qt532
+ - sudo apt-get update -qq
+ - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
+ - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+ - sudo apt-get install qt53base qt53webkit valgrind
+
+script:
+ - . /opt/qt53/bin/qt53-env.sh
+ - qmake QMAKE_CC=$CC QMAKE_CXX=$CXX
+ - make -j2
+ - valgrind ./acquisition --test -platform offscreen

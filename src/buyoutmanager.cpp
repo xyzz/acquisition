@@ -21,6 +21,7 @@
 
 #include <cassert>
 #include <sstream>
+#include <stdexcept>
 #include "QsLog.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"

@@ -20,8 +20,9 @@ const std::string item_string =
    "values\":[[\"62\",0]],\"displayMode\":1},{\"name\":\"Dex\",\"values\":[[\"85\",0]],\"displayMode\":1}],\"explicitMo"
    "ds\":[\"+93 to Accuracy Rating\",\"100% increased Armour and Evasion\",\"+24% to Fire Resistance\",\"+32% to Lightn"
    "ing Resistance\",\"15% increased Block and Stun Recovery\"],\"frameType\":2,\"x\":0,\"y\":0,\"inventoryId\": \"\", "
-   "\"socketedItems\":[], \"_socketed\":true}";
-    
+   "\"socketedItems\":[], \"_socketed\":true, \"_type\": 0, \"_tab_label\": \"label\", \"_tab\": 0, \"_x\": 0, \"_y\": "
+   "0}";
+
 void TestShop::SocketedGemsNotLinked() {
     Application app;
     auto null_nm = std::make_unique<QNetworkAccessManager>();

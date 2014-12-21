@@ -8,7 +8,9 @@ ItemLocation::ItemLocation():
     socketed_(false)
 {}
 
-ItemLocation::ItemLocation(const rapidjson::Value &root) {
+ItemLocation::ItemLocation(const rapidjson::Value &root):
+    socketed_(false)
+{
     FromItemJson(root);
 }
 
