@@ -57,8 +57,6 @@ public:
     const ModFilterData &data() const { return data_; }
 private:
     ModFilterData data_;
-    // TODO(xyz): It seems Microsoft's compiler is rather special towards std::unique_ptr inside a std::vector inside a struct,
-    // or I just haven't read the standard carefully enough, so let's have raw pointers here instead
     std::unique_ptr<QComboBox> mod_select_;
     std::unique_ptr<QLineEdit> min_text_, max_text_;
     std::unique_ptr<QPushButton> delete_button_;
