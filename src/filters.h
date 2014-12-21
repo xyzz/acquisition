@@ -43,6 +43,7 @@ public:
     virtual void ToForm(FilterData *data) = 0;
     virtual void ResetForm() = 0;
     virtual bool Matches(const std::shared_ptr<Item> &item, FilterData *data) = 0;
+    virtual ~Filter() {};
     std::unique_ptr<FilterData> CreateData();
 };
 
