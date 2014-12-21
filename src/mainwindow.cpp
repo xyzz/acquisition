@@ -63,7 +63,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     taskbar_button_ = new QWinTaskbarButton(this);
     taskbar_button_->setWindow(this->windowHandle());
 #endif
-    image_cache_ = new ImageCache(this, porting::UserDir() + "/cache");
+    image_cache_ = new ImageCache(porting::UserDir() + "/cache");
 
     InitializeUi();
     InitializeSearchForm();
@@ -196,7 +196,7 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e) {
                 tab_bar_->removeTab(index);
                 delete searches_[index];
                 searches_.erase(searches_.begin() + index);
-                if (tab_bar_->currentIndex() == searches_.size())
+                if (static_cast<size_t>(tab_bar_->currentIndex()) == searches_.size())
                     tab_bar_->setCurrentIndex(searches_.size() - 1);
                 OnTabChange(tab_bar_->currentIndex());
                 // that's because after removeTab text will be set to previous search's caption
@@ -258,7 +258,7 @@ void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /*
 
 void MainWindow::OnTabChange(int index) {
     // "+" clicked
-    if (index == searches_.size()) {
+    if (static_cast<size_t>(index) == searches_.size()) {
         NewSearch();
     } else {
         current_search_ = searches_[index];

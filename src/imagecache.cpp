@@ -27,8 +27,7 @@
 #include "mainwindow.h"
 #include "util.h"
 
-ImageCache::ImageCache(MainWindow *app, const std::string &directory):
-    app_(app),
+ImageCache::ImageCache(const std::string &directory):
     directory_(directory)
 {
     if (!QDir(directory_.c_str()).exists())
