@@ -1,4 +1,4 @@
-# Acquisition
+# Acquisition [![Build Status](https://travis-ci.org/xyzz/acquisition.svg?branch=master)](https://travis-ci.org/xyzz/acquisition)
 
 Acquisition is an inventory management tool for [Path of Exile](https://www.pathofexile.com/).
 
