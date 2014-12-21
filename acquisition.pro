@@ -42,6 +42,7 @@ SOURCES += \
     src/steamlogindialog.cpp \
     src/modsfilter.cpp \
     src/modlist.cpp \
+    src/logpanel.cpp \
     test/testmain.cpp \
     test/testdata.cpp \
     test/testitem.cpp \
@@ -74,6 +75,7 @@ HEADERS += \
     src/rapidjson_util.h \
     src/modsfilter.h \
     src/modlist.h \
+    src/logpanel.h \
     test/testmain.h \
     test/testdata.h \
     test/testitem.h \

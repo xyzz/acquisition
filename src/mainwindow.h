@@ -80,6 +80,7 @@ private:
     void UpdateCurrentItemProperties();
     void UpdateCurrentBuyout();
     void NewSearch();
+    void InitializeLogging();
     void InitializeSearchForm();
     void InitializeUi();
     void AddSearchGroup(QLayout *layout, const std::string &name);

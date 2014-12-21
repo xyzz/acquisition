@@ -46,6 +46,7 @@
 #include "item.h"
 #include "itemlocation.h"
 #include "itemsmanager.h"
+#include "logpanel.h"
 #include "porting.h"
 #include "shop.h"
 #include "util.h"
@@ -66,6 +67,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     image_cache_ = new ImageCache(porting::UserDir() + "/cache");
 
     InitializeUi();
+    InitializeLogging();
     InitializeSearchForm();
     NewSearch();
 
@@ -77,6 +79,12 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
         this, SLOT(OnItemsRefreshed()));
     connect(&app_->items_manager(), SIGNAL(StatusUpdate(int, int, bool)),
         this, SLOT(OnItemsManagerStatusUpdate(int, int, bool)));
+}
+
+void MainWindow::InitializeLogging() {
+    LogPanel *log_panel = new LogPanel(this, ui);
+    QsLogging::DestinationPtr log_panel_ptr(log_panel);
+    QsLogging::Logger::instance().addDestination(log_panel_ptr);
 }
 
 void MainWindow::InitializeUi() {
