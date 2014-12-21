@@ -24,13 +24,13 @@
 #include "column.h"
 #include "item.h"
 
-class Application;
+class BuyoutManager;
 class Search;
 
 class ItemsModel : public QAbstractItemModel {
     Q_OBJECT
 public:
-    ItemsModel(Application &app, Search &search);
+    ItemsModel(const BuyoutManager &bo_manager, const Search &search);
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
@@ -38,6 +38,6 @@ public:
     QModelIndex index(int row, int column, const QModelIndex &parent) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 private:
-    Application &app_;
-    Search &search_;
+    const BuyoutManager &bo_manager_;
+    const Search &search_;
 };

@@ -26,8 +26,8 @@
 #include "search.h"
 #include "util.h"
 
-ItemsModel::ItemsModel(Application &app, Search &search) :
-    app_(app),
+ItemsModel::ItemsModel(const BuyoutManager &bo_manager, const Search &search) :
+    bo_manager_(bo_manager),
     search_(search)
 {
 }
@@ -81,13 +81,13 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
         if (role == Qt::DisplayRole && index.column() == 0) {
             const ItemLocation &location = search_.buckets()[index.row()]->location();
             QString title(location.GetHeader().c_str());
-            if (app_.buyout_manager().ExistsTab(location.GetUniqueHash()))
-                title += QString(" [%1]").arg(Util::BuyoutAsText(app_.buyout_manager().GetTab(location.GetUniqueHash())).c_str());
+            if (bo_manager_.ExistsTab(location.GetUniqueHash()))
+                title += QString(" [%1]").arg(Util::BuyoutAsText(bo_manager_.GetTab(location.GetUniqueHash())).c_str());
             return title;
         }
         return QVariant();
     }
-    Column *column = search_.columns()[index.column()];
+    auto &column = search_.columns()[index.column()];
     const Item &item = *search_.buckets()[index.parent().row()]->items()[index.row()];
     if (role == Qt::DisplayRole)
         return QString(column->value(item).c_str());

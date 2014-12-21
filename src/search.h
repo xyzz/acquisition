@@ -26,32 +26,32 @@
 #include "column.h"
 #include "bucket.h"
 
-class Application;
+class BuyoutManager;
 class Filter;
 class FilterData;
 class ItemsModel;
+class QTreeView;
 
 class Search {
 public:
-    explicit Search(Application &app, std::string caption, std::vector<Filter*> filters);
-    ~Search();
+    Search(const BuyoutManager &bo, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters);
     void FilterItems(const Items &items);
     void FromForm();
     void ToForm();
     void ResetForm();
     const std::string &caption() const { return caption_; }
     const Items &items() const { return items_; }
-    const std::vector<Column*> &columns() const { return columns_; }
-    ItemsModel *model() const { return model_; }
+    const std::vector<std::unique_ptr<Column>> &columns() const { return columns_; }
     const std::vector<std::unique_ptr<Bucket>> &buckets() const { return buckets_; }
     QString GetCaption();
     int GetItemsCount();
+    // Sets this search as current, will display items in passed QTreeView.
+    void Activate(const Items &items, QTreeView *tree);
 private:
-    Application &app_;
-    std::vector<FilterData*> filters_;
-    std::vector<Column*> columns_;
+    std::vector<std::unique_ptr<FilterData>> filters_;
+    std::vector<std::unique_ptr<Column>> columns_;
     std::string caption_;
     Items items_;
-    ItemsModel *model_;
+    std::unique_ptr<ItemsModel> model_;
     std::vector<std::unique_ptr<Bucket>> buckets_;
 };

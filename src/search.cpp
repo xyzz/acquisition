@@ -19,64 +19,60 @@
 
 #include "search.h"
 
-#include "application.h"
+#include <iostream>
+#include <memory>
+#include <QTreeView>
+
+#include "buyoutmanager.h"
 #include "bucket.h"
 #include "column.h"
 #include "filters.h"
 #include "porting.h"
 
-#include <iostream>
-
-Search::Search(Application &app, std::string caption, std::vector<Filter*> filters):
-    app_(app),
+Search::Search(const BuyoutManager &bo_manager, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters) :
     caption_(caption),
-    model_(new ItemsModel(app, *this))
+    model_(std::make_unique<ItemsModel>(bo_manager, *this))
 {
-    columns_ = {
-        new NameColumn,
-        new PriceColumn(app_.buyout_manager()),
-        new PropertyColumn("Q", "Quality"),
-        new PropertyColumn("Stack", "Stack Size"),
-        new CorruptedColumn,
-        new PropertyColumn("PD", "Physical Damage"),
-        new ElementalDamageColumn(0),
-        new ElementalDamageColumn(1),
-        new ElementalDamageColumn(2),
-        new PropertyColumn("APS", "Attacks per Second"),
-        new DPSColumn,
-        new pDPSColumn,
-        new eDPSColumn,
-        new PropertyColumn("Crit", "Critical Strike Chance"),
-        new PropertyColumn("Ar", "Armour"),
-        new PropertyColumn("Ev", "Evasion Rating"),
-        new PropertyColumn("ES", "Energy Shield"),
-        new PropertyColumn("B", "Chance to Block"),
-        new PropertyColumn("Lvl", "Level"),
+    using move_only = std::unique_ptr<Column>;
+    move_only init[] = {
+        std::make_unique<NameColumn>(),
+        std::make_unique<PriceColumn>(bo_manager),
+        std::make_unique<PropertyColumn>("Q", "Quality"),
+        std::make_unique<PropertyColumn>("Stack", "Stack Size"),
+        std::make_unique<CorruptedColumn>(),
+        std::make_unique<PropertyColumn>("PD", "Physical Damage"),
+        std::make_unique<ElementalDamageColumn>(0),
+        std::make_unique<ElementalDamageColumn>(1),
+        std::make_unique<ElementalDamageColumn>(2),
+        std::make_unique<PropertyColumn>("APS", "Attacks per Second"),
+        std::make_unique<DPSColumn>(),
+        std::make_unique<pDPSColumn>(),
+        std::make_unique<eDPSColumn>(),
+        std::make_unique<PropertyColumn>("Crit", "Critical Strike Chance"),
+        std::make_unique<PropertyColumn>("Ar", "Armour"),
+        std::make_unique<PropertyColumn>("Ev", "Evasion Rating"),
+        std::make_unique<PropertyColumn>("ES", "Energy Shield"),
+        std::make_unique<PropertyColumn>("B", "Chance to Block"),
+        std::make_unique<PropertyColumn>("Lvl", "Level")
     };
-    for (auto filter : filters)
-        filters_.push_back(filter->CreateData());
-}
+    columns_ = std::vector<move_only>(std::make_move_iterator(std::begin(init)), std::make_move_iterator(std::end(init)));
 
-Search::~Search() {
-    for (auto filter : filters_)
-        delete filter;
-    for (auto column : columns_)
-        delete column;
-    delete model_;
+    for (auto &filter : filters)
+        filters_.push_back(std::move(filter->CreateData()));
 }
 
 void Search::FromForm() {
-    for (auto filter : filters_)
+    for (auto &filter : filters_)
         filter->FromForm();
 }
 
 void Search::ToForm() {
-    for (auto filter : filters_)
+    for (auto &filter : filters_)
         filter->ToForm();
 }
 
 void Search::ResetForm() {
-    for (auto filter : filters_)
+    for (auto &filter : filters_)
         filter->filter()->ResetForm();
 }
 
@@ -84,7 +80,7 @@ void Search::FilterItems(const Items &items) {
     items_.clear();
     for (auto item : items) {
         bool matches = true;
-        for (auto filter : filters_)
+        for (auto &filter : filters_)
             if (!filter->Matches(item)) {
                 matches = false;
                 break;
@@ -115,4 +111,10 @@ int Search::GetItemsCount() {
     for (auto &item : items_)
         count += item->count();
     return count;
+}
+
+void Search::Activate(const Items &items, QTreeView *tree) {
+    FromForm();
+    FilterItems(items);
+    tree->setModel(model_.get());
 }

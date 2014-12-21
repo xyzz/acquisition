@@ -226,9 +226,7 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
 
 void MainWindow::OnSearchFormChange() {
     app_->buyout_manager().Save();
-    current_search_->FromForm();
-    current_search_->FilterItems(app_->items());
-    ui->treeView->setModel(current_search_->model());
+    current_search_->Activate(app_->items(), ui->treeView);
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
     ui->treeView->reset();
@@ -281,7 +279,7 @@ void MainWindow::AddSearchGroup(QLayout *layout, const std::string &name="") {
 }
 
 void MainWindow::InitializeSearchForm() {
-    auto name_search = new NameSearchFilter(search_form_layout_);
+    auto name_search = std::make_unique<NameSearchFilter>(search_form_layout_);
     auto offense_layout = new FlowLayout;
     auto defense_layout = new FlowLayout;
     auto sockets_layout = new FlowLayout;
@@ -298,41 +296,43 @@ void MainWindow::InitializeSearchForm() {
     AddSearchGroup(misc_flags_layout);
     AddSearchGroup(mods_layout, "Mods");
 
-    filters_ = {
-        name_search,
+    using move_only = std::unique_ptr<Filter>;
+    move_only init[] = {
+        std::move(name_search),
         // Offense
         // new DamageFilter(offense_layout, "Damage"),
-        new SimplePropertyFilter(offense_layout, "Critical Strike Chance", "Crit."),
-        new ItemMethodFilter(offense_layout, [](Item* item) { return item->DPS(); }, "DPS"),
-        new ItemMethodFilter(offense_layout, [](Item* item) { return item->pDPS(); }, "pDPS"),
-        new ItemMethodFilter(offense_layout, [](Item* item) { return item->eDPS(); }, "eDPS"),
-        new SimplePropertyFilter(offense_layout, "Attacks per Second", "APS"),
+        std::make_unique<SimplePropertyFilter>(offense_layout, "Critical Strike Chance", "Crit."),
+        std::make_unique<ItemMethodFilter>(offense_layout, [](Item* item) { return item->DPS(); }, "DPS"),
+        std::make_unique<ItemMethodFilter>(offense_layout, [](Item* item) { return item->pDPS(); }, "pDPS"),
+        std::make_unique<ItemMethodFilter>(offense_layout, [](Item* item) { return item->eDPS(); }, "eDPS"),
+        std::make_unique<SimplePropertyFilter>(offense_layout, "Attacks per Second", "APS"),
         // Defense
-        new SimplePropertyFilter(defense_layout, "Armour"),
-        new SimplePropertyFilter(defense_layout, "Evasion Rating", "Evasion"),
-        new SimplePropertyFilter(defense_layout, "Energy Shield", "Shield"),
-        new SimplePropertyFilter(defense_layout, "Chance to Block", "Block"),
+        std::make_unique<SimplePropertyFilter>(defense_layout, "Armour"),
+        std::make_unique<SimplePropertyFilter>(defense_layout, "Evasion Rating", "Evasion"),
+        std::make_unique<SimplePropertyFilter>(defense_layout, "Energy Shield", "Shield"),
+        std::make_unique<SimplePropertyFilter>(defense_layout, "Chance to Block", "Block"),
         // Sockets
-        new SocketsFilter(sockets_layout, "Sockets"),
-        new LinksFilter(sockets_layout, "Links"),
-        new SocketsColorsFilter(sockets_layout),
-        new LinksColorsFilter(sockets_layout),
+        std::make_unique<SocketsFilter>(sockets_layout, "Sockets"),
+        std::make_unique<LinksFilter>(sockets_layout, "Links"),
+        std::make_unique<SocketsColorsFilter>(sockets_layout),
+        std::make_unique<LinksColorsFilter>(sockets_layout),
         // Requirements
-        new RequiredStatFilter(requirements_layout, "Level", "R. Level"),
-        new RequiredStatFilter(requirements_layout, "Str", "R. Str"),
-        new RequiredStatFilter(requirements_layout, "Dex", "R. Dex"),
-        new RequiredStatFilter(requirements_layout, "Int", "R. Int"),
+        std::make_unique<RequiredStatFilter>(requirements_layout, "Level", "R. Level"),
+        std::make_unique<RequiredStatFilter>(requirements_layout, "Str", "R. Str"),
+        std::make_unique<RequiredStatFilter>(requirements_layout, "Dex", "R. Dex"),
+        std::make_unique<RequiredStatFilter>(requirements_layout, "Int", "R. Int"),
         // Misc
-        new SimplePropertyFilter(misc_layout, "Quality"),
-        new SimplePropertyFilter(misc_layout, "Level"),
-        new MTXFilter(misc_flags_layout, "", "MTX"),
-        new AltartFilter(misc_flags_layout, "", "Alt. art"),
-        new ModsFilter(mods_layout)
+        std::make_unique<SimplePropertyFilter>(misc_layout, "Quality"),
+        std::make_unique<SimplePropertyFilter>(misc_layout, "Level"),
+        std::make_unique<MTXFilter>(misc_flags_layout, "", "MTX"),
+        std::make_unique<AltartFilter>(misc_flags_layout, "", "Alt. art"),
+        std::make_unique<ModsFilter>(mods_layout)
     };
+    filters_ = std::vector<move_only>(std::make_move_iterator(std::begin(init)), std::make_move_iterator(std::end(init)));
 }
 
 void MainWindow::NewSearch() {
-    current_search_ = new Search(*app_, QString("Search %1").arg(++search_count_).toStdString(), filters_);
+    current_search_ = new Search(app_->buyout_manager(), QString("Search %1").arg(++search_count_).toStdString(), filters_);
     tab_bar_->setTabText(tab_bar_->count() - 1, current_search_->GetCaption());
     tab_bar_->addTab("+");
     // this can't be done in ctor because it'll call OnSearchFormChange slot

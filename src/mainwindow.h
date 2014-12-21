@@ -29,6 +29,7 @@
 
 #include "column.h"
 #include "items_model.h"
+#include "porting.h"
 #include "search.h"
 #include "imagecache.h"
 
@@ -92,7 +93,7 @@ private:
     std::vector<Search*> searches_;
     Search *current_search_;
     QTabBar *tab_bar_;
-    std::vector<Filter*> filters_;
+    std::vector<std::unique_ptr<Filter>> filters_;
     int search_count_;
     QNetworkAccessManager *image_network_manager_;
     ImageCache *image_cache_;

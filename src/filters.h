@@ -20,9 +20,11 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "item.h"
 #include "mainwindow.h"
+#include "porting.h"
 #include "ui_mainwindow.h"
 
 class QLineEdit;
@@ -34,8 +36,6 @@ class FilterData;
  * 1) FromForm: provided with a FilterData fill it with data from form
  * 2) ToForm: provided with a FilterData fill form with data from it
  * 3) Matches: check if an item matches the filter provided with FilterData
- * Objects here should not store any data (except pointers to
- * widgets that were created in Initialize)
  */
 class Filter {
 public:
@@ -43,7 +43,7 @@ public:
     virtual void ToForm(FilterData *data) = 0;
     virtual void ResetForm() = 0;
     virtual bool Matches(const std::shared_ptr<Item> &item, FilterData *data) = 0;
-    FilterData *CreateData();
+    std::unique_ptr<FilterData> CreateData();
 };
 
 struct ModFilterData {

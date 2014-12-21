@@ -43,10 +43,10 @@ void BuyoutManager::Set(const Item &item, const Buyout &buyout) {
     buyouts_[ItemHash(item)] = buyout;
 }
 
-Buyout BuyoutManager::Get(const Item &item) {
+Buyout BuyoutManager::Get(const Item &item) const {
     if (!Exists(item))
         throw std::runtime_error("Asked to get inexistant buyout.");
-    return buyouts_[ItemHash(item)];
+    return buyouts_.at(ItemHash(item));
 }
 
 void BuyoutManager::Delete(const Item &item) {
@@ -54,16 +54,16 @@ void BuyoutManager::Delete(const Item &item) {
     buyouts_.erase(ItemHash(item));
 }
 
-bool BuyoutManager::Exists(const Item &item) {
+bool BuyoutManager::Exists(const Item &item) const {
     return buyouts_.count(ItemHash(item)) > 0;
 }
 
-std::string BuyoutManager::ItemHash(const Item &item) {
+std::string BuyoutManager::ItemHash(const Item &item) const {
     return item.hash();
 }
 
-Buyout BuyoutManager::GetTab(const std::string &tab) {
-    return tab_buyouts_[tab];
+Buyout BuyoutManager::GetTab(const std::string &tab) const {
+    return tab_buyouts_.at(tab);
 }
 
 void BuyoutManager::SetTab(const std::string &tab, const Buyout &buyout) {
@@ -71,7 +71,7 @@ void BuyoutManager::SetTab(const std::string &tab, const Buyout &buyout) {
     tab_buyouts_[tab] = buyout;
 }
 
-bool BuyoutManager::ExistsTab(const std::string &tab) {
+bool BuyoutManager::ExistsTab(const std::string &tab) const {
     return tab_buyouts_.count(tab) > 0;
 }
 

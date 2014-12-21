@@ -152,7 +152,7 @@ QColor ElementalDamageColumn::color(const Item &item) {
     return QColor();
 }
 
-PriceColumn::PriceColumn(BuyoutManager &bo_manager):
+PriceColumn::PriceColumn(const BuyoutManager &bo_manager):
     bo_manager_(bo_manager)
 {}
 

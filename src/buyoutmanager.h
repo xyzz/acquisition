@@ -111,19 +111,19 @@ class BuyoutManager {
 public:
     explicit BuyoutManager(DataManager &data_manager);
     void Set(const Item &item, const Buyout &buyout);
-    Buyout Get(const Item &item);
+    Buyout Get(const Item &item) const;
     void Delete(const Item &item);
-    bool Exists(const Item &item);
+    bool Exists(const Item &item) const;
 
     void SetTab(const std::string &tab, const Buyout &buyout);
-    Buyout GetTab(const std::string &tab);
+    Buyout GetTab(const std::string &tab) const;
     void DeleteTab(const std::string &tab);
-    bool ExistsTab(const std::string &tab);
+    bool ExistsTab(const std::string &tab) const;
 
     void Save();
     void Load();
 private:
-    std::string ItemHash(const Item &item);
+    std::string ItemHash(const Item &item) const;
     std::string Serialize(const std::map<std::string, Buyout> &buyouts);
     void Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts);
 

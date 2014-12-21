@@ -17,6 +17,7 @@
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <memory>
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QLineEdit>
@@ -25,8 +26,8 @@
 #include "util.h"
 #include "porting.h"
 
-FilterData* Filter::CreateData() {
-    return new FilterData(this);
+std::unique_ptr<FilterData> Filter::CreateData() {
+    return std::make_unique<FilterData>(this);
 }
 
 FilterData::FilterData(Filter *filter):
