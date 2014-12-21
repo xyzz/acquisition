@@ -81,6 +81,8 @@ void LogPanel::write(const QString& message, QsLogging::Level level) {
     default:
         return;
     }
+
+    output_->moveCursor(QTextCursor::End);
     output_->setTextColor(color);
     output_->insertPlainText(message + "\n");
     output_->ensureCursorVisible();

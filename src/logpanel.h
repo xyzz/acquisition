@@ -20,7 +20,7 @@
 #pragma once
 
 #include <QObject>
-#include "QSLogDest.h"
+#include "QsLogDest.h"
 
 class MainWindow;
 class QPushButton;
