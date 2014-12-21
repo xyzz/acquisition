@@ -29,6 +29,7 @@
 #include <memory>
 
 #include "application.h"
+#include "modlist.h"
 #include "porting.h"
 #include "version.h"
 #include "test/testmain.h"
@@ -39,6 +40,7 @@
 
 int main(int argc, char *argv[])
 {
+    QLocale::setDefault(QLocale::C);
 #if defined(CRASHRPT) && !defined(DEBUG)
     CR_INSTALL_INFOW info;
     memset(&info, 0, sizeof(CR_INSTALL_INFOW));
@@ -49,7 +51,7 @@ int main(int argc, char *argv[])
     CrAutoInstallHelper cr_install_helper(&info);
 #endif
 
-    QLocale::setDefault(QLocale::C);
+    InitModlist();
 
     QApplication a(argc, argv);
 

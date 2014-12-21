@@ -40,6 +40,8 @@ SOURCES += \
     src/version.cpp \
     src/application.cpp \
     src/steamlogindialog.cpp \
+    src/modsfilter.cpp \
+    src/modlist.cpp \
     test/testmain.cpp \
     test/testitem.cpp \
     test/testshop.cpp
@@ -69,6 +71,8 @@ HEADERS += \
     src/application.h \
     src/steamlogindialog.h \
     src/rapidjson_util.h \
+    src/modsfilter.h \
+    src/modlist.h \
     test/testmain.h \
     test/testitem.h \
     test/testshop.h

@@ -46,6 +46,20 @@ public:
     FilterData *CreateData();
 };
 
+struct ModFilterData {
+    ModFilterData(const std::string &mod_, double min_, double max_, bool min_filled_, bool max_filled_) :
+        mod(mod_),
+        min(min_),
+        max(max_),
+        min_filled(min_filled_),
+        max_filled(max_filled_)
+    {}
+
+    std::string mod;
+    double min, max;
+    bool min_filled, max_filled;
+};
+
 /*
  * This is used to store filter data in Search,
  * i.e. min-max values that the user has specified.
@@ -65,6 +79,7 @@ public:
     int r, g, b;
     bool r_filled, g_filled, b_filled;
     bool checked;
+    std::vector<ModFilterData> mod_data;
 private:
     Filter *filter_;
 };

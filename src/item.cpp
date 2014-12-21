@@ -23,6 +23,7 @@
 #include <QString>
 #include "rapidjson/document.h"
 
+#include "modlist.h"
 #include "util.h"
 #include "porting.h"
 #include "itemlocation.h"
@@ -167,6 +168,8 @@ Item::Item(const rapidjson::Value &json) :
     }
 
     has_mtx_ = json.HasMember("cosmeticMods");
+
+    GenerateMods(json);
 }
 
 std::string Item::PrettyName() const {
@@ -196,4 +199,9 @@ double Item::eDPS() const {
         damage += Util::AverageDamage(x.first);
     double aps = std::stod(properties_.at("Attacks per Second"));
     return aps * damage;
+}
+
+void Item::GenerateMods(const rapidjson::Value &json) {
+    for (auto &generator : mod_generators)
+        generator->Generate(json, &mod_table_);
 }

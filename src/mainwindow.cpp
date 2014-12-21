@@ -41,6 +41,7 @@
 #include "buyoutmanager.h"
 #include "column.h"
 #include "filters.h"
+#include "modsfilter.h"
 #include "flowlayout.h"
 #include "item.h"
 #include "itemlocation.h"
@@ -118,6 +119,7 @@ void MainWindow::InitializeUi() {
     scroll_area->setWidgetResizable(true);
     scroll_area->setWidget(search_form_container);
     scroll_area->setMinimumWidth(150); // TODO(xyz): remove magic numbers
+    scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     ui->horizontalLayout_2->insertWidget(0, scroll_area);
     search_form_container->show();
@@ -267,7 +269,7 @@ void MainWindow::OnTabChange(int index) {
     OnSearchFormChange();
 }
 
-void MainWindow::AddSearchGroup(FlowLayout *layout, std::string name="") {
+void MainWindow::AddSearchGroup(QLayout *layout, const std::string &name="") {
     if (!name.empty()) {
         auto label = new QLabel(("<h3>" + name + "</h3>").c_str());
         search_form_layout_->addWidget(label);
@@ -286,6 +288,7 @@ void MainWindow::InitializeSearchForm() {
     auto requirements_layout = new FlowLayout;
     auto misc_layout = new FlowLayout;
     auto misc_flags_layout = new FlowLayout;
+    auto mods_layout = new QHBoxLayout;
 
     AddSearchGroup(offense_layout, "Offense");
     AddSearchGroup(defense_layout, "Defense");
@@ -293,6 +296,7 @@ void MainWindow::InitializeSearchForm() {
     AddSearchGroup(requirements_layout, "Requirements");
     AddSearchGroup(misc_layout, "Misc");
     AddSearchGroup(misc_flags_layout);
+    AddSearchGroup(mods_layout, "Mods");
 
     filters_ = {
         name_search,
@@ -323,6 +327,7 @@ void MainWindow::InitializeSearchForm() {
         new SimplePropertyFilter(misc_layout, "Level"),
         new MTXFilter(misc_flags_layout, "", "MTX"),
         new AltartFilter(misc_flags_layout, "", "Alt. art"),
+        new ModsFilter(mods_layout)
     };
 }
 

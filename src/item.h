@@ -22,6 +22,7 @@
 #include <memory>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "rapidjson/document.h"
 
@@ -51,6 +52,7 @@ struct ItemSocket {
 };
 
 typedef std::vector<std::string> ItemMods;
+typedef std::unordered_map<std::string, double> ModTable;
 
 class Item {
 public:
@@ -81,8 +83,13 @@ public:
     const ItemLocation &location() const { return location_; }
     int count() const { return count_; };
     bool has_mtx() const { return has_mtx_; }
+    const ModTable &mod_table() const { return mod_table_; }
 
 private:
+    // The point of GenerateMods is to create combined (e.g. implicit+explicit) poe.trade-like mod map to be searched by mod filter.
+    // For now it only does that for a small chosen subset of mods (think "popular" + "pseudo" sections at poe.trade)
+    void GenerateMods(const rapidjson::Value &json);
+
     ItemLocation location_;
     std::string name_;
     std::string typeLine_;
@@ -104,6 +111,7 @@ private:
     std::vector<ItemRequirement> text_requirements_;
     std::map<std::string, ItemMods> text_mods_;
     std::vector<ItemSocket> text_sockets_;
+    ModTable mod_table_;
 };
 
 typedef std::vector<std::shared_ptr<Item>> Items;
