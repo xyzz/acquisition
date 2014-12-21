@@ -68,6 +68,13 @@ void LogPanel::UpdateStatusLabel() {
 }
 
 void LogPanel::write(const QString& message, QsLogging::Level level) {
+    // this is done like this because write() can be called from different threads,
+    // so we let Qt signals/slots system take care of boring synchronization stuff
+    QMetaObject::invokeMethod(&signal_handler_, "OnMessage", Qt::QueuedConnection, 
+        Q_ARG(QString, message), Q_ARG(QsLogging::Level, level));
+}
+
+void LogPanel::AddLine(const QString &message, QsLogging::Level level) {
     QColor color;
     switch (level) {
     case QsLogging::ErrorLevel:
@@ -94,10 +101,6 @@ void LogPanel::write(const QString& message, QsLogging::Level level) {
     UpdateStatusLabel();
 }
 
-void LogPanelSignalHandler::OnStatusLabelClicked() {
-    parent_.ToggleOutputVisibility();
-}
-
 void LogPanel::ToggleOutputVisibility() {
     if (output_->isVisible()) {
         output_->hide();
@@ -107,4 +110,12 @@ void LogPanel::ToggleOutputVisibility() {
         num_warnings_ = 0;
         UpdateStatusLabel();
     }
+}
+
+void LogPanelSignalHandler::OnStatusLabelClicked() {
+    parent_.ToggleOutputVisibility();
+}
+
+void LogPanelSignalHandler::OnMessage(const QString &message, const QsLogging::Level level) {
+    parent_.AddLine(message, level);
 }

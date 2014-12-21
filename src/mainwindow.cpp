@@ -46,6 +46,7 @@
 #include "item.h"
 #include "itemlocation.h"
 #include "itemsmanager.h"
+#include "itemsmanagerworker.h"
 #include "logpanel.h"
 #include "porting.h"
 #include "shop.h"
@@ -77,8 +78,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
 
     connect(&app_->items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
         this, SLOT(OnItemsRefreshed()));
-    connect(&app_->items_manager(), SIGNAL(StatusUpdate(int, int, bool)),
-        this, SLOT(OnItemsManagerStatusUpdate(int, int, bool)));
+    connect(&app_->items_manager(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnItemsManagerStatusUpdate(ItemsFetchStatus)));
 }
 
 void MainWindow::InitializeLogging() {
@@ -175,21 +175,21 @@ void MainWindow::OnBuyoutChange() {
     ResizeTreeColumns();
 }
 
-void MainWindow::OnItemsManagerStatusUpdate(int fetched, int total, bool throttled) {
-    QString status = QString("Receiving stash tabs, %1/%2").arg(fetched).arg(total);
-    if (throttled)
-        status += " (throttled, sleeping 60 seconds)";
-    if (fetched == total)
-        status = "Received all tabs";
-    status_bar_label_->setText(status);
+void MainWindow::OnItemsManagerStatusUpdate(const ItemsFetchStatus &status) {
+    QString str = QString("Receiving stash data, %1/%2").arg(status.fetched).arg(status.total);
+    if (status.throttled)
+        str += " (throttled, sleeping 60 seconds)";
+    if (status.fetched == status.total)
+        str = "Received all tabs";
+    status_bar_label_->setText(str);
 
 #ifdef Q_OS_WIN32
     QWinTaskbarProgress *progress = taskbar_button_->progress();
-    progress->setVisible(fetched != total);
+    progress->setVisible(status.fetched != status.total);
     progress->setMinimum(0);
-    progress->setMaximum(total);
-    progress->setValue(fetched);
-    progress->setPaused(throttled);
+    progress->setMaximum(status.total);
+    progress->setValue(status.fetched);
+    progress->setPaused(status.throttled);
 #endif
 }
 

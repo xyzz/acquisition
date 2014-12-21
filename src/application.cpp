@@ -43,11 +43,10 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
     buyout_manager_ = std::make_unique<BuyoutManager>(*data_manager_);
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);
-    items_manager_->Init();
     connect(items_manager_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
         this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>)));
 
-    items_manager_->LoadSavedData();
+    items_manager_->Start();
     items_manager_->Update();
 }
 

@@ -29,6 +29,7 @@
 #include <memory>
 
 #include "application.h"
+#include "itemsmanagerworker.h"
 #include "modlist.h"
 #include "porting.h"
 #include "version.h"
@@ -40,7 +41,13 @@
 
 int main(int argc, char *argv[])
 {
+    qRegisterMetaType<ItemsFetchStatus>("ItemsFetchStatus");
+    qRegisterMetaType<Items>("Items");
+    qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
+    qRegisterMetaType<QsLogging::Level>("QsLogging::Level");
+
     QLocale::setDefault(QLocale::C);
+
 #if defined(CRASHRPT) && !defined(DEBUG)
     CR_INSTALL_INFOW info;
     memset(&info, 0, sizeof(CR_INSTALL_INFOW));

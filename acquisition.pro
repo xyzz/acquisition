@@ -43,6 +43,7 @@ SOURCES += \
     src/modsfilter.cpp \
     src/modlist.cpp \
     src/logpanel.cpp \
+    src/itemsmanagerworker.cpp \
     test/testmain.cpp \
     test/testdata.cpp \
     test/testitem.cpp \
@@ -76,6 +77,7 @@ HEADERS += \
     src/modsfilter.h \
     src/modlist.h \
     src/logpanel.h \
+    src/itemsmanagerworker.h \
     test/testmain.h \
     test/testdata.h \
     test/testitem.h \

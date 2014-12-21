@@ -40,6 +40,7 @@ public:
     {}
 public slots:
     void OnStatusLabelClicked();
+    void OnMessage(const QString &message, QsLogging::Level level);
 private:
     LogPanel &parent_;
 };
@@ -51,6 +52,7 @@ public:
     virtual void write(const QString& message, QsLogging::Level level);
     virtual bool isValid() { return true; }
 private:
+    void AddLine(const QString &message, QsLogging::Level level);
     void UpdateStatusLabel();
     void ToggleOutputVisibility();
 

@@ -28,78 +28,52 @@
 
 #include "item.h"
 #include "itemlocation.h"
-
-const int THROTTLE_REQUESTS = 45;
-const int THROTTLE_SLEEP = 60;
+#include "itemsmanagerworker.h"
 
 class QNetworkReply;
+class QNetworkAccessManager;
 class QSignalMapper;
 class QTimer;
 class Application;
+class DataManager;
+class ItemsManagerWorker;
+struct ItemsFetchStatus;
+class Shop;
 
-struct ItemsRequest {
-    int id;
-    QNetworkRequest network_request;
-    ItemLocation location;
-};
-
-struct ItemsReply {
-    QNetworkReply *network_reply;
-    ItemsRequest request;
-};
-
+/*
+ * ItemsManager manages an ItemsManagerWorker (which lives in a separate thread)
+ * and glues it to the rest of Acquisition.
+ */
 class ItemsManager : public QObject {
     Q_OBJECT
 public:
     explicit ItemsManager(Application &app);
-    ~ItemsManager();
-    ItemsManager(const ItemsManager&) = delete;
-    ItemsManager& operator=(const ItemsManager&) = delete;
-    void Init();
+    // Creates and starts the worker
+    void Start();
     void Update();
-    void LoadSavedData();
     void SetAutoUpdateInterval(int minutes);
     void SetAutoUpdate(bool update);
     int auto_update_interval() const { return auto_update_interval_; }
     bool auto_update() const { return auto_update_; }
 public slots:
-    void OnFirstTabReceived();
-    void OnTabReceived(int index);
-    void OnCharacterListReceived();
-    /*
-     * Makes 45 requests at once, should be called every minute.
-     * These values are approximated (GGG throttles requests)
-     * based on some quick testing.
-     */
-    void FetchItems(int limit = THROTTLE_REQUESTS);
     // called by auto_update_timer_
     void OnAutoRefreshTimer();
+    // Used to glue Worker's signals to MainWindow
+    void OnStatusUpdate(const ItemsFetchStatus &status);
+    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
 signals:
+    void UpdateSignal();
     void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
-    void StatusUpdate(int fetched, int total, bool throttled);
+    void StatusUpdate(const ItemsFetchStatus &status);
 private:
-    void ParseItems(rapidjson::Value *value_ptr, const ItemLocation &base_location, rapidjson_allocator &alloc);
-
-    QNetworkRequest MakeTabRequest(int tab_index, bool tabs=false);
-    QNetworkRequest MakeCharacterRequest(const std::string &name);
-    void QueueRequest(const QNetworkRequest &request, const ItemLocation &location);
-
-    Application &app_;
-    std::vector<std::string> tabs_;
-    std::queue<ItemsRequest> queue_;
-    std::map<int, ItemsReply> replies_;
-    Items items_;
-    int total_completed_, total_needed_;
-    int requests_completed_, requests_needed_;
-    QSignalMapper *signal_mapper_;
-    std::string items_as_string_;
-    std::string tabs_as_string_;
+    DataManager &data_manager_;
+    Shop &shop_;
     // should items be automatically refreshed
     bool auto_update_;
     // items will be automatically updated every X minutes
     int auto_update_interval_;
-    QTimer *auto_update_timer_;
-    // set to true if updating right now
-    bool updating_;
-    int queue_id_;
+    std::unique_ptr<QTimer> auto_update_timer_;
+
+    ItemsManagerWorker *worker_;
+    Application &app_;
 };

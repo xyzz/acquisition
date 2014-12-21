@@ -32,6 +32,7 @@
 #include "porting.h"
 #include "search.h"
 #include "imagecache.h"
+#include "itemsmanagerworker.h"
 
 class QLabel;
 class QNetworkAccessManager;
@@ -60,7 +61,7 @@ public slots:
     void OnTabChange(int index);
     void OnImageFetched(QNetworkReply *reply);
     void OnItemsRefreshed();
-    void OnItemsManagerStatusUpdate(int fetched, int total, bool throttled);
+    void OnItemsManagerStatusUpdate(const ItemsFetchStatus &status);
     void OnBuyoutChange();
     void ResizeTreeColumns();
 private slots:
