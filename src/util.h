@@ -58,4 +58,11 @@ std::string RapidjsonSerialize(const rapidjson::Value &val);
 void RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const std::string &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc);
 
 std::string StringReplace(const std::string &haystack, const std::string &needle, const std::string &replace);
+
+/*
+    Example usage:
+        MatchMod("+# to Life", "+12.3 to Life", &result);
+    Will return true if matches and save average value to output.
+*/
+bool MatchMod(const char *match, const char *mod, double *output);
 }

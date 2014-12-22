@@ -47,7 +47,8 @@ SOURCES += \
     test/testmain.cpp \
     test/testdata.cpp \
     test/testitem.cpp \
-    test/testshop.cpp
+    test/testshop.cpp \
+    test/testutil.cpp
 
 HEADERS += \
     src/item.h \
@@ -81,7 +82,8 @@ HEADERS += \
     test/testmain.h \
     test/testdata.h \
     test/testitem.h \
-    test/testshop.h
+    test/testshop.h \
+    test/testutil.h
 
 FORMS += \
     forms/mainwindow.ui \

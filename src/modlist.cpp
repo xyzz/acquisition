@@ -26,6 +26,7 @@
 
 #include "item.h"
 #include "porting.h"
+#include "util.h"
 
 // Actual list of mods is computed at runtime
 std::vector<std::string> mod_list;
@@ -93,25 +94,15 @@ void InitModlist() {
 }
 
 SumModGenerator::SumModGenerator(const std::string &name, const std::vector<std::string> &sum):
-    name_(name)
-{
-    for (auto &mod_s : sum) {
-        QString mod(mod_s.c_str());
-        mod = mod.replace("+", "\\+").replace("#", "([\\d\\.]+)");
-        regexes_.push_back(QRegExp(mod));
-    }
-}
+    name_(name),
+    matches_(sum)
+{}
 
 bool SumModGenerator::Match(const char *mod, double *output) {
-    for (auto &regex : regexes_) {
-        QRegExp copy(regex);
-        if (copy.exactMatch(mod)) {
-            *output = 0;
-            for (int i = 1; i <= copy.captureCount(); ++i)
-                *output += copy.cap(i).toDouble();
-            *output /= copy.captureCount();
-            return true;
-        }
+    for (auto &match : matches_) {
+        double result = 0.0;
+        if (Util::MatchMod(match.c_str(), mod, &result))
+            *output += result;
     }
 
     return false;

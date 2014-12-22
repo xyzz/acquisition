@@ -148,3 +148,28 @@ std::string Util::StringReplace(const std::string &haystack, const std::string &
     }
     return out;
 }
+
+bool Util::MatchMod(const char *match, const char *mod, double *output) {
+    double result = 0.0;
+    auto pmatch = match;
+    auto pmod = mod;
+    int cnt = 0;
+
+    while (*pmatch && *pmod) {
+        if (*pmatch == '#') {
+            ++cnt;
+            auto prev = pmod;
+            while ((*pmod >= '0' && *pmod <= '9') || *pmod == '.')
+                ++pmod;
+            result += std::strtod(prev, NULL);
+            ++pmatch;
+        } else if (*pmatch == *pmod) {
+            ++pmatch;
+            ++pmod;
+        } else {
+            return false;
+        }
+    }
+    *output = result / cnt;
+    return !*pmatch && !*pmod;
+}

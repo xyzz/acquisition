@@ -23,7 +23,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <QRegExp>
 #include "rapidjson/document.h"
 
 class Item;
@@ -46,7 +45,7 @@ private:
     bool Match(const char *mod, double *output);
 
     std::string name_;
-    std::vector<QRegExp> regexes_;
+    std::vector<std::string> matches_;
 };
 
 extern std::vector<std::string> mod_list;
