@@ -99,13 +99,16 @@ SumModGenerator::SumModGenerator(const std::string &name, const std::vector<std:
 {}
 
 bool SumModGenerator::Match(const char *mod, double *output) {
+    bool found = false;
     for (auto &match : matches_) {
         double result = 0.0;
-        if (Util::MatchMod(match.c_str(), mod, &result))
+        if (Util::MatchMod(match.c_str(), mod, &result)) {
             *output += result;
+            found = true;
+        }
     }
 
-    return false;
+    return found;
 }
 
 void SumModGenerator::Generate(const rapidjson::Value &json, ModTable *output) {
