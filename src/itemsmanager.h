@@ -19,21 +19,12 @@
 
 #pragma once
 
-#include <QNetworkRequest>
-#include <QObject>
 #include <QTimer>
-#include <string>
-#include <unordered_map>
-#include <queue>
-#include "rapidjson/document.h"
+#include <memory>
 
 #include "item.h"
-#include "itemlocation.h"
 #include "itemsmanagerworker.h"
 
-class QNetworkReply;
-class QNetworkAccessManager;
-class QSignalMapper;
 class QThread;
 class Application;
 class DataManager;
