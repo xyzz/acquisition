@@ -1,6 +1,6 @@
 #pragma once
 
-#define VER_CODE                    1
+#define VER_CODE                    2
 #define VER_STR                     "0.0"
 #define VER_FILEVERSION             0,0,0,0
 #define VER_FILEVERSION_STR         "0.0.0.0"
