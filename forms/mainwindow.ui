@@ -149,7 +149,7 @@
     <addaction name="actionShop_template"/>
     <addaction name="actionCopy_shop_data_to_clipboard"/>
     <addaction name="actionUpdate_shop"/>
-    <addaction name="actionAutomatically_update_shop_2"/>
+    <addaction name="actionAutomatically_update_shop"/>
    </widget>
    <widget class="QMenu" name="menuItems">
     <property name="title">
@@ -166,14 +166,6 @@
   <action name="actionForum_shop_thread">
    <property name="text">
     <string>Forum shop thread...</string>
-   </property>
-  </action>
-  <action name="actionAutomatically_update_shop">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Automatically update shop</string>
    </property>
   </action>
   <action name="actionCopy_shop_data_to_clipboard">
@@ -207,7 +199,7 @@
     <string>Update shop thread at forums</string>
    </property>
   </action>
-  <action name="actionAutomatically_update_shop_2">
+  <action name="actionAutomatically_update_shop">
    <property name="checkable">
     <bool>true</bool>
    </property>

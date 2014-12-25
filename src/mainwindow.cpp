@@ -615,3 +615,7 @@ void MainWindow::on_actionShop_template_triggered() {
     if (ok && !text.isEmpty())
         app_->shop().SetShopTemplate(text.toStdString());
 }
+
+void MainWindow::on_actionAutomatically_update_shop_triggered() {
+    app_->shop().SetAutoUpdate(ui->actionAutomatically_update_shop->isChecked());
+}
