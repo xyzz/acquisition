@@ -20,6 +20,7 @@
 #include "steamlogindialog.h"
 #include "ui_steamlogindialog.h"
 
+#include <QCloseEvent>
 #include "QsLog.h"
 #include <QNetworkCookie>
 #include <QNetworkCookieJar>
@@ -35,6 +36,12 @@ SteamLoginDialog::SteamLoginDialog(QWidget *parent) :
 
 SteamLoginDialog::~SteamLoginDialog() {
     delete ui;
+}
+
+void SteamLoginDialog::closeEvent(QCloseEvent *e) {
+    if (!completed_)
+        emit Closed();
+    QDialog::closeEvent(e);
 }
 
 void SteamLoginDialog::Init() {

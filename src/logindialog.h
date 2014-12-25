@@ -49,11 +49,13 @@ public slots:
     void OnUpdateCheckCompleted();
     void OnMainPageFinished();
     void OnSteamCookieReceived(const QString &cookie);
+    void OnSteamDialogClosed();
 private:
     void SaveSettings();
     void LoadSettings();
     void DisplayError(const QString &error);
     void LoginWithCookie(const QString &cookie);
+    void InitSteamDialog();
     std::unique_ptr<Application> app_;
     Ui::LoginDialog *ui;
     MainWindow *mw;
@@ -62,5 +64,5 @@ private:
     QString session_id_;
     std::unique_ptr<QNetworkAccessManager> login_manager_;
     std::vector<std::string> leagues_;
-    SteamLoginDialog *steam_login_dialog_;
+    std::unique_ptr<SteamLoginDialog> steam_login_dialog_;
 };

@@ -25,6 +25,8 @@ namespace Ui {
 class SteamLoginDialog;
 }
 
+class QCloseEvent;
+
 class SteamLoginDialog : public QDialog {
     Q_OBJECT
 public:
@@ -33,6 +35,9 @@ public:
     void Init();
 signals:
     void CookieReceived(const QString &cookie);
+    void Closed();
+protected:
+    virtual void closeEvent(QCloseEvent *e);
 private:
     Ui::SteamLoginDialog *ui;
     bool completed_;

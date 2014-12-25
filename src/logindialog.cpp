@@ -56,8 +56,7 @@ enum {
 LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     app_(std::move(app)),
     ui(new Ui::LoginDialog),
-    mw(0),
-    steam_login_dialog_(new SteamLoginDialog)
+    mw(0)
 {
     ui->setupUi(this);
     ui->errorLabel->hide();
@@ -75,7 +74,6 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     connect(version_check, SIGNAL(finished()), this, SLOT(OnUpdateCheckCompleted()));
 
     connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(OnLoginButtonClicked()));
-    connect(steam_login_dialog_, SIGNAL(CookieReceived(const QString&)), this, SLOT(OnSteamCookieReceived(const QString&)));
 }
 
 void LoginDialog::OnUpdateCheckCompleted() {
@@ -130,6 +128,16 @@ void LoginDialog::OnLoginButtonClicked() {
     connect(login_page, SIGNAL(finished()), this, SLOT(OnLoginPageFinished()));
 }
 
+void LoginDialog::InitSteamDialog() {
+    steam_login_dialog_ = std::make_unique<SteamLoginDialog>();
+    connect(steam_login_dialog_.get(), SIGNAL(CookieReceived(const QString&)), this, SLOT(OnSteamCookieReceived(const QString&)));
+    connect(steam_login_dialog_.get(), SIGNAL(Closed()), this, SLOT(OnSteamDialogClosed()), Qt::DirectConnection);
+}
+
+void LoginDialog::OnSteamDialogClosed() {
+    DisplayError("Login was not completed");
+}
+
 void LoginDialog::OnLoginPageFinished() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     if (reply->error()) {
@@ -161,6 +169,8 @@ void LoginDialog::OnLoginPageFinished() {
             break;
         }
         case LOGIN_STEAM: {
+            if (!steam_login_dialog_)
+                InitSteamDialog();
             steam_login_dialog_->show();
             steam_login_dialog_->Init();
             break;
