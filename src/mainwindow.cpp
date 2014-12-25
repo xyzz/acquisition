@@ -51,6 +51,7 @@
 #include "porting.h"
 #include "shop.h"
 #include "util.h"
+#include "verticalscrollarea.h"
 
 const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
 
@@ -122,7 +123,7 @@ void MainWindow::InitializeUi() {
     auto search_form_container = new QWidget;
     search_form_container->setLayout(search_form_layout_);
 
-    auto scroll_area = new QScrollArea;
+    auto scroll_area = new VerticalScrollArea;
     scroll_area->setFrameShape(QFrame::NoFrame);
     scroll_area->setWidgetResizable(true);
     scroll_area->setWidget(search_form_container);
