@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <QMainWindow>
+#include <QMenu>
 
 #ifdef Q_OS_WIN
 #include <QWinTaskbarButton>
@@ -49,6 +50,11 @@ namespace Ui {
 class MainWindow;
 }
 
+enum class TreeState {
+    kExpand,
+    kCollapse
+};
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
@@ -64,6 +70,8 @@ public slots:
     void OnItemsManagerStatusUpdate(const ItemsFetchStatus &status);
     void OnBuyoutChange();
     void ResizeTreeColumns();
+    void OnExpandAll();
+    void OnCollapseAll();
 private slots:
     void on_actionForum_shop_thread_triggered();
     void on_actionCopy_shop_data_to_clipboard_triggered();
@@ -90,6 +98,7 @@ private:
     void UpdateShopMenu();
     void ResetBuyoutWidgets();
     void UpdateBuyoutWidgets(const Buyout &bo);
+    void ExpandCollapse(TreeState state);
 
     std::unique_ptr<Application> app_;
     Ui::MainWindow *ui;
@@ -105,6 +114,7 @@ private:
     QLabel *status_bar_label_;
 
     QVBoxLayout *search_form_layout_;
+    QMenu context_menu_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif

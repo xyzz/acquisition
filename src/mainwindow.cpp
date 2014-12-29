@@ -136,6 +136,36 @@ void MainWindow::InitializeUi() {
     ui->horizontalLayout_2->setStretchFactor(scroll_area, 1);
     ui->horizontalLayout_2->setStretchFactor(ui->itemListAndSearchFormLayout, 4);
     ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 1);
+
+    ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+    context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
+    context_menu_.addAction("Collapse All", this, SLOT(OnCollapseAll()));
+
+    connect(ui->treeView, &QTreeView::customContextMenuRequested, [&](const QPoint &pos) {
+        context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
+    });
+}
+
+void MainWindow::ExpandCollapse(TreeState state) {
+    // if it's connected during the call it's called for every item apparently, which is damn slow!
+    disconnect(ui->treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+    disconnect(ui->treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+    if (state == TreeState::kExpand)
+        ui->treeView->expandAll();
+    else
+        ui->treeView->collapseAll();
+    connect(ui->treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+    connect(ui->treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+
+    ResizeTreeColumns();
+}
+
+void MainWindow::OnExpandAll() {
+    ExpandCollapse(TreeState::kExpand);
+}
+
+void MainWindow::OnCollapseAll() {
+    ExpandCollapse(TreeState::kCollapse);
 }
 
 void MainWindow::ResizeTreeColumns() {
@@ -240,15 +270,9 @@ void MainWindow::OnSearchFormChange() {
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
     ui->treeView->reset();
 
-    // if it's connected during the call it's called for every item apparently, which is damn slow!
-    disconnect(ui->treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(ResizeTreeColumns()));
-    disconnect(ui->treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(ResizeTreeColumns()));
     if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
-        ui->treeView->expandAll();
-    connect(ui->treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(ResizeTreeColumns()));
-    connect(ui->treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+        ExpandCollapse(TreeState::kExpand);
 
-    ResizeTreeColumns();
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
 }
 
