@@ -355,7 +355,7 @@ void MainWindow::InitializeSearchForm() {
         std::make_unique<RequiredStatFilter>(requirements_layout, "Dex", "R. Dex"),
         std::make_unique<RequiredStatFilter>(requirements_layout, "Int", "R. Int"),
         // Misc
-        std::make_unique<SimplePropertyFilter>(misc_layout, "Quality"),
+        std::make_unique<DefaultPropertyFilter>(misc_layout, "Quality", 0),
         std::make_unique<SimplePropertyFilter>(misc_layout, "Level"),
         std::make_unique<MTXFilter>(misc_flags_layout, "", "MTX"),
         std::make_unique<AltartFilter>(misc_flags_layout, "", "Alt. art"),

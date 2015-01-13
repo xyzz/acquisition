@@ -106,12 +106,13 @@ public:
     void ResetForm();
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
     void Initialize(QLayout *parent);
-private:
+protected:
     virtual double GetValue(const std::shared_ptr<Item> &item) = 0;
     virtual bool IsValuePresent(const std::shared_ptr<Item> &item) = 0;
-    QLineEdit *textbox_min_, *textbox_max_;
-protected:
+
     std::string property_, caption_;
+private:
+    QLineEdit *textbox_min_, *textbox_max_;
 };
 
 class SimplePropertyFilter : public MinMaxFilter {
@@ -120,9 +121,27 @@ public:
         MinMaxFilter(parent, property) {}
     SimplePropertyFilter(QLayout *parent, std::string property, std::string caption) :
         MinMaxFilter(parent, property, caption) {}
-private:
+protected:
     bool IsValuePresent(const std::shared_ptr<Item> &item);
     double GetValue(const std::shared_ptr<Item> &item);
+};
+
+// Just like SimplePropertyFilter but assumes given default value instead of excluding items
+class DefaultPropertyFilter : public SimplePropertyFilter {
+public:
+    DefaultPropertyFilter(QLayout *parent, std::string property, double default_value) :
+        SimplePropertyFilter(parent, property),
+        default_value_(default_value)
+    {}
+    DefaultPropertyFilter(QLayout *parent, std::string property, std::string caption, double default_value) :
+        SimplePropertyFilter(parent, property, caption),
+        default_value_(default_value)
+    {}
+protected:
+    bool IsValuePresent(const std::shared_ptr<Item> &item) { return true; }
+    double GetValue(const std::shared_ptr<Item> &item);
+private:
+    double default_value_;
 };
 
 class RequiredStatFilter : public MinMaxFilter {

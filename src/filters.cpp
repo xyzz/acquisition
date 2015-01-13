@@ -166,6 +166,12 @@ double SimplePropertyFilter::GetValue(const std::shared_ptr<Item> &item) {
     return std::stod(item->properties().at(property_));
 }
 
+double DefaultPropertyFilter::GetValue(const std::shared_ptr<Item> &item) {
+    if (!item->properties().count(property_))
+        return default_value_;
+    return SimplePropertyFilter::GetValue(item);
+}
+
 double RequiredStatFilter::GetValue(const std::shared_ptr<Item> &item) {
     auto &requirements = item->requirements();
     if (requirements.count(property_))
