@@ -14,6 +14,7 @@ LicenseFile=COPYING
 OutputBaseFilename=acquisition_setup_{#AppVersion}
 Compression=lzma
 SolidCompression=yes
+DisableDirPage=auto
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -23,6 +24,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "deploy\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+
+[InstallDelete]
+Type: filesandordirs; Name: "{app}\bearer"
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
