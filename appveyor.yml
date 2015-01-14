@@ -1,0 +1,4 @@
+os: unstable
+
+before_build:
+  - C:\Qt\5.4\msvc2013_opengl\bin\qmake.exe -tp vc
