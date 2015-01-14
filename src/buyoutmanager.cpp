@@ -87,17 +87,18 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
     auto &alloc = doc.GetAllocator();
 
     for (auto &bo : buyouts) {
-        if (bo.second.currency == CURRENCY_NONE || bo.second.type == BUYOUT_TYPE_NONE)
+        const Buyout &buyout = bo.second;
+        if (buyout.type != BUYOUT_TYPE_NO_PRICE && (buyout.currency == CURRENCY_NONE || buyout.type == BUYOUT_TYPE_NONE))
             continue;
-        if (bo.second.type >= BuyoutTypeAsTag.size() || bo.second.currency >= CurrencyAsTag.size()) {
-            QLOG_WARN() << "Ignoring invalid buyout, type:" << bo.second.type
-                << "currency:" << bo.second.currency;
+        if (buyout.type >= BuyoutTypeAsTag.size() || buyout.currency >= CurrencyAsTag.size()) {
+            QLOG_WARN() << "Ignoring invalid buyout, type:" << buyout.type
+                << "currency:" << buyout.currency;
             continue;
         }
         rapidjson::Value item(rapidjson::kObjectType);
-        item.AddMember("value", bo.second.value, alloc);
-        Util::RapidjsonAddConstString(&item, "type", BuyoutTypeAsTag[bo.second.type], alloc);
-        Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[bo.second.currency], alloc);
+        item.AddMember("value", buyout.value, alloc);
+        Util::RapidjsonAddConstString(&item, "type", BuyoutTypeAsTag[buyout.type], alloc);
+        Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[buyout.currency], alloc);
 
         rapidjson::Value name(bo.first.c_str(), alloc);
         doc.AddMember(name, item, alloc);
