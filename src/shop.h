@@ -49,6 +49,7 @@ private:
     Application &app_;
     std::string thread_;
     std::string shop_data_;
+    std::string shop_hash_;
     std::string shop_template_;
     bool shop_data_outdated_;
     bool auto_update_;

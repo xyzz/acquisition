@@ -92,6 +92,7 @@ void Shop::Update() {
     data += "[/spoiler]";
 
     shop_data_ = Util::StringReplace(shop_template_, kShopTemplateItems, data);
+    shop_hash_ = Util::Md5(shop_data_);
 }
 
 void Shop::ExpireShopData() {
@@ -110,6 +111,11 @@ void Shop::SubmitShopToForum() {
 
     if (shop_data_outdated_)
         Update();
+
+    std::string previous_hash = app_.data_manager().Get("shop_hash");
+    // Don't update the shop if it hasn't changed
+    if (previous_hash == shop_hash_)
+        return;
 
     // first, get to the edit-thread page
     QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopEditUrl().c_str())));
@@ -161,6 +167,8 @@ void Shop::OnShopSubmitted() {
     // now let's hope that shop was submitted successfully and notify poe.xyz.is
     QNetworkRequest request(QUrl(("http://verify.xyz.is/" + thread_ + "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").c_str()));
     app_.logged_in_nm().get(request);
+
+    app_.data_manager().Set("shop_hash", shop_hash_);
 }
 
 void Shop::CopyToClipboard() {
