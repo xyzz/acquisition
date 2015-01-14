@@ -24,6 +24,8 @@
 #include <string>
 #include <vector>
 
+#include "updatechecker.h"
+
 class QNetworkAccessManager;
 class QNetworkReply;
 class QString;
@@ -46,7 +48,6 @@ public slots:
     void OnLoginButtonClicked();
     void OnLoginPageFinished();
     void OnLoggedIn();
-    void OnUpdateCheckCompleted();
     void OnMainPageFinished();
     void OnSteamCookieReceived(const QString &cookie);
     void OnSteamDialogClosed();
@@ -65,4 +66,6 @@ private:
     std::unique_ptr<QNetworkAccessManager> login_manager_;
     std::vector<std::string> leagues_;
     std::unique_ptr<SteamLoginDialog> steam_login_dialog_;
+    UpdateChecker update_checker_;
+    bool asked_to_update_;
 };

@@ -56,7 +56,8 @@ enum {
 LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     app_(std::move(app)),
     ui(new Ui::LoginDialog),
-    mw(0)
+    mw(0),
+    asked_to_update_(false)
 {
     ui->setupUi(this);
     ui->errorLabel->hide();
@@ -70,26 +71,14 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
     connect(leagues_reply, SIGNAL(finished()), this, SLOT(OnLeaguesRequestFinished()));
 
-    QNetworkReply *version_check = login_manager_->get(QNetworkRequest(QUrl(UPDATE_CHECK_URL)));
-    connect(version_check, SIGNAL(finished()), this, SLOT(OnUpdateCheckCompleted()));
-
     connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(OnLoginButtonClicked()));
-}
-
-void LoginDialog::OnUpdateCheckCompleted() {
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    QByteArray bytes = reply->readAll();
-    int available_version = QString(bytes).toInt();
-    if (available_version > VERSION_CODE) {
-        QMessageBox::StandardButton result = QMessageBox::information(this, "Update",
-            "A newer version of Acquisition is available. "
-            "Would you like to navigate to GitHub to download it?",
-            QMessageBox::Yes | QMessageBox::No,
-            QMessageBox::Yes);
-        if (result == QMessageBox::Yes) {
-            QDesktopServices::openUrl(QUrl(UPDATE_DOWNLOAD_LOCATION));
-        }
-    }
+    connect(&update_checker_, &UpdateChecker::UpdateAvailable, [&](){
+        // Only annoy the user once at the login dialog window, even if it's opened for more than an hour
+        if (asked_to_update_)
+            return;
+        asked_to_update_ = true;
+        UpdateChecker::AskUserToUpdate(this);
+    });
 }
 
 void LoginDialog::OnLeaguesRequestFinished() {

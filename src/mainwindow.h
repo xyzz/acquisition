@@ -22,6 +22,7 @@
 #include <memory>
 #include <QMainWindow>
 #include <QMenu>
+#include <QPushButton>
 
 #ifdef Q_OS_WIN
 #include <QWinTaskbarButton>
@@ -34,6 +35,7 @@
 #include "search.h"
 #include "imagecache.h"
 #include "itemsmanagerworker.h"
+#include "updatechecker.h"
 
 class QLabel;
 class QNetworkAccessManager;
@@ -72,6 +74,7 @@ public slots:
     void ResizeTreeColumns();
     void OnExpandAll();
     void OnCollapseAll();
+    void OnUpdateAvailable();
 private slots:
     void on_actionForum_shop_thread_triggered();
     void on_actionCopy_shop_data_to_clipboard_triggered();
@@ -112,9 +115,10 @@ private:
     QNetworkAccessManager *image_network_manager_;
     ImageCache *image_cache_;
     QLabel *status_bar_label_;
-
     QVBoxLayout *search_form_layout_;
     QMenu context_menu_;
+    UpdateChecker update_checker_;
+    QPushButton update_button_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif

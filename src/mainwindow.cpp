@@ -80,6 +80,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     connect(&app_->items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
         this, SLOT(OnItemsRefreshed()));
     connect(&app_->items_manager(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnItemsManagerStatusUpdate(ItemsFetchStatus)));
+    connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
 }
 
 void MainWindow::InitializeLogging() {
@@ -143,6 +144,14 @@ void MainWindow::InitializeUi() {
 
     connect(ui->treeView, &QTreeView::customContextMenuRequested, [&](const QPoint &pos) {
         context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
+    });
+
+    update_button_.setStyleSheet("color: blue; font-weight: bold;");
+    update_button_.setFlat(true);
+    update_button_.hide();
+    statusBar()->addPermanentWidget(&update_button_);
+    connect(&update_button_, &QPushButton::clicked, [=](){
+        UpdateChecker::AskUserToUpdate(this);
     });
 }
 
@@ -607,6 +616,11 @@ void MainWindow::UpdateShopMenu() {
         title += " [" + app_->shop().thread() + "]";
     ui->actionForum_shop_thread->setText(title.c_str());
     ui->actionAutomatically_update_shop->setChecked(app_->shop().auto_update());
+}
+
+void MainWindow::OnUpdateAvailable() {
+    update_button_.setText("An update package is available now");
+    update_button_.show();
 }
 
 void MainWindow::on_actionCopy_shop_data_to_clipboard_triggered() {
