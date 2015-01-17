@@ -121,6 +121,7 @@ void ItemsManagerWorker::OnCharacterListReceived() {
         if (doc.HasParseError()) {
             QLOG_ERROR() << "The error was" << rapidjson::GetParseError_En(doc.GetParseError());
         }
+        updating_ = false;
         return;
     }
 
