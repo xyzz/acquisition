@@ -138,7 +138,7 @@ public:
         default_value_(default_value)
     {}
 protected:
-    bool IsValuePresent(const std::shared_ptr<Item> &item) { return true; }
+    bool IsValuePresent(const std::shared_ptr<Item> & /* item */) { return true; }
     double GetValue(const std::shared_ptr<Item> &item);
 private:
     double default_value_;
