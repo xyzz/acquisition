@@ -57,5 +57,5 @@ private:
     bool shop_data_outdated_;
     bool auto_update_;
     bool submitting_;
-    int requests_completed_;
+    size_t requests_completed_;
 };

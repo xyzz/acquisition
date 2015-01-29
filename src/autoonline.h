@@ -38,8 +38,8 @@ public slots:
 signals:
     void Update(bool running);
 private:
-    DataManager &sensitive_data_;
     DataManager &data_;
+    DataManager &sensitive_data_;
     QTimer timer_;
     std::string url_;
     bool enabled_;

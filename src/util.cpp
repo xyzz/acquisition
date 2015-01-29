@@ -152,7 +152,7 @@ std::string Util::StringReplace(const std::string &haystack, const std::string &
 
 std::string Util::StringJoin(const std::vector<std::string> &arr, const std::string &separator) {
     std::string result;
-    for (int i = 0; i < arr.size(); ++i) {
+    for (size_t i = 0; i < arr.size(); ++i) {
         if (i != 0)
             result += separator;
         result += arr[i];

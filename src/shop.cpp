@@ -104,7 +104,7 @@ void Shop::Update() {
     if (!data.empty())
         shop_data_.push_back(data);
 
-    for (int i = 0; i < shop_data_.size(); ++i)
+    for (size_t i = 0; i < shop_data_.size(); ++i)
         shop_data_[i] = Util::StringReplace(shop_template_, kShopTemplateItems, "[spoiler]" + shop_data_[i] + "[/spoiler]");
 
     shop_hash_ = Util::Md5(Util::StringJoin(shop_data_, ";"));
@@ -132,8 +132,9 @@ void Shop::SubmitShopToForum(bool force) {
     if (previous_hash == shop_hash_ && !force)
         return;
 
-    if (threads_.size() < shop_data_.size())
+    if (threads_.size() < shop_data_.size()) {
         QLOG_WARN() << "Need" << shop_data_.size() - threads_.size() << "more shops defined to fit all your items.";
+    }
 
     requests_completed_ = 0;
     submitting_ = true;
@@ -215,8 +216,9 @@ void Shop::CopyToClipboard() {
     if (shop_data_.empty())
         return;
 
-    if (shop_data_.size() > 1)
+    if (shop_data_.size() > 1) {
         QLOG_WARN() << "You have more than one shop, only the first one will be copied.";
+    }
 
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(QString(shop_data_[0].c_str()));

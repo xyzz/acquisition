@@ -110,7 +110,7 @@ void AutoOnline::SetUrl(const std::string &url) {
     url_ = url;
     // remove trailing '/'s
     while (url_.size() > 0 && url_[url_.size() - 1] == '/')
-        url_.pop_back();
+        url_.erase(url_.size() - 1);
     sensitive_data_.Set("online_url", url);
 }
 
