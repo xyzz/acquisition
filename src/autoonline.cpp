@@ -19,14 +19,15 @@
 
 #include "autoonline.h"
 
-#ifdef Q_OS_WIN32
+#if defined(Q_OS_WIN32)
 #include <windows.h>
 #include <tlhelp32.h>
+#elif defined(Q_OS_LINUX)
+#include <QProcess>
 #endif
 
 #include <QNetworkRequest>
 #include "QsLog.h"
-
 #include "datamanager.h"
 #include "version.h"
 
@@ -49,9 +50,16 @@ AutoOnline::AutoOnline(DataManager &data, DataManager &sensitive_data):
 }
 
 static bool IsPoeRunning() {
-#ifndef Q_OS_WIN32
-    return false;
-#else
+#if defined(Q_OS_LINUX)
+    QProcess process;
+    process.start("/bin/sh -c \"ps -ax|grep PathOfExile.exe|grep -v grep|wc -l\"");
+    process.waitForFinished(-1);
+    QString i = process.readAllStandardOutput();
+    process.start("/bin/sh -c \"ps -ax|grep PathOfExileSteam.exe|grep -v grep|wc -l\"");
+    process.waitForFinished(-1);
+    QString j = process.readAllStandardOutput();
+    return i.toInt() > 0 || j.toInt() > 0;
+#elif defined(Q_OS_WIN)
 // http://msdn.microsoft.com/en-us/library/windows/desktop/ms686701%28v=vs.85%29.aspx
     HANDLE hProcessSnap;
     PROCESSENTRY32 pe32;
