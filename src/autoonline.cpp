@@ -31,7 +31,7 @@
 #include "version.h"
 
 // check for PoE running every minute
-const int kOnlineCheckInterval = 1 * 1000;
+const int kOnlineCheckInterval = 60 * 1000;
 
 AutoOnline::AutoOnline(DataManager &data, DataManager &sensitive_data):
     data_(data),
