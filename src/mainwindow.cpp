@@ -59,7 +59,8 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     app_(std::move(app)),
     ui(new Ui::MainWindow),
     current_search_(nullptr),
-    search_count_(0)
+    search_count_(0),
+    auto_online_(app_->data_manager(), app_->sensitive_data_manager())
 {
 #ifdef Q_OS_WIN32
     createWinId();
@@ -81,6 +82,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
         this, SLOT(OnItemsRefreshed()));
     connect(&app_->items_manager(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnItemsManagerStatusUpdate(ItemsFetchStatus)));
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
+    connect(&auto_online_, &AutoOnline::Update, this, &MainWindow::OnOnlineUpdate);
 }
 
 void MainWindow::InitializeLogging() {
@@ -145,6 +147,9 @@ void MainWindow::InitializeUi() {
     connect(ui->treeView, &QTreeView::customContextMenuRequested, [&](const QPoint &pos) {
         context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
     });
+
+    statusBar()->addPermanentWidget(&online_label_);
+    UpdateOnlineGui();
 
     update_button_.setStyleSheet("color: blue; font-weight: bold;");
     update_button_.setFlat(true);
@@ -621,9 +626,28 @@ void MainWindow::UpdateShopMenu() {
     ui->actionAutomatically_update_shop->setChecked(app_->shop().auto_update());
 }
 
+void MainWindow::UpdateOnlineGui() {
+    online_label_.setVisible(auto_online_.enabled());
+    ui->actionAutomatically_refresh_online_status->setChecked(auto_online_.enabled());
+    std::string action_label = "control.poe.xyz.is URL...";
+    if (auto_online_.IsUrlSet())
+        action_label += " [******]";
+    ui->actionControl_poe_xyz_is_URL->setText(action_label.c_str());
+}
+
 void MainWindow::OnUpdateAvailable() {
     update_button_.setText("An update package is available now");
     update_button_.show();
+}
+
+void MainWindow::OnOnlineUpdate(bool online) {
+    if (online) {
+        online_label_.setStyleSheet("color: green");
+        online_label_.setText("Online");
+    } else {
+        online_label_.setStyleSheet("color: red");
+        online_label_.setText("Offline");
+    }
 }
 
 void MainWindow::on_actionCopy_shop_data_to_clipboard_triggered() {
@@ -659,4 +683,19 @@ void MainWindow::on_actionShop_template_triggered() {
 
 void MainWindow::on_actionAutomatically_update_shop_triggered() {
     app_->shop().SetAutoUpdate(ui->actionAutomatically_update_shop->isChecked());
+}
+
+void MainWindow::on_actionControl_poe_xyz_is_URL_triggered() {
+    bool ok;
+    QString url = QInputDialog::getText(this, "control.poe.xyz.is URL",
+        "Copy and paste your whole control.poe.xyz.is URL here",
+        QLineEdit::Normal, "", &ok);
+    if (ok && !url.isEmpty())
+        auto_online_.SetUrl(url.toStdString());
+    UpdateOnlineGui();
+}
+
+void MainWindow::on_actionAutomatically_refresh_online_status_triggered() {
+    auto_online_.SetEnabled(ui->actionAutomatically_refresh_online_status->isChecked());
+    UpdateOnlineGui();
 }

@@ -39,7 +39,9 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
     email_ = email;
     logged_in_nm_ = std::move(login_manager);
 
-    data_manager_ = std::make_unique<DataManager>(porting::UserDir() + "/data/" + DataManager::MakeFilename(email, league));
+    std::string data_file = DataManager::MakeFilename(email, league);
+    data_manager_ = std::make_unique<DataManager>(porting::UserDir() + "/data/" + data_file);
+    sensitive_data_manager_ = std::make_unique<DataManager>(porting::UserDir() + "/sensitive_data/" + data_file);
     buyout_manager_ = std::make_unique<BuyoutManager>(*data_manager_);
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);

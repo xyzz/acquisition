@@ -20,6 +20,7 @@
 #pragma once
 
 #include <memory>
+#include <QLabel>
 #include <QMainWindow>
 #include <QMenu>
 #include <QPushButton>
@@ -29,6 +30,7 @@
 #include <QWinTaskbarProgress>
 #endif
 
+#include "autoonline.h"
 #include "column.h"
 #include "items_model.h"
 #include "porting.h"
@@ -37,7 +39,7 @@
 #include "itemsmanagerworker.h"
 #include "updatechecker.h"
 
-class QLabel;
+
 class QNetworkAccessManager;
 class QNetworkReply;
 class QVBoxLayout;
@@ -75,6 +77,7 @@ public slots:
     void OnExpandAll();
     void OnCollapseAll();
     void OnUpdateAvailable();
+    void OnOnlineUpdate(bool online);
 private slots:
     void on_actionForum_shop_thread_triggered();
     void on_actionCopy_shop_data_to_clipboard_triggered();
@@ -84,6 +87,8 @@ private slots:
     void on_actionUpdate_shop_triggered();
     void on_actionShop_template_triggered();
     void on_actionAutomatically_update_shop_triggered();
+    void on_actionControl_poe_xyz_is_URL_triggered();
+    void on_actionAutomatically_refresh_online_status_triggered();
 
 private:
     void UpdateCurrentBucket();
@@ -102,6 +107,7 @@ private:
     void ResetBuyoutWidgets();
     void UpdateBuyoutWidgets(const Buyout &bo);
     void ExpandCollapse(TreeState state);
+    void UpdateOnlineGui();
 
     std::unique_ptr<Application> app_;
     Ui::MainWindow *ui;
@@ -119,6 +125,8 @@ private:
     QMenu context_menu_;
     UpdateChecker update_checker_;
     QPushButton update_button_;
+    AutoOnline auto_online_;
+    QLabel online_label_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif

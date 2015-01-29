@@ -46,6 +46,7 @@ SOURCES += \
     src/itemsmanagerworker.cpp \
     src/verticalscrollarea.cpp \
     src/updatechecker.cpp \
+    src/autoonline.cpp \
     test/testmain.cpp \
     test/testdata.cpp \
     test/testitem.cpp \
@@ -83,6 +84,7 @@ HEADERS += \
     src/itemsmanagerworker.h \
     src/verticalscrollarea.h \
     src/updatechecker.h \
+    src/autoonline.h \
     test/testmain.h \
     test/testdata.h \
     test/testitem.h \
