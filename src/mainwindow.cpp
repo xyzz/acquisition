@@ -161,15 +161,13 @@ void MainWindow::InitializeUi() {
 }
 
 void MainWindow::ExpandCollapse(TreeState state) {
-    // if it's connected during the call it's called for every item apparently, which is damn slow!
-    disconnect(ui->treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(ResizeTreeColumns()));
-    disconnect(ui->treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+    // we block signals so that ResizeTreeColumns isn't called for every item, which is damn slow!
+    ui->treeView->blockSignals(true);
     if (state == TreeState::kExpand)
         ui->treeView->expandAll();
     else
         ui->treeView->collapseAll();
-    connect(ui->treeView, SIGNAL(expanded(QModelIndex)), this, SLOT(ResizeTreeColumns()));
-    connect(ui->treeView, SIGNAL(collapsed(QModelIndex)), this, SLOT(ResizeTreeColumns()));
+    ui->treeView->blockSignals(false);
 
     ResizeTreeColumns();
 }
