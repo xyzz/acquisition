@@ -284,6 +284,7 @@ void MainWindow::OnSearchFormChange() {
 
     if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
         ExpandCollapse(TreeState::kExpand);
+    ResizeTreeColumns();
 
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
 }
