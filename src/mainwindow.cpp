@@ -608,19 +608,16 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_actionForum_shop_thread_triggered() {
-    bool ok;
-    QString thread = QInputDialog::getText(this, "Shop thread",
-        "Enter thread number. You can enter multiple shops by separating them with a comma. More than one shop may be needed if you have a lot of items.",
-        QLineEdit::Normal, Util::StringJoin(app_->shop().threads(), ",").c_str(), &ok);
-    if (ok && !thread.isEmpty())
-        app_->shop().SetThread(Util::StringSplit(thread.toStdString(), ','));
+    QString thread = QInputDialog::getText(this, "Shop thread", "Enter thread number", QLineEdit::Normal,
+        app_->shop().thread().c_str());
+    app_->shop().SetThread(thread.toStdString());
     UpdateShopMenu();
 }
 
 void MainWindow::UpdateShopMenu() {
     std::string title = "Forum shop thread...";
-    if (!app_->shop().threads().empty())
-        title += " [" + Util::StringJoin(app_->shop().threads(), ",") + "]";
+    if (!app_->shop().thread().empty())
+        title += " [" + app_->shop().thread() + "]";
     ui->actionForum_shop_thread->setText(title.c_str());
     ui->actionAutomatically_update_shop->setChecked(app_->shop().auto_update());
 }
@@ -669,7 +666,7 @@ void MainWindow::on_actionAutomatically_refresh_items_triggered() {
 }
 
 void MainWindow::on_actionUpdate_shop_triggered() {
-    app_->shop().SubmitShopToForum(true);
+    app_->shop().SubmitShopToForum();
 }
 
 void MainWindow::on_actionShop_template_triggered() {

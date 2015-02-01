@@ -29,7 +29,6 @@
 #include <QNetworkReply>
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
-#include <sstream>
 
 #include "buyoutmanager.h"
 #include "porting.h"
@@ -148,26 +147,6 @@ std::string Util::StringReplace(const std::string &haystack, const std::string &
         out.insert(pos, replace);
     }
     return out;
-}
-
-std::string Util::StringJoin(const std::vector<std::string> &arr, const std::string &separator) {
-    std::string result;
-    for (size_t i = 0; i < arr.size(); ++i) {
-        if (i != 0)
-            result += separator;
-        result += arr[i];
-    }
-    return result;
-}
-
-std::vector<std::string> Util::StringSplit(const std::string &str, char delim) {
-    std::vector<std::string> elems;
-    std::stringstream ss(str);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        elems.push_back(item);
-    }
-    return elems;
 }
 
 bool Util::MatchMod(const char *match, const char *mod, double *output) {
