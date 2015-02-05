@@ -166,3 +166,20 @@ std::string PriceColumn::value(const Item &item) {
     const Buyout &bo = bo_manager_.Get(item);
     return Util::BuyoutAsText(bo);
 }
+
+DateColumn::DateColumn(const BuyoutManager &bo_manager):
+    bo_manager_(bo_manager)
+{}
+
+std::string DateColumn::name() {
+    return "Last Update";
+}
+
+std::string DateColumn::value(const Item &item) {
+    if (!bo_manager_.Exists(item))
+        return "";
+
+    const Buyout &bo = bo_manager_.Get(item);
+    return Util::TimeAgoInWords(bo.last_update);
+
+}

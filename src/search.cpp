@@ -37,6 +37,7 @@ Search::Search(const BuyoutManager &bo_manager, const std::string &caption, cons
     move_only init[] = {
         std::make_unique<NameColumn>(),
         std::make_unique<PriceColumn>(bo_manager),
+        std::make_unique<DateColumn>(bo_manager),
         std::make_unique<PropertyColumn>("Q", "Quality"),
         std::make_unique<PropertyColumn>("Stack", "Stack Size"),
         std::make_unique<CorruptedColumn>(),

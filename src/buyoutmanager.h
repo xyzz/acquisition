@@ -20,6 +20,7 @@
 #pragma once
 
 #include "item.h"
+#include <QDateTime>
 
 enum Currency {
     CURRENCY_NONE,
@@ -103,6 +104,7 @@ struct Buyout {
     double value;
     BuyoutType type;
     Currency currency;
+    QDateTime last_update;
 };
 
 class DataManager;

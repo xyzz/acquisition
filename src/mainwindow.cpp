@@ -192,6 +192,7 @@ void MainWindow::OnBuyoutChange() {
     bo.type = static_cast<BuyoutType>(ui->buyoutTypeComboBox->currentIndex());
     bo.currency = static_cast<Currency>(ui->buyoutCurrencyComboBox->currentIndex());
     bo.value = ui->buyoutValueLineEdit->text().toDouble();
+    bo.last_update = QDateTime::currentDateTime();
 
     if (bo.type == BUYOUT_TYPE_NONE) {
         ui->buyoutCurrencyComboBox->setEnabled(false);

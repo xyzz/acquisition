@@ -95,3 +95,12 @@ public:
 private:
     const BuyoutManager &bo_manager_;
 };
+
+class DateColumn : public Column {
+public:
+    explicit DateColumn(const BuyoutManager &bo_manager);
+    std::string name();
+    std::string value(const Item &item);
+private:
+    const BuyoutManager &bo_manager_;
+};

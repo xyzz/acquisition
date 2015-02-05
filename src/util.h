@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <QDateTime>
 #include "rapidjson/document.h"
 
 #include "item.h"
@@ -65,4 +66,6 @@ std::string StringReplace(const std::string &haystack, const std::string &needle
     Will return true if matches and save average value to output.
 */
 bool MatchMod(const char *match, const char *mod, double *output);
+
+std::string TimeAgoInWords(const QDateTime buyout_time);
 }
