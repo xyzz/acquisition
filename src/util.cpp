@@ -173,3 +173,42 @@ bool Util::MatchMod(const char *match, const char *mod, double *output) {
     *output = result / cnt;
     return !*pmatch && !*pmod;
 }
+
+std::string Util::TimeAgoInWords(const QDateTime buyout_time){
+    QDateTime current_date = QDateTime::currentDateTime();
+    qint64 days = buyout_time.daysTo(current_date);
+    qint64 secs = buyout_time.secsTo(current_date);
+    qint64 hours = (secs / 60 / 60) % 24;
+    qint64 minutes = (secs / 60) % 60;
+
+    // YEARS
+    if (days > 365){
+        int years = (days / 365);
+        if (days % 365 != 0)
+            years++;
+        return QString("%1 %2 ago").arg(years).arg(years == 1 ? "year" : "years").toStdString();
+    }
+    // MONTHS
+    if (days > 30){
+        int months = (days / 365);
+        if (days % 30 != 0)
+            months++;
+        return QString("%1 %2 ago").arg(months).arg(months == 1 ? "month" : "months").toStdString();
+    // DAYS
+    }else if (days > 0){
+        return QString("%1 %2 ago").arg(days).arg(days == 1 ? "day" : "days").toStdString();
+    // HOURS
+    }else if (hours > 0){
+        return QString("%1 %2 ago").arg(hours).arg(hours == 1 ? "hour" : "hours").toStdString();
+    //MINUTES
+    }else if (minutes > 0){
+        return QString("%1 %2 ago").arg(minutes).arg(minutes == 1 ? "minute" : "minutes").toStdString();
+    // SECONDS
+    }else if (secs > 5){
+        return QString("%1 %2 ago").arg(secs).arg("seconds").toStdString();
+    }else if (secs < 5){
+        return QString("just now").toStdString();
+    }else{
+        return "";
+    }
+}

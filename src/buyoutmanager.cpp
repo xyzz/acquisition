@@ -97,6 +97,14 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
         }
         rapidjson::Value item(rapidjson::kObjectType);
         item.AddMember("value", buyout.value, alloc);
+
+        if (!buyout.last_update.isNull()){
+            item.AddMember("last_update", buyout.last_update.toTime_t(), alloc);
+        }else{
+            // If last_update is null, set as the actual time
+            item.AddMember("last_update", QDateTime::currentDateTime().toTime_t(), alloc);
+        }
+
         Util::RapidjsonAddConstString(&item, "type", BuyoutTypeAsTag[buyout.type], alloc);
         Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[buyout.currency], alloc);
 
@@ -126,9 +134,13 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
         auto &object = itr->value;
         const std::string &name = itr->name.GetString();
         Buyout bo;
+
         bo.currency = static_cast<Currency>(Util::TagAsCurrency(object["currency"].GetString()));
         bo.type = static_cast<BuyoutType>(Util::TagAsBuyoutType(object["type"].GetString()));
         bo.value = object["value"].GetDouble();
+        if (object.HasMember("last_update")){
+            bo.last_update = QDateTime::fromTime_t(object["last_update"].GetInt());
+        }
         (*buyouts)[name] = bo;
     }
 }
@@ -137,7 +149,6 @@ void BuyoutManager::Save() {
     if (!save_needed_)
         return;
     save_needed_ = false;
-
     data_manager_.Set("buyouts", Serialize(buyouts_));
     data_manager_.Set("tab_buyouts", Serialize(tab_buyouts_));
 }
