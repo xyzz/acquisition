@@ -29,6 +29,7 @@
 #include <memory>
 
 #include "application.h"
+#include "filesystem.h"
 #include "itemsmanagerworker.h"
 #include "modlist.h"
 #include "porting.h"
@@ -61,18 +62,23 @@ int main(int argc, char *argv[])
     InitModlist();
 
     QApplication a(argc, argv);
+    Filesystem::Init();
 
     QCommandLineParser parser;
-    QCommandLineOption option_test("test");
+    QCommandLineOption option_test("test"), option_data_dir("data-dir", "Where to save Acquisition data.", "data-dir");
     parser.addOption(option_test);
+    parser.addOption(option_data_dir);
     parser.process(a);
 
     if (parser.isSet(option_test))
         return test_main();
 
+    if (parser.isSet(option_data_dir))
+        Filesystem::SetUserDir(parser.value(option_data_dir).toStdString());
+
     QsLogging::Logger& logger = QsLogging::Logger::instance();
     logger.setLoggingLevel(QsLogging::InfoLevel);
-    const QString sLogPath(QDir(porting::UserDir().c_str()).filePath("log.txt"));
+    const QString sLogPath(QDir(Filesystem::UserDir().c_str()).filePath("log.txt"));
 
     QsLogging::DestinationPtr fileDestination(
         QsLogging::DestinationFactory::MakeFileDestination(sLogPath, true, 10 * 1024 * 1024, 0) );

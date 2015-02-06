@@ -35,8 +35,8 @@
 #include "QsLog.h"
 
 #include "application.h"
+#include "filesystem.h"
 #include "mainwindow.h"
-#include "porting.h"
 #include "steamlogindialog.h"
 #include "util.h"
 #include "version.h"
@@ -64,7 +64,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     ui->errorLabel->setStyleSheet("QLabel { color : red; }");
     setWindowTitle(QString("Login [") + VERSION_NAME + "]");
 
-    settings_path_ = porting::UserDir() + "/settings.ini";
+    settings_path_ = Filesystem::UserDir() + "/settings.ini";
     LoadSettings();
 
     login_manager_ = std::make_unique<QNetworkAccessManager>();

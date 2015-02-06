@@ -40,6 +40,7 @@
 #include "application.h"
 #include "buyoutmanager.h"
 #include "column.h"
+#include "filesystem.h"
 #include "filters.h"
 #include "modsfilter.h"
 #include "flowlayout.h"
@@ -48,7 +49,6 @@
 #include "itemsmanager.h"
 #include "itemsmanagerworker.h"
 #include "logpanel.h"
-#include "porting.h"
 #include "shop.h"
 #include "util.h"
 #include "verticalscrollarea.h"
@@ -67,7 +67,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     taskbar_button_ = new QWinTaskbarButton(this);
     taskbar_button_->setWindow(this->windowHandle());
 #endif
-    image_cache_ = new ImageCache(porting::UserDir() + "/cache");
+    image_cache_ = new ImageCache(Filesystem::UserDir() + "/cache");
 
     InitializeUi();
     InitializeLogging();

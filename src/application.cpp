@@ -23,8 +23,8 @@
 
 #include "buyoutmanager.h"
 #include "datamanager.h"
+#include "filesystem.h"
 #include "itemsmanager.h"
-#include "porting.h"
 #include "shop.h"
 
 Application::Application() {}
@@ -40,8 +40,8 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
     logged_in_nm_ = std::move(login_manager);
 
     std::string data_file = DataManager::MakeFilename(email, league);
-    data_manager_ = std::make_unique<DataManager>(porting::UserDir() + "/data/" + data_file);
-    sensitive_data_manager_ = std::make_unique<DataManager>(porting::UserDir() + "/sensitive_data/" + data_file);
+    data_manager_ = std::make_unique<DataManager>(Filesystem::UserDir() + "/data/" + data_file);
+    sensitive_data_manager_ = std::make_unique<DataManager>(Filesystem::UserDir() + "/sensitive_data/" + data_file);
     buyout_manager_ = std::make_unique<BuyoutManager>(*data_manager_);
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);

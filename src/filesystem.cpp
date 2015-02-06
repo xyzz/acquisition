@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Ilya Zhuravlev
+    Copyright 2015 Ilya Zhuravlev
 
     This file is part of Acquisition.
 
@@ -16,32 +16,25 @@
     You should have received a copy of the GNU General Public License
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#include "filesystem.h"
+
 #include "porting.h"
 
-#include <QApplication>
-#include <QDir>
-#include <QStandardPaths>
-#include <QString>
+std::string user_dir;
 
-// This namespace should contain platform-dependant functions.
+namespace Filesystem {
 
-namespace porting {
-std::string DefaultUserDir() {
-#ifdef PORTABLE
-    return qApp->applicationDirPath().toStdString();
-#else
-    return QStandardPaths::writableLocation(QStandardPaths::DataLocation).toStdString();
-#endif
-}
+void Init() {
+    SetUserDir(porting::DefaultUserDir());
 }
 
-#ifdef __ANDROID__
-namespace std {
-double stod(const std::string& str) {
-    std::istringstream is(str);
-    double result;
-    is >> result;
-    return result;
+void SetUserDir(const std::string &dir) {
+    user_dir = dir;
 }
+
+std::string UserDir() {
+    return user_dir;
 }
-#endif
+
+}

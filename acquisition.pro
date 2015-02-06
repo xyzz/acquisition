@@ -47,6 +47,7 @@ SOURCES += \
     src/verticalscrollarea.cpp \
     src/updatechecker.cpp \
     src/autoonline.cpp \
+    src/filesystem.cpp \
     test/testmain.cpp \
     test/testdata.cpp \
     test/testitem.cpp \
@@ -85,6 +86,7 @@ HEADERS += \
     src/verticalscrollarea.h \
     src/updatechecker.h \
     src/autoonline.h \
+    src/filesystem.h \
     test/testmain.h \
     test/testdata.h \
     test/testitem.h \
