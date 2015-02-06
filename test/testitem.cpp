@@ -17,12 +17,12 @@
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "test/testitem.h"
+#include "testitem.h"
 
 #include "rapidjson/document.h"
 
 #include "item.h"
-#include "test/testdata.h"
+#include "testdata.h"
 
 void TestItem::Parse() {
     rapidjson::Document doc;

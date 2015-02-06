@@ -2,9 +2,9 @@
 #include <memory>
 
 #include "porting.h"
-#include "test/testitem.h"
-#include "test/testshop.h"
-#include "test/testutil.h"
+#include "testitem.h"
+#include "testshop.h"
+#include "testutil.h"
 
 #define TEST(Class) result |= QTest::qExec(std::make_unique<Class>().get())
 

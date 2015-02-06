@@ -34,7 +34,7 @@
 #include "modlist.h"
 #include "porting.h"
 #include "version.h"
-#include "test/testmain.h"
+#include "../test/testmain.h"
 
 #ifdef CRASHRPT
 #include "CrashRpt.h"

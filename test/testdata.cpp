@@ -18,7 +18,7 @@
 */
 
 
-#include "test/testdata.h"
+#include "testdata.h"
 
 #include <string>
 
