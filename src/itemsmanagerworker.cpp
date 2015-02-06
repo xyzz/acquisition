@@ -37,6 +37,7 @@
 const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-stash-items";
 const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
 const char *kGetCharactersUrl = "https://www.pathofexile.com/character-window/get-characters";
+const char *kMainPage = "https://www.pathofexile.com/";
 
 ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     data_manager_(app.data_manager()),
@@ -44,7 +45,7 @@ ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     league_(app.league()),
     updating_(false)
 {
-    QUrl poe("https://www.pathofexile.com/");
+    QUrl poe(kMainPage);
     network_manager_.cookieJar()->setCookiesFromUrl(app.logged_in_nm().cookieJar()->cookiesForUrl(poe), poe);
     network_manager_.moveToThread(thread);
 }
@@ -103,10 +104,27 @@ void ItemsManagerWorker::Update() {
     items_.clear();
     tabs_as_string_ = "";
     items_as_string_ = "[ "; // space here is important, see ParseItems and OnTabReceived when all requests are completed
+    selected_character_ = "";
 
-    // first get character list
+    // first, download the main page because it's the only way to know which character is selected
+    QNetworkReply *main_page = network_manager_.get(QNetworkRequest(QUrl(kMainPage)));
+    connect(main_page, &QNetworkReply::finished, this, &ItemsManagerWorker::OnMainPageReceived);
+}
+
+void ItemsManagerWorker::OnMainPageReceived() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
+    std::string page(reply->readAll().constData());
+
+    selected_character_ = Util::FindTextBetween(page, "activeCharacter\":{\"name\":\"", "\",\"league");
+    if (selected_character_.empty()) {
+        QLOG_WARN() << "Can't extract selected character name from the page";
+    }
+
+    // now get character list
     QNetworkReply *characters = network_manager_.get(QNetworkRequest(QUrl(kGetCharactersUrl)));
-    connect(characters, SIGNAL(finished()), this, SLOT(OnCharacterListReceived()));
+    connect(characters, &QNetworkReply::finished, this, &ItemsManagerWorker::OnCharacterListReceived);
+
+    reply->deleteLater();
 }
 
 void ItemsManagerWorker::OnCharacterListReceived() {
@@ -262,7 +280,6 @@ void ItemsManagerWorker::ParseItems(rapidjson::Value *value_ptr, const ItemLocat
     }
 }
 
-
 void ItemsManagerWorker::OnTabReceived(int request_id) {
     if (!replies_.count(request_id)) {
         QLOG_WARN() << "Received a reply for request" << request_id << "that was not requested.";
@@ -316,7 +333,19 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 
         updating_ = false;
         QLOG_INFO() << "Finished updating stash.";
+
+        // if we're at the verge of getting throttled, sleep so we don't
+        if (requests_completed_ == kThrottleRequests)
+            QTimer::singleShot(kThrottleSleep, this, SLOT(PreserveSelectedCharacter()));
+        else
+            PreserveSelectedCharacter();
     }
 
     reply.network_reply->deleteLater();
+}
+
+void ItemsManagerWorker::PreserveSelectedCharacter() {
+    if (selected_character_.empty())
+        return;
+    network_manager_.get(MakeCharacterRequest(selected_character_));
 }

@@ -60,6 +60,7 @@ public slots:
     void Init();
     void Update();
 public slots:
+    void OnMainPageReceived();
     void OnCharacterListReceived();
     void OnFirstTabReceived();
     void OnTabReceived(int index);
@@ -69,6 +70,7 @@ public slots:
     * based on some quick testing.
     */
     void FetchItems(int limit = kThrottleRequests);
+    void PreserveSelectedCharacter();
 signals:
     void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
     void StatusUpdate(const ItemsFetchStatus &status);
@@ -94,4 +96,5 @@ private:
     // set to true if updating right now
     bool updating_;
     int queue_id_;
+    std::string selected_character_;
 };
