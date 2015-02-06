@@ -14,4 +14,10 @@ On Windows you can use either Visual Studio or MinGW version of Qt Creator. Alte
 
 ### Linux
 
-Use Qt Creator, it's cross platform or to build manually use qmake and make
+Either open `acquisition.pro` in Qt Creator and build or do `qmake && make`.
+
+## Command line arguments
+
+`--data-dir <path>`: set the path where Acquisition should save its data. By default it's `%localappdata%\acquisition` on Windows and `~/.local/share/acquisition` on Linux.
+
+`--test`: run tests. Zero exit code on success, other values indicate errors.
