@@ -17,7 +17,7 @@
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "test/testutil.h"
+#include "testutil.h"
 
 #include "util.h"
 

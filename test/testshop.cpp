@@ -1,4 +1,4 @@
-#include "test/testshop.h"
+#include "testshop.h"
 
 #include <QNetworkAccessManager>
 #include <memory>
@@ -9,7 +9,7 @@
 #include "itemsmanager.h"
 #include "porting.h"
 #include "shop.h"
-#include "test/testdata.h"
+#include "testdata.h"
 
 
 void TestShop::initTestCase() {
