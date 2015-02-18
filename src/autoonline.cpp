@@ -50,7 +50,7 @@ AutoOnline::AutoOnline(DataManager &data, DataManager &sensitive_data):
 }
 
 static bool IsPoeRunning() {
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_MAC)
     QProcess process;
     process.start("/bin/sh -c \"ps -ax|grep PathOfExile.exe|grep -v grep|wc -l\"");
     process.waitForFinished(-1);
