@@ -32,6 +32,7 @@
 #include "rapidjson/error/en.h"
 
 #include "application.h"
+#include "buyoutmanager.h"
 #include "datamanager.h"
 #include "itemsmanagerworker.h"
 #include "porting.h"
@@ -71,7 +72,33 @@ void ItemsManager::OnStatusUpdate(const ItemsFetchStatus &status) {
     emit StatusUpdate(status);
 }
 
+void ItemsManager::PropagateTabBuyouts(const Items &items) {
+    for (auto &item_ptr : items) {
+        auto &item = *item_ptr;
+        auto &bo = app_.buyout_manager();
+        std::string hash = item.location().GetUniqueHash();
+        bool item_bo_exists = bo.Exists(item);
+        bool tab_bo_exists = bo.ExistsTab(hash);
+
+        Buyout item_bo, tab_bo;
+        if (item_bo_exists)
+            item_bo = bo.Get(item);
+        if (tab_bo_exists)
+            tab_bo = bo.GetTab(hash);
+
+        if (item_bo_exists && !item_bo.weak)
+            continue;
+        if (item_bo_exists && !tab_bo_exists)
+            bo.Delete(item);
+        else if (tab_bo_exists /* && (!item_bo_exists || item_bo != tab_bo) */) {
+            tab_bo.weak = true;
+            bo.Set(item, tab_bo);
+        }
+    }
+}
+
 void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {
+    PropagateTabBuyouts(items);
     shop_.ExpireShopData();
     if (shop_.auto_update())
         shop_.SubmitShopToForum();

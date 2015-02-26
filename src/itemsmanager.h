@@ -59,6 +59,8 @@ signals:
     void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
     void StatusUpdate(const ItemsFetchStatus &status);
 private:
+    void PropagateTabBuyouts(const Items &items);
+
     // should items be automatically refreshed
     bool auto_update_;
     // items will be automatically updated every X minutes

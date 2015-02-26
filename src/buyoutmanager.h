@@ -105,6 +105,7 @@ struct Buyout {
     BuyoutType type;
     Currency currency;
     QDateTime last_update;
+    bool weak = false;
 };
 
 class DataManager;

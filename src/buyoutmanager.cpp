@@ -108,6 +108,8 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
         Util::RapidjsonAddConstString(&item, "type", BuyoutTypeAsTag[buyout.type], alloc);
         Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[buyout.currency], alloc);
 
+        item.AddMember("weak", buyout.weak, alloc);
+
         rapidjson::Value name(bo.first.c_str(), alloc);
         doc.AddMember(name, item, alloc);
     }
@@ -141,6 +143,9 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
         if (object.HasMember("last_update")){
             bo.last_update = QDateTime::fromTime_t(object["last_update"].GetInt());
         }
+        bo.weak = false;
+        if (object.HasMember("weak"))
+            bo.weak = object["weak"].GetBool();
         (*buyouts)[name] = bo;
     }
 }
