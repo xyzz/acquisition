@@ -113,13 +113,14 @@ void AutoOnline::Check() {
 const std::string url_valid_prefix = "http://control.poe.xyz.is/";
 
 void AutoOnline::SetUrl(const std::string &url) {
-    if (url.compare(0, url_valid_prefix.size(), url_valid_prefix))
+    if (url.compare(0, url_valid_prefix.size(), url_valid_prefix)) {
         QLOG_WARN() << "Online URL is probably invalid.";
+    }
     url_ = url;
     // remove trailing '/'s
     while (url_.size() > 0 && url_[url_.size() - 1] == '/')
         url_.erase(url_.size() - 1);
-    sensitive_data_.Set("online_url", url);
+    sensitive_data_.Set("online_url", url_);
 }
 
 void AutoOnline::SetEnabled(bool enabled) {

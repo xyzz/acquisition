@@ -40,9 +40,9 @@ signals:
 private:
     DataManager &data_;
     DataManager &sensitive_data_;
-    QTimer timer_;
-    std::string url_;
     bool enabled_;
+    std::string url_;
     bool previous_status_;
+    QTimer timer_;
     QNetworkAccessManager nm_;
 };
