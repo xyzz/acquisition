@@ -80,11 +80,13 @@ const std::vector<std::vector<std::string>> simple_sum = {
     { "#% increased Critical Strike Chance for Spells", "#% increased Global Critical Strike Chance" },
     { "#% increased Global Critical Strike Multiplier" },
     { "#% of Physical Attack Damage Leeched as Life" },
+    { "#% of Physical Attack Damage Leeched as Mana" },
     { "Adds # Physical Damage", "Adds #-# Physical Damage" },
     { "Adds # Fire Damage", "Adds #-# Fire Damage" },
     { "Adds # Elemental Damage", "Adds #-# Fire Damage", "Adds #-# Cold Damage", "Adds #-# Lightning Damage" },
     { "Adds # Damage", "Adds #-# Fire Damage", "Adds #-# Cold Damage", "Adds #-# Lightning Damage", "Adds #-# Physical Damage", "Adds #-# Chaos Damage" },
     { "#% increased Cast Speed" },
+    { "#% increased Movement Speed" },
 };
 
 std::vector<std::unique_ptr<ModGenerator>> mod_generators;
