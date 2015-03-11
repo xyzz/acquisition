@@ -22,7 +22,7 @@
 #if defined(Q_OS_WIN32)
 #include <windows.h>
 #include <tlhelp32.h>
-#elif defined(Q_OS_LINUX)
+#elif defined(Q_OS_LINUX) || defined(Q_OS_MAC)
 #include <QProcess>
 #endif
 
