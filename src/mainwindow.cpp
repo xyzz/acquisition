@@ -78,8 +78,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     connect(image_network_manager_, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(OnImageFetched(QNetworkReply*)));
 
-    connect(&app_->items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
-        this, SLOT(OnItemsRefreshed()));
+    connect(&app_->items_manager(), &ItemsManager::ItemsRefreshed, this, &MainWindow::OnItemsRefreshed);
     connect(&app_->items_manager(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnItemsManagerStatusUpdate(ItemsFetchStatus)));
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
     connect(&auto_online_, &AutoOnline::Update, this, &MainWindow::OnOnlineUpdate);
@@ -281,7 +280,7 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
 
 void MainWindow::OnSearchFormChange() {
     app_->buyout_manager().Save();
-    current_search_->Activate(app_->items(), ui->treeView);
+    current_search_->Activate(app_->items_manager().items(), ui->treeView);
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
     ui->treeView->reset();
@@ -598,7 +597,7 @@ void MainWindow::UpdateCurrentBuyout() {
 void MainWindow::OnItemsRefreshed() {
     int tab = 0;
     for (auto search : searches_) {
-        search->FilterItems(app_->items());
+        search->FilterItems(app_->items_manager().items());
         tab_bar_->setTabText(tab++, search->GetCaption());
     }
     OnSearchFormChange();

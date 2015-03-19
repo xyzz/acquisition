@@ -98,12 +98,14 @@ void ItemsManager::PropagateTabBuyouts(const Items &items) {
 }
 
 void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {
-    PropagateTabBuyouts(items);
+    items_ = items;
+    tabs_ = tabs;
+    PropagateTabBuyouts(items_);
     shop_.ExpireShopData();
     if (shop_.auto_update())
         shop_.SubmitShopToForum();
 
-    emit ItemsRefreshed(items, tabs);
+    emit ItemsRefreshed();
 }
 
 void ItemsManager::Update() {

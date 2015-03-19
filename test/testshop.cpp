@@ -23,7 +23,7 @@ void TestShop::SocketedGemsNotLinked() {
     doc.Parse(kSocketedItem.c_str());
 
     Items items = { std::make_shared<Item>(doc) };
-    app_.OnItemsRefreshed(items, {});
+    app_.items_manager().OnItemsRefreshed(items, {});
 
     Buyout bo;
     bo.type = BUYOUT_TYPE_FIXED;
@@ -41,7 +41,7 @@ void TestShop::TemplatedShopGeneration() {
     doc.Parse(kItem1.c_str());
 
     Items items = { std::make_shared<Item>(doc) };
-    app_.OnItemsRefreshed(items, {});
+    app_.items_manager().OnItemsRefreshed(items, {});
 
     Buyout bo;
     bo.type = BUYOUT_TYPE_FIXED;

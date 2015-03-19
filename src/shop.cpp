@@ -28,8 +28,9 @@
 #include "QsLog.h"
 
 #include "application.h"
-#include "datamanager.h"
 #include "buyoutmanager.h"
+#include "datamanager.h"
+#include "itemsmanager.h"
 #include "porting.h"
 #include "util.h"
 
@@ -45,6 +46,12 @@ Shop::Shop(Application &app) :
     shop_template_ = app_.data_manager().Get("shop_template");
     if (shop_template_.empty())
         shop_template_ = kShopTemplateItems;
+
+    connect(&app.items_manager(), &ItemsManager::ItemsRefreshed, [=]() {
+        Update();
+        if (auto_update_)
+            SubmitShopToForum();
+    });
 }
 
 void Shop::SetThread(const std::string &thread) {
@@ -71,7 +78,7 @@ void Shop::SetShopTemplate(const std::string &shop_template) {
 void Shop::Update() {
     shop_data_outdated_ = false;
     std::string data = "[spoiler]";
-    for (auto &item : app_.items()) {
+    for (auto &item : app_.items_manager().items()) {
         if (item->location().socketed())
             continue;
         Buyout bo;
