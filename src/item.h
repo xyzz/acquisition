@@ -89,6 +89,7 @@ private:
     // The point of GenerateMods is to create combined (e.g. implicit+explicit) poe.trade-like mod map to be searched by mod filter.
     // For now it only does that for a small chosen subset of mods (think "popular" + "pseudo" sections at poe.trade)
     void GenerateMods(const rapidjson::Value &json);
+    void CalculateHash(const rapidjson::Value &json);
 
     ItemLocation location_;
     std::string name_;

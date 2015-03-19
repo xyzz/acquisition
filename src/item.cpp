@@ -37,11 +37,10 @@ static std::string item_unique_properties(const rapidjson::Value &json, const st
     if (!json.HasMember(name_p))
         return "";
     std::string result;
-    for (auto prop_it = json[name_p].Begin(); prop_it != json[name_p].End(); ++prop_it) {
-        auto &prop = *prop_it;
+    for (auto &prop : json[name_p]) {
         result += std::string(prop["name"].GetString()) + "~";
-        for (auto value_it = prop["values"].Begin(); value_it != prop["values"].End(); ++value_it)
-            result += std::string((*value_it)[0].GetString()) + "~";
+        for (auto &value : prop["values"])
+            result += std::string(value[0].GetString()) + "~";
     }
     return result;
 }
@@ -139,24 +138,7 @@ Item::Item(const rapidjson::Value &json) :
         socket_groups_.push_back(current_group);
     }
 
-    std::string unique(std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~");
-
-    if (json.HasMember("explicitMods"))
-        for (auto mod_it = json["explicitMods"].Begin(); mod_it != json["explicitMods"].End(); ++mod_it)
-            unique += std::string(mod_it->GetString()) + "~";
-
-    if (json.HasMember("implicitMods"))
-        for (auto mod_it = json["implicitMods"].Begin(); mod_it != json["implicitMods"].End(); ++mod_it)
-            unique += std::string(mod_it->GetString()) + "~";
-
-    unique += item_unique_properties(json, "properties") + "~";
-    unique += item_unique_properties(json, "additionalProperties") + "~";
-
-    if (json.HasMember("sockets"))
-        for (auto socket_it = json["sockets"].Begin(); socket_it != json["sockets"].End(); ++socket_it)
-            unique += std::to_string((*socket_it)["group"].GetInt()) + "~" + (*socket_it)["attr"].GetString() + "~";
-
-    hash_ = Util::Md5(unique);
+    CalculateHash(json);
 
     count_ = 1;
     if (properties_.find("Stack Size") != properties_.end()) {
@@ -204,4 +186,25 @@ double Item::eDPS() const {
 void Item::GenerateMods(const rapidjson::Value &json) {
     for (auto &generator : mod_generators)
         generator->Generate(json, &mod_table_);
+}
+
+void Item::CalculateHash(const rapidjson::Value &json) {
+    std::string unique(std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~");
+
+    if (json.HasMember("explicitMods"))
+        for (auto &mod : json["explicitMods"])
+            unique += std::string(mod.GetString()) + "~";
+
+    if (json.HasMember("implicitMods"))
+        for (auto &mod : json["implicitMods"])
+            unique += std::string(mod.GetString()) + "~";
+
+    unique += item_unique_properties(json, "properties") + "~";
+    unique += item_unique_properties(json, "additionalProperties") + "~";
+
+    if (json.HasMember("sockets"))
+        for (auto &socket : json["sockets"])
+            unique += std::to_string(socket["group"].GetInt()) + "~" + socket["attr"].GetString() + "~";
+
+    hash_ = Util::Md5(unique);
 }
