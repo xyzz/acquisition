@@ -173,3 +173,12 @@ void BuyoutManager::MigrateItem(const Item &item) {
         save_needed_ = true;
     }
 }
+
+bool Buyout::operator==(const Buyout&o) const {
+    static const double eps = 1e-6;
+    return std::fabs(o.value - value) < eps && o.type == type && o.currency == currency && o.weak == weak;
+}
+
+bool Buyout::operator!=(const Buyout &o) const {
+    return !(o == *this);
+}

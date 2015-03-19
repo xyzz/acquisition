@@ -87,12 +87,17 @@ void ItemsManager::PropagateTabBuyouts(const Items &items) {
         if (tab_bo_exists)
             tab_bo = bo.GetTab(hash);
 
+        // Don't do anything to the item if it has a personal buyout set
         if (item_bo_exists && !item_bo.weak)
             continue;
-        if (item_bo_exists && !tab_bo_exists)
+        // If item has a weak buyout but tab is clear, delete it
+        if (item_bo_exists && !tab_bo_exists) {
             bo.Delete(item);
-        else if (tab_bo_exists /* && (!item_bo_exists || item_bo != tab_bo) */) {
+        // If tab buyout exists and item's buyout doesn't match it, update it
+        // Only update when it doesn't match to preserve last_update
+        } else if (tab_bo_exists && (!item_bo_exists || item_bo != tab_bo)) {
             tab_bo.weak = true;
+            tab_bo.last_update = QDateTime();
             bo.Set(item, tab_bo);
         }
     }

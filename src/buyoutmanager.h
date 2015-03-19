@@ -106,6 +106,8 @@ struct Buyout {
     Currency currency;
     QDateTime last_update;
     bool weak = false;
+    bool operator==(const Buyout &o) const;
+    bool operator!=(const Buyout &o) const;
 };
 
 class DataManager;
