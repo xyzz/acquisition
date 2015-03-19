@@ -32,6 +32,8 @@ public:
     std::string Get(const std::string &key, const std::string &default_value = "");
     void SetBool(const std::string &key, bool value);
     bool GetBool(const std::string &key, bool default_value = false);
+    void SetInt(const std::string &key, int value);
+    int GetInt(const std::string &key, int default_value = 0);
     static std::string MakeFilename(const std::string &name, const std::string &league);
 private:
     std::string filename_;

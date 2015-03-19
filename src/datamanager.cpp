@@ -65,11 +65,19 @@ void DataManager::Set(const std::string &key, const std::string &value) {
 }
 
 void DataManager::SetBool(const std::string &key, bool value) {
-    Set(key, std::to_string(static_cast<int>(value)));
+    SetInt(key, static_cast<int>(value));
 }
 
 bool DataManager::GetBool(const std::string &key, bool default_value) {
-    return static_cast<bool>(std::stoi(Get(key, default_value ? "1" : "0")));
+    return static_cast<bool>(GetInt(key, static_cast<int>(default_value)));
+}
+
+void DataManager::SetInt(const std::string &key, int value) {
+    Set(key, std::to_string(value));
+}
+
+int DataManager::GetInt(const std::string &key, int default_value) {
+    return std::stoi(Get(key, std::to_string(default_value)));
 }
 
 DataManager::~DataManager() {
