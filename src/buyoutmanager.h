@@ -125,6 +125,8 @@ public:
 
     void Save();
     void Load();
+
+    void MigrateItem(const Item &item);
 private:
     std::string ItemHash(const Item &item) const;
     std::string Serialize(const std::map<std::string, Buyout> &buyouts);

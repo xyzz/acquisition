@@ -27,6 +27,7 @@
 
 class QThread;
 class Application;
+class BuyoutManager;
 class DataManager;
 class ItemsManagerWorker;
 struct ItemsFetchStatus;
@@ -62,6 +63,7 @@ signals:
     void StatusUpdate(const ItemsFetchStatus &status);
 private:
     void PropagateTabBuyouts(const Items &items);
+    void MigrateBuyouts();
 
     // should items be automatically refreshed
     bool auto_update_;
@@ -71,6 +73,7 @@ private:
     std::unique_ptr<ItemsManagerWorker> worker_;
     std::unique_ptr<QThread> thread_;
     DataManager &data_manager_;
+    BuyoutManager &bo_manager_;
     Shop &shop_;
     Application &app_;
     Items items_;

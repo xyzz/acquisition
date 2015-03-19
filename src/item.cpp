@@ -206,5 +206,7 @@ void Item::CalculateHash(const rapidjson::Value &json) {
         for (auto &socket : json["sockets"])
             unique += std::to_string(socket["group"].GetInt()) + "~" + socket["attr"].GetString() + "~";
 
+    old_hash_ = Util::Md5(unique);
+    unique += "~" + location_.GetUniqueHash();
     hash_ = Util::Md5(unique);
 }
