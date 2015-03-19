@@ -84,9 +84,6 @@ void Shop::Update() {
         Buyout bo;
         bo.type = BUYOUT_TYPE_NONE;
 
-        std::string hash = item->location().GetUniqueHash();
-        if (app_.buyout_manager().ExistsTab(hash))
-            bo = app_.buyout_manager().GetTab(hash);
         if (app_.buyout_manager().Exists(*item))
             bo = app_.buyout_manager().Get(*item);
         if (bo.type == BUYOUT_TYPE_NONE)
