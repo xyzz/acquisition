@@ -51,6 +51,7 @@ public:
     bool auto_update() const { return auto_update_; }
     const Items &items() const { return items_; }
     const std::vector<std::string> &tabs() const { return tabs_; }
+    void PropagateTabBuyouts();
 public slots:
     // called by auto_update_timer_
     void OnAutoRefreshTimer();
