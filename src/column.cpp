@@ -167,6 +167,15 @@ std::string PriceColumn::value(const Item &item) {
     return Util::BuyoutAsText(bo);
 }
 
+QColor PriceColumn::color(const Item &item) {
+    if (bo_manager_.Exists(item)) {
+        const Buyout &bo = bo_manager_.Get(item);
+        if (bo.weak)
+            return QColor(0xaa, 0xaa, 0xaa);
+    }
+    return QColor();
+}
+
 DateColumn::DateColumn(const BuyoutManager &bo_manager):
     bo_manager_(bo_manager)
 {}

@@ -92,6 +92,7 @@ public:
     explicit PriceColumn(const BuyoutManager &bo_manager);
     std::string name();
     std::string value(const Item &item);
+    QColor color(const Item &item);
 private:
     const BuyoutManager &bo_manager_;
 };
