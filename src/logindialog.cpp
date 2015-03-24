@@ -96,7 +96,7 @@ void LoginDialog::OnLeaguesRequestFinished() {
         // But let's do our best and try to add at least some leagues!
         // It's in case GGG's API is broken and suddenly starts returning empty pages,
         // which of course will never happen.
-        leagues_ = { "Torment", "Bloodlines", "Standard", "Hardcore" };
+        leagues_ = { "Torment/Bloodlines", "Torment/Bloodlines HC", "Standard", "Hardcore" };
     } else {
         for (auto &league : doc)
             leagues_.push_back(league["id"].GetString());
