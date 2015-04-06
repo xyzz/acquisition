@@ -60,25 +60,16 @@
           <item>
            <widget class="QLabel" name="nameLabel">
             <property name="text">
-             <string>Name</string>
+             <string>Select an item</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QLabel" name="typeLineLabel">
-            <property name="text">
-             <string>typeLine</string>
-            </property>
            </widget>
           </item>
           <item>
            <widget class="QLabel" name="imageLabel">
-            <property name="text">
-             <string>Image</string>
-            </property>
-            <property name="openExternalLinks">
-             <bool>false</bool>
-            </property>
            </widget>
           </item>
           <item>
@@ -88,9 +79,6 @@
               <width>250</width>
               <height>16777215</height>
              </size>
-            </property>
-            <property name="text">
-             <string>Properties</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -112,16 +100,10 @@
           </item>
           <item>
            <widget class="QLabel" name="locationLabel">
-            <property name="text">
-             <string>Item location</string>
-            </property>
            </widget>
           </item>
           <item>
            <widget class="QLabel" name="minimapLabel">
-            <property name="text">
-             <string>Stash minimap</string>
-            </property>
            </widget>
           </item>
          </layout>
