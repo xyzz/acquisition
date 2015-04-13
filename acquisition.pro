@@ -1,17 +1,17 @@
+TARGET = acquisition
+TEMPLATE = app
+
 QT += core gui network webkitwidgets testlib
 
 win32 {
     QT += winextras
 }
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
-TARGET = acquisition
-TEMPLATE = app
-
 unix {
     LIBS += -ldl
 }
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 include(deps/QsLog/QsLog.pri)
 
