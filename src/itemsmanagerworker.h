@@ -97,4 +97,6 @@ private:
     bool updating_;
     int queue_id_;
     std::string selected_character_;
+
+    std::string account_name_;
 };

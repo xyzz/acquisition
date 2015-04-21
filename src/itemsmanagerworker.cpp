@@ -43,7 +43,8 @@ ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     data_manager_(app.data_manager()),
     signal_mapper_(nullptr),
     league_(app.league()),
-    updating_(false)
+    updating_(false),
+    account_name_(app.email())
 {
     QUrl poe(kMainPage);
     network_manager_.cookieJar()->setCookiesFromUrl(app.logged_in_nm().cookieJar()->cookiesForUrl(poe), poe);
@@ -178,6 +179,7 @@ QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, bool tabs) {
 QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name) {
     QUrlQuery query;
     query.addQueryItem("character", name.c_str());
+    query.addQueryItem("accountName", account_name_.c_str());
 
     QUrl url(kCharacterItemsUrl);
     url.setQuery(query);
@@ -293,12 +295,18 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     doc.Parse(bytes.constData());
 
     bool error = false;
-    if (doc.HasMember("error")) {
+    if (!doc.IsObject()) {
+        QLOG_WARN() << request_id << "got a non-object response";
+        error = true;
+    } else if (doc.HasMember("error")) {
         // this can happen if user is browsing stash in background and we can't know about it
         QLOG_WARN() << request_id << "got 'error' instead of stash tab contents";
-        QueueRequest(reply.request.network_request, reply.request.location);
         error = true;
     }
+
+    // re-queue a failed request
+    if (error)
+        QueueRequest(reply.request.network_request, reply.request.location);
 
     ++requests_completed_;
 
