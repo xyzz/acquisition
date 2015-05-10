@@ -272,3 +272,9 @@ LoginDialog::~LoginDialog() {
     if (mw)
         delete mw;
 }
+
+bool LoginDialog::event(QEvent *e) {
+    if (e->type() == QEvent::LayoutRequest)
+        setFixedSize(sizeHint());
+    return QDialog::event(e);
+}
