@@ -63,9 +63,9 @@ void SteamLoginDialog::OnLoadFinished() {
     if (completed_)
         return;
     QString url = ui->webView->url().toString();
-    if (url.startsWith("http://www.pathofexile.com/")) {
+    if (url.startsWith("https://www.pathofexile.com/")) {
         QNetworkCookieJar *cookie_jar = ui->webView->page()->networkAccessManager()->cookieJar();
-        QList<QNetworkCookie> cookies = cookie_jar->cookiesForUrl(QUrl("http://www.pathofexile.com/"));
+        QList<QNetworkCookie> cookies = cookie_jar->cookiesForUrl(QUrl("https://www.pathofexile.com/"));
         QString session_id;
         for (auto &cookie : cookies)
             if (cookie.name() == "PHPSESSID")
