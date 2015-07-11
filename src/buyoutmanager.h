@@ -39,7 +39,7 @@ enum Currency {
     CURRENCY_ORB_OF_REGRET,
     CURRENCY_REGAL_ORB,
     CURRENCY_DIVINE_ORB,
-	CURRENCY_VAAL_ORB
+    CURRENCY_VAAL_ORB
 };
 
 const std::vector<std::string> CurrencyAsString({
@@ -59,7 +59,7 @@ const std::vector<std::string> CurrencyAsString({
     "Orb of Regret",
     "Regal Orb",
     "Divine Orb",
-	"Vaal Orb"
+    "Vaal Orb"
 });
 
 const std::vector<std::string> CurrencyAsTag({
@@ -79,7 +79,7 @@ const std::vector<std::string> CurrencyAsTag({
     "regret",
     "regal",
     "divine",
-	"vaal"
+    "vaal"
 });
 
 enum BuyoutType {
