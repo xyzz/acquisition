@@ -127,6 +127,12 @@ void LoginDialog::OnSteamDialogClosed() {
     DisplayError("Login was not completed");
 }
 
+// All characters except + should be handled by QUrlQuery, see http://doc.qt.io/qt-5/qurlquery.html#encoding
+static QString EncodeSpecialCharacters(QString s) {
+    s.replace("+", "%2b");
+    return s;
+}
+
 void LoginDialog::OnLoginPageFinished() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     if (reply->error()) {
@@ -144,8 +150,8 @@ void LoginDialog::OnLoginPageFinished() {
             }
 
             QUrlQuery query;
-            query.addQueryItem("login_email", ui->emailLineEdit->text());
-            query.addQueryItem("login_password", ui->passwordLineEdit->text());
+            query.addQueryItem("login_email", EncodeSpecialCharacters(ui->emailLineEdit->text()));
+            query.addQueryItem("login_password", EncodeSpecialCharacters(ui->passwordLineEdit->text()));
             query.addQueryItem("hash", QString(hash.c_str()));
             query.addQueryItem("login", "Login");
 
