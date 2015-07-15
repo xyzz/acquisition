@@ -133,7 +133,7 @@
      <property name="topMargin">
       <number>0</number>
      </property>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="errorLabel">
        <property name="text">
         <string>TextLabel</string>
@@ -164,6 +164,13 @@
       <widget class="QCheckBox" name="rembmeCheckBox">
        <property name="text">
         <string>Remember me</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QCheckBox" name="proxyCheckBox">
+       <property name="text">
+        <string>Use system proxy</string>
        </property>
       </widget>
      </item>

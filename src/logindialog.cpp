@@ -27,6 +27,7 @@
 #include <QNetworkRequest>
 #include <QNetworkCookie>
 #include <QNetworkCookieJar>
+#include <QNetworkProxyFactory>
 #include <QRegExp>
 #include <QSettings>
 #include <QUrl>
@@ -70,7 +71,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     login_manager_ = std::make_unique<QNetworkAccessManager>();
     QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
     connect(leagues_reply, SIGNAL(finished()), this, SLOT(OnLeaguesRequestFinished()));
-
+    connect(ui->proxyCheckBox, SIGNAL(clicked(bool)), this, SLOT(OnProxyCheckBoxClicked(bool)));
     connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(OnLoginButtonClicked()));
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, [&](){
         // Only annoy the user once at the login dialog window, even if it's opened for more than an hour
@@ -236,11 +237,16 @@ void LoginDialog::OnMainPageFinished() {
     close();
 }
 
+void LoginDialog::OnProxyCheckBoxClicked(bool checked) {
+  QNetworkProxyFactory::setUseSystemConfiguration(checked);
+}
+
 void LoginDialog::LoadSettings() {
     QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
     session_id_ = settings.value("session_id", "").toString();
     ui->sessionIDLineEdit->setText(session_id_);
     ui->rembmeCheckBox->setChecked(settings.value("remember_me_checked").toBool());
+    ui->proxyCheckBox->setChecked(settings.value("use_system_proxy_checked").toBool());
 
     if (ui->rembmeCheckBox->isChecked())
         ui->loginTabs->setCurrentIndex(LOGIN_SESSIONID);
@@ -250,6 +256,8 @@ void LoginDialog::LoadSettings() {
         ui->leagueComboBox->addItem(saved_league_);
         ui->leagueComboBox->setEnabled(true);
     }
+
+    QNetworkProxyFactory::setUseSystemConfiguration(ui->proxyCheckBox->isChecked());
 }
 
 void LoginDialog::SaveSettings() {
@@ -262,6 +270,7 @@ void LoginDialog::SaveSettings() {
         settings.setValue("league", "");
     }
     settings.setValue("remember_me_checked", ui->rembmeCheckBox->isChecked() && !session_id_.isEmpty());
+    settings.setValue("use_system_proxy_checked", ui->proxyCheckBox->isChecked());
 }
 
 void LoginDialog::DisplayError(const QString &error) {
