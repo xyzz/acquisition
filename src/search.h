@@ -34,12 +34,12 @@ class QTreeView;
 
 class Search {
 public:
-    Search(const BuyoutManager &bo, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters);
+    Search(const BuyoutManager &bo, const QString &caption, const std::vector<std::unique_ptr<Filter>> &filters);
     void FilterItems(const Items &items);
     void FromForm();
     void ToForm();
     void ResetForm();
-    const std::string &caption() const { return caption_; }
+    const QString &caption() const { return caption_; }
     const Items &items() const { return items_; }
     const std::vector<std::unique_ptr<Column>> &columns() const { return columns_; }
     const std::vector<std::unique_ptr<Bucket>> &buckets() const { return buckets_; }
@@ -50,7 +50,7 @@ public:
 private:
     std::vector<std::unique_ptr<FilterData>> filters_;
     std::vector<std::unique_ptr<Column>> columns_;
-    std::string caption_;
+    QString caption_;
     Items items_;
     std::unique_ptr<ItemsModel> model_;
     std::vector<std::unique_ptr<Bucket>> buckets_;

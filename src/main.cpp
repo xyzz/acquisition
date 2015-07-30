@@ -21,6 +21,7 @@
 
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QStringList>
 #include <QDir>
 #include <QLocale>
 #include "QsLog.h"
@@ -42,9 +43,15 @@
 
 int main(int argc, char *argv[])
 {
+	QStringList paths = QCoreApplication::libraryPaths();
+	paths.append(".");
+	paths.append("platforms");
+	paths.append("sqldrivers");
+	QCoreApplication::setLibraryPaths(paths);
+
     qRegisterMetaType<ItemsFetchStatus>("ItemsFetchStatus");
     qRegisterMetaType<Items>("Items");
-    qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
+    qRegisterMetaType<std::vector<QString>>("std::vector<QString>");
     qRegisterMetaType<QsLogging::Level>("QsLogging::Level");
 
     QLocale::setDefault(QLocale::C);
@@ -61,7 +68,7 @@ int main(int argc, char *argv[])
 
     InitModlist();
 
-    QApplication a(argc, argv);
+    QApplication a(argc,argv);
     Filesystem::Init();
 
     QCommandLineParser parser;
@@ -74,11 +81,11 @@ int main(int argc, char *argv[])
         return test_main();
 
     if (parser.isSet(option_data_dir))
-        Filesystem::SetUserDir(parser.value(option_data_dir).toStdString());
+        Filesystem::SetUserDir(parser.value(option_data_dir));
 
     QsLogging::Logger& logger = QsLogging::Logger::instance();
     logger.setLoggingLevel(QsLogging::InfoLevel);
-    const QString sLogPath(QDir(Filesystem::UserDir().c_str()).filePath("log.txt"));
+    const QString sLogPath(QDir(Filesystem::UserDir()).filePath("log.txt"));
 
     QsLogging::DestinationPtr fileDestination(
         QsLogging::DestinationFactory::MakeFileDestination(sLogPath, true, 10 * 1024 * 1024, 0) );

@@ -1,7 +1,7 @@
 TARGET = acquisition
 TEMPLATE = app
 
-QT += core gui network webkitwidgets testlib
+QT += core gui network webkitwidgets testlib sql
 
 win32 {
     QT += winextras
@@ -30,7 +30,6 @@ SOURCES += \
     src/logindialog.cpp \
     src/itemsmanager.cpp \
     src/datamanager.cpp \
-    deps/sqlite/sqlite3.c \
     src/buyoutmanager.cpp \
     src/util.cpp \
     src/shop.cpp \
@@ -66,7 +65,6 @@ HEADERS += \
     src/logindialog.h \
     src/itemsmanager.h \
     src/datamanager.h \
-    deps/sqlite/sqlite3.h \
     src/buyoutmanager.h \
     src/util.h \
     src/shop.h \

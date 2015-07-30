@@ -101,7 +101,7 @@ private:
     void InitializeLogging();
     void InitializeSearchForm();
     void InitializeUi();
-    void AddSearchGroup(QLayout *layout, const std::string &name);
+    void AddSearchGroup(QLayout *layout, const QString &name);
     bool eventFilter(QObject *o, QEvent *e);
     void UpdateShopMenu();
     void ResetBuyoutWidgets();

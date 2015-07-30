@@ -72,31 +72,31 @@ public slots:
     void FetchItems(int limit = kThrottleRequests);
     void PreserveSelectedCharacter();
 signals:
-    void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
+    void ItemsRefreshed(const Items &items, const std::vector<QString> &tabs);
     void StatusUpdate(const ItemsFetchStatus &status);
 private:
     QNetworkRequest MakeTabRequest(int tab_index, bool tabs = false);
-    QNetworkRequest MakeCharacterRequest(const std::string &name);
+    QNetworkRequest MakeCharacterRequest(const QString &name);
     void QueueRequest(const QNetworkRequest &request, const ItemLocation &location);
     void ParseItems(rapidjson::Value *value_ptr, const ItemLocation &base_location, rapidjson_allocator &alloc);
 
     DataManager &data_manager_;
     QNetworkAccessManager network_manager_;
     QSignalMapper *signal_mapper_;
-    std::vector<std::string> tabs_;
+    std::vector<QString> tabs_;
     std::queue<ItemsRequest> queue_;
     std::map<int, ItemsReply> replies_;
     Items items_;
     int total_completed_, total_needed_;
     int requests_completed_, requests_needed_;
     
-    std::string items_as_string_;
-    std::string tabs_as_string_;
-    std::string league_;
+    QString items_as_string_;
+    QString tabs_as_string_;
+    QString league_;
     // set to true if updating right now
     bool updating_;
     int queue_id_;
-    std::string selected_character_;
+    QString selected_character_;
 
-    std::string account_name_;
+    QString account_name_;
 };

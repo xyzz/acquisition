@@ -53,7 +53,7 @@
 #include "util.h"
 #include "verticalscrollarea.h"
 
-const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
+const QString POE_WEBCDN = "http://webcdn.pathofexile.com";
 
 MainWindow::MainWindow(std::unique_ptr<Application> app):
     app_(std::move(app)),
@@ -78,7 +78,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     connect(image_network_manager_, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(OnImageFetched(QNetworkReply*)));
 
-    connect(&app_->items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
+    connect(&app_->items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<QString>)),
         this, SLOT(OnItemsRefreshed()));
     connect(&app_->items_manager(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnItemsManagerStatusUpdate(ItemsFetchStatus)));
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
@@ -208,7 +208,7 @@ void MainWindow::OnBuyoutChange() {
         else
             app_->buyout_manager().Set(*current_item_, bo);
     } else {
-        std::string tab = current_bucket_.location().GetUniqueHash();
+        QString tab = current_bucket_.location().GetUniqueHash();
         if (bo.type == BUYOUT_TYPE_NONE)
             app_->buyout_manager().DeleteTab(tab);
         else
@@ -262,9 +262,9 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e) {
 }
 
 void MainWindow::OnImageFetched(QNetworkReply *reply) {
-    std::string url = reply->url().toString().toStdString();
+    QString url = reply->url().toString();
     if (reply->error()) {
-        QLOG_WARN() << "Failed to download item image," << url.c_str();
+        QLOG_WARN() << "Failed to download item image," << url;
         return;
     }
     QImageReader image_reader(reply);
@@ -314,9 +314,9 @@ void MainWindow::OnTabChange(int index) {
     OnSearchFormChange();
 }
 
-void MainWindow::AddSearchGroup(QLayout *layout, const std::string &name="") {
-    if (!name.empty()) {
-        auto label = new QLabel(("<h3>" + name + "</h3>").c_str());
+void MainWindow::AddSearchGroup(QLayout *layout, const QString &name="") {
+    if (!name.isEmpty()) {
+        auto label = new QLabel("<h3>" + name + "</h3>");
         search_form_layout_->addWidget(label);
     }
     layout->setContentsMargins(0, 0, 0, 0);
@@ -379,7 +379,7 @@ void MainWindow::InitializeSearchForm() {
 }
 
 void MainWindow::NewSearch() {
-    current_search_ = new Search(app_->buyout_manager(), QString("Search %1").arg(++search_count_).toStdString(), filters_);
+    current_search_ = new Search(app_->buyout_manager(), QString("Search %1").arg(++search_count_), filters_);
     tab_bar_->setTabText(tab_bar_->count() - 1, current_search_->GetCaption());
     tab_bar_->addTab("+");
     // this can't be done in ctor because it'll call OnSearchFormChange slot
@@ -396,7 +396,7 @@ void MainWindow::UpdateCurrentBucket() {
     ui->locationLabel->hide();
     ui->propertiesLabel->hide();
 
-    ui->nameLabel->setText(current_bucket_.location().GetHeader().c_str());
+    ui->nameLabel->setText(current_bucket_.location().GetHeader());
     ui->nameLabel->show();
 }
 
@@ -408,11 +408,11 @@ void MainWindow::UpdateCurrentItem() {
     ui->propertiesLabel->show();
 
     app_->buyout_manager().Save();
-    ui->typeLineLabel->setText(current_item_->typeLine().c_str());
-    if (current_item_->name().empty())
+    ui->typeLineLabel->setText(current_item_->typeLine());
+    if (current_item_->name().isEmpty())
         ui->nameLabel->hide();
     else {
-        ui->nameLabel->setText(current_item_->name().c_str());
+        ui->nameLabel->setText(current_item_->name());
         ui->nameLabel->show();
     }
     ui->imageLabel->setText("Loading...");
@@ -422,31 +422,31 @@ void MainWindow::UpdateCurrentItem() {
     UpdateCurrentItemProperties();
     UpdateCurrentItemMinimap();
 
-    std::string icon = current_item_->icon();
+    QString icon = current_item_->icon();
     if (icon.size() && icon[0] == '/')
         icon = POE_WEBCDN + icon;
     if (!image_cache_->Exists(icon))
-        image_network_manager_->get(QNetworkRequest(QUrl(icon.c_str())));
+        image_network_manager_->get(QNetworkRequest(QUrl(icon)));
     else
         UpdateCurrentItemIcon(image_cache_->Get(icon));
 
-    ui->locationLabel->setText(current_item_->location().GetHeader().c_str());
+    ui->locationLabel->setText(current_item_->location().GetHeader());
 }
 
 void MainWindow::UpdateCurrentItemProperties() {
-    std::vector<std::string> sections;
+    std::vector<QString> sections;
 
-    std::string properties_text;
+    QString properties_text;
     bool first_prop = true;
     for (auto &property : current_item_->text_properties()) {
         if (!first_prop)
             properties_text += "<br>";
         first_prop = false;
         if (property.display_mode == 3) {
-            QString format(property.name.c_str());
+            QString format(property.name);
             for (auto &value : property.values)
-                format = format.arg(value.c_str());
-            properties_text += format.toStdString();
+                format = format.arg(value);
+            properties_text += format;
         } else {
             properties_text += property.name;
             if (property.values.size()) {
@@ -465,7 +465,7 @@ void MainWindow::UpdateCurrentItemProperties() {
     if (properties_text.size() > 0)
         sections.push_back(properties_text);
 
-    std::string requirements_text;
+    QString requirements_text;
     bool first_req = true;
     for (auto &requirement : current_item_->text_requirements()) {
         if (!first_req)
@@ -478,12 +478,12 @@ void MainWindow::UpdateCurrentItemProperties() {
 
     auto &mods = current_item_->text_mods();
     for (auto &mod_type : ITEM_MOD_TYPES) {
-        std::string mod_list = Util::ModListAsString(mods.at(mod_type));
-        if (!mod_list.empty())
+        QString mod_list = Util::ModListAsString(mods.at(mod_type));
+        if (!mod_list.isEmpty())
             sections.push_back(mod_list);
     }
 
-    std::string text;
+    QString text;
     bool first = true;
     for (auto &s : sections) {
         if (!first)
@@ -491,7 +491,7 @@ void MainWindow::UpdateCurrentItemProperties() {
         first = false;
         text += s;
     }
-    ui->propertiesLabel->setText(text.c_str());
+    ui->propertiesLabel->setText(text);
 }
 
 void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
@@ -536,7 +536,7 @@ void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
                         link_v
                     );
                 } else {
-                    QLOG_ERROR() << "No idea how to draw link for" << current_item_->PrettyName().c_str();
+                    QLOG_ERROR() << "No idea how to draw link for" << current_item_->PrettyName();
                 }
             }
         }
@@ -584,7 +584,7 @@ void MainWindow::UpdateCurrentBuyout() {
         else
             UpdateBuyoutWidgets(app_->buyout_manager().Get(*current_item_));
     } else {
-        std::string tab = current_bucket_.location().GetUniqueHash();
+        QString tab = current_bucket_.location().GetUniqueHash();
         if (!app_->buyout_manager().ExistsTab(tab))
             ResetBuyoutWidgets();
         else
@@ -610,26 +610,26 @@ MainWindow::~MainWindow() {
 
 void MainWindow::on_actionForum_shop_thread_triggered() {
     QString thread = QInputDialog::getText(this, "Shop thread", "Enter thread number", QLineEdit::Normal,
-        app_->shop().thread().c_str());
-    app_->shop().SetThread(thread.toStdString());
+        app_->shop().thread());
+    app_->shop().SetThread(thread);
     UpdateShopMenu();
 }
 
 void MainWindow::UpdateShopMenu() {
-    std::string title = "Forum shop thread...";
-    if (!app_->shop().thread().empty())
+    QString title = "Forum shop thread...";
+    if (!app_->shop().thread().isEmpty())
         title += " [" + app_->shop().thread() + "]";
-    ui->actionForum_shop_thread->setText(title.c_str());
+    ui->actionForum_shop_thread->setText(title);
     ui->actionAutomatically_update_shop->setChecked(app_->shop().auto_update());
 }
 
 void MainWindow::UpdateOnlineGui() {
     online_label_.setVisible(auto_online_.enabled());
     ui->actionAutomatically_refresh_online_status->setChecked(auto_online_.enabled());
-    std::string action_label = "control.poe.xyz.is URL...";
+    QString action_label = "control.poe.xyz.is URL...";
     if (auto_online_.IsUrlSet())
         action_label += " [******]";
-    ui->actionControl_poe_xyz_is_URL->setText(action_label.c_str());
+    ui->actionControl_poe_xyz_is_URL->setText(action_label);
 }
 
 void MainWindow::OnUpdateAvailable() {
@@ -673,9 +673,9 @@ void MainWindow::on_actionUpdate_shop_triggered() {
 void MainWindow::on_actionShop_template_triggered() {
     bool ok;
     QString text = QInputDialog::getMultiLineText(this, "Shop template", "Enter shop template. [items] will be replaced with the list of items you marked for sale.",
-        app_->shop().shop_template().c_str(), &ok);
+        app_->shop().shop_template(), &ok);
     if (ok && !text.isEmpty())
-        app_->shop().SetShopTemplate(text.toStdString());
+        app_->shop().SetShopTemplate(text);
 }
 
 void MainWindow::on_actionAutomatically_update_shop_triggered() {
@@ -688,7 +688,7 @@ void MainWindow::on_actionControl_poe_xyz_is_URL_triggered() {
         "Copy and paste your whole control.poe.xyz.is URL here",
         QLineEdit::Normal, "", &ok);
     if (ok && !url.isEmpty())
-        auto_online_.SetUrl(url.toStdString());
+        auto_online_.SetUrl(url);
     UpdateOnlineGui();
 }
 

@@ -45,7 +45,7 @@ ItemsManager::ItemsManager(Application &app) :
     shop_(app.shop()),
     app_(app)
 {
-    auto_update_interval_ = std::stoi(data_manager_.Get("autoupdate_interval", "30"));
+    auto_update_interval_ = data_manager_.Get("autoupdate_interval", "30").toInt();
     auto_update_ = data_manager_.GetBool("autoupdate", true);
     SetAutoUpdateInterval(auto_update_interval_);
     connect(auto_update_timer_.get(), SIGNAL(timeout()), this, SLOT(OnAutoRefreshTimer()));
@@ -62,7 +62,7 @@ void ItemsManager::Start() {
     connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
     connect(this, SIGNAL(UpdateSignal()), worker_.get(), SLOT(Update()));
     connect(worker_.get(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnStatusUpdate(ItemsFetchStatus)));
-    connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>)));
+    connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<QString>)), this, SLOT(OnItemsRefreshed(Items, std::vector<QString>)));
     worker_->moveToThread(thread_.get());
     thread_->start();
 }
@@ -71,7 +71,7 @@ void ItemsManager::OnStatusUpdate(const ItemsFetchStatus &status) {
     emit StatusUpdate(status);
 }
 
-void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {
+void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<QString> &tabs) {
     shop_.ExpireShopData();
     if (shop_.auto_update())
         shop_.SubmitShopToForum();
@@ -94,7 +94,7 @@ void ItemsManager::SetAutoUpdate(bool update) {
 }
 
 void ItemsManager::SetAutoUpdateInterval(int minutes) {
-    data_manager_.Set("autoupdate_interval", std::to_string(minutes));
+    data_manager_.Set("autoupdate_interval", QString::number(minutes));
     auto_update_interval_ = minutes;
     if (auto_update_)
         auto_update_timer_->start(auto_update_interval_ * 60 * 1000);

@@ -31,10 +31,10 @@
 static void FillMods(QComboBox *combobox) {
     combobox->addItem("");
     for (auto &mod : mod_list)
-        combobox->addItem(mod.c_str());
+        combobox->addItem(mod);
 }
 
-SelectedMod::SelectedMod(const std::string &name, double min, double max, bool min_filled, bool max_filled) :
+SelectedMod::SelectedMod(const QString &name, double min, double max, bool min_filled, bool max_filled) :
     data_(name, min, max, min_filled, max_filled),
     mod_select_(std::make_unique<QComboBox>()),
     min_text_(std::make_unique<QLineEdit>()),
@@ -42,7 +42,7 @@ SelectedMod::SelectedMod(const std::string &name, double min, double max, bool m
     delete_button_(std::make_unique<QPushButton>("x"))
 {
     FillMods(mod_select_.get());
-    mod_select_->setCurrentIndex(mod_select_->findText(name.c_str()));
+    mod_select_->setCurrentIndex(mod_select_->findText(name));
     if (min_filled)
         min_text_->setText(QString::number(min));
     if (max_filled)
@@ -50,7 +50,7 @@ SelectedMod::SelectedMod(const std::string &name, double min, double max, bool m
 }
 
 void SelectedMod::Update() {
-    data_.mod = mod_select_->currentText().toStdString();
+    data_.mod = mod_select_->currentText();
     data_.min = min_text_->text().toDouble();
     data_.max = max_text_->text().toDouble();
     data_.min_filled = !min_text_->text().isEmpty();
@@ -122,12 +122,12 @@ void ModsFilter::ResetForm() {
 
 bool ModsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     for (auto &mod : data->mod_data) {
-        if (mod.mod.empty())
+        if (mod.mod.isEmpty())
             continue;
         const ModTable &mod_table = item->mod_table();
-        if (!mod_table.count(mod.mod))
+        if (!mod_table.count(mod.mod.toStdString()))
             return false;
-        double value = mod_table.at(mod.mod);
+        double value = mod_table.at(mod.mod.toStdString());
         if (mod.min_filled && value < mod.min)
             return false;
         if (mod.max_filled && value > mod.max)

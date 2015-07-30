@@ -23,24 +23,24 @@
 #include <QString>
 
 namespace porting {
-std::string DefaultUserDir();
+QString DefaultUserDir();
 }
 
 #ifdef __ANDROID__
-#include <string>
+#include <QString>
 #include <sstream>
 
 // http://stackoverflow.com/a/18124627/2606891
 namespace std {
 template <typename T>
-std::string to_string(T value)
+QString to_string(T value)
 {
     std::ostringstream os ;
     os << value ;
     return os.str() ;
 }
 
-double stod(const std::string& str);
+double stod(const QString& str);
 }
 #endif
 

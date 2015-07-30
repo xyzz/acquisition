@@ -20,7 +20,7 @@
 #include "modlist.h"
 
 #include <memory>
-#include <string>
+#include <QString>
 #include <unordered_map>
 #include <vector>
 
@@ -29,12 +29,12 @@
 #include "util.h"
 
 // Actual list of mods is computed at runtime
-std::vector<std::string> mod_list;
+std::vector<QString> mod_list;
 
 // These are just summed, and the mod named as the first element of a vector is generated with value equaling the sum.
 // Both implicit and explicit fields are considered.
 // This is pretty much the same list as poe.trade uses
-const std::vector<std::vector<std::string>> simple_sum = {
+const std::vector<std::vector<QString>> simple_sum = {
     { "#% increased Block and Stun Recovery" },
     { "#% increased Mana Regeneration Rate" },
     { "#% increased Physical Damage" },
@@ -101,17 +101,17 @@ void InitModlist() {
     }
 }
 
-SumModGenerator::SumModGenerator(const std::string &name, const std::vector<std::string> &sum):
+SumModGenerator::SumModGenerator(const QString &name, const std::vector<QString> &sum):
     name_(name),
     matches_(sum)
 {}
 
-bool SumModGenerator::Match(const char *mod, double *output) {
+bool SumModGenerator::Match(const QString mod, double *output) {
     bool found = false;
     *output = 0.0;
     for (auto &match : matches_) {
         double result = 0.0;
-        if (Util::MatchMod(match.c_str(), mod, &result)) {
+        if (Util::MatchMod(match, mod, &result)) {
             *output += result;
             found = true;
         }
@@ -136,5 +136,5 @@ void SumModGenerator::Generate(const rapidjson::Value &json, ModTable *output) {
     }
 
     if (mod_present)
-        (*output)[name_] = sum;
+        (*output)[name_.toStdString()] = sum;
 }

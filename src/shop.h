@@ -20,9 +20,9 @@
 #pragma once
 
 #include <QObject>
-#include <string>
+#include <QString>
 
-extern const std::string kShopTemplateItems;
+extern const QString kShopTemplateItems;
 
 class Application;
 
@@ -30,27 +30,27 @@ class Shop : public QObject {
     Q_OBJECT
 public:
     explicit Shop(Application &app);
-    void SetThread(const std::string &thread);
+    void SetThread(const QString &thread);
     void SetAutoUpdate(bool update);
-    void SetShopTemplate(const std::string &shop_template);
+    void SetShopTemplate(const QString &shop_template);
     void Update();
     void CopyToClipboard();
     void ExpireShopData();
     void SubmitShopToForum();
     bool auto_update() const { return auto_update_; }
-    const std::string &thread() const { return thread_; }
-    const std::string &shop_data() const { return shop_data_; }
-    const std::string &shop_template() const { return shop_template_; }
+    const QString &thread() const { return thread_; }
+    const QString &shop_data() const { return shop_data_; }
+    const QString &shop_template() const { return shop_template_; }
 public slots:
     void OnEditPageFinished();
     void OnShopSubmitted();
 private:
-    std::string ShopEditUrl();
+    QString ShopEditUrl();
     Application &app_;
-    std::string thread_;
-    std::string shop_data_;
-    std::string shop_hash_;
-    std::string shop_template_;
+    QString thread_;
+    QString shop_data_;
+    QString shop_hash_;
+    QString shop_template_;
     bool shop_data_outdated_;
     bool auto_update_;
 };

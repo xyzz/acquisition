@@ -26,17 +26,17 @@
 
 void TestItem::Parse() {
     rapidjson::Document doc;
-    doc.Parse(kItem1.c_str());
+    doc.Parse(kItem1.toStdString().c_str());
 
     Item item(doc);
 
     // no need to check everything, just some basic properties
-    QCOMPARE(item.name().c_str(), "Demon Ward");
+    QCOMPARE(item.name(),QString("Demon Ward"));
     QCOMPARE(item.sockets().b, 0);
     QCOMPARE(item.sockets().g, 1);
     QCOMPARE(item.sockets().r, 0);
     QCOMPARE(item.sockets().w, 0);
 
     // the hash should be the same between different versions of Acquisition and OSes
-    QCOMPARE(item.hash().c_str(), "5f083f2f5ceb10ed720bd4c1771ed09d");
+    QCOMPARE(item.hash(), QString("5f083f2f5ceb10ed720bd4c1771ed09d"));
 }

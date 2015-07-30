@@ -20,7 +20,7 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#include <QString>
 #include <unordered_map>
 #include <vector>
 #include "rapidjson/document.h"
@@ -39,14 +39,14 @@ public:
 
 class SumModGenerator : public ModGenerator {
 public:
-    SumModGenerator(const std::string &name, const std::vector<std::string> &sum);
+    SumModGenerator(const QString &name, const std::vector<QString> &sum);
     virtual void Generate(const rapidjson::Value &json, ModTable *output);
 private:
-    bool Match(const char *mod, double *output);
+    bool Match(const QString mod, double *output);
 
-    std::string name_;
-    std::vector<std::string> matches_;
+    QString name_;
+    std::vector<QString> matches_;
 };
 
-extern std::vector<std::string> mod_list;
+extern std::vector<QString> mod_list;
 extern std::vector<std::unique_ptr<ModGenerator>> mod_generators;

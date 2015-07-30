@@ -34,10 +34,10 @@
 #include "datamanager.h"
 #include "util.h"
 
-const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-stash-items";
-const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
-const char *kGetCharactersUrl = "https://www.pathofexile.com/character-window/get-characters";
-const char *kMainPage = "https://www.pathofexile.com/";
+const char *kStashItemsUrl = "https://web.poe.garena.ru/character-window/get-stash-items";
+const char *kCharacterItemsUrl = "https://web.poe.garena.ru/character-window/get-items";
+const char *kGetCharactersUrl = "https://web.poe.garena.ru/character-window/get-characters";
+const char *kMainPage = "https://web.poe.garena.ru/";
 
 ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     data_manager_(app.data_manager()),
@@ -58,26 +58,26 @@ ItemsManagerWorker::~ItemsManagerWorker() {
 
 void ItemsManagerWorker::Init() {
     items_.clear();
-    std::string items = data_manager_.Get("items");
+    QString items = data_manager_.Get("items");
     if (items.size() != 0) {
         rapidjson::Document doc;
-        doc.Parse(items.c_str());
+        doc.Parse(items.toStdString().c_str());
         for (auto item = doc.Begin(); item != doc.End(); ++item)
             items_.push_back(std::make_shared<Item>(*item));
     }
 
     tabs_.clear();
-    std::string tabs = data_manager_.Get("tabs");
+    QString tabs = data_manager_.Get("tabs");
     if (tabs.size() != 0) {
         rapidjson::Document doc;
-        if (doc.Parse(tabs.c_str()).HasParseError()) {
-            QLOG_ERROR() << "Malformed tabs data:" << tabs.c_str() << "The error was"
+        if (doc.Parse(tabs.toStdString().c_str()).HasParseError()) {
+            QLOG_ERROR() << "Malformed tabs data:" << tabs << "The error was"
                 << rapidjson::GetParseError_En(doc.GetParseError());
             return;
         }
         for (auto &tab : doc) {
             if (!tab.HasMember("n") || !tab["n"].IsString()) {
-                QLOG_ERROR() << "Malformed tabs data:" << tabs.c_str() << "Tab doesn't contain its name (field 'n').";
+                QLOG_ERROR() << "Malformed tabs data:" << tabs << "Tab doesn't contain its name (field 'n').";
                 continue;
             }
             tabs_.push_back(tab["n"].GetString());
@@ -114,10 +114,10 @@ void ItemsManagerWorker::Update() {
 
 void ItemsManagerWorker::OnMainPageReceived() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    std::string page(reply->readAll().constData());
+    QString page(reply->readAll().constData());
 
     selected_character_ = Util::FindTextBetween(page, "activeCharacter\":{\"name\":\"", "\",\"league");
-    if (selected_character_.empty()) {
+    if (selected_character_.isEmpty()) {
         QLOG_WARN() << "Can't extract selected character name from the page";
     }
 
@@ -150,8 +150,9 @@ void ItemsManagerWorker::OnCharacterListReceived() {
             QLOG_ERROR() << "Malformed character entry, the reply is most likely invalid" << bytes.constData();
             continue;
         }
-        if (character["league"].GetString() == league_) {
-            std::string name = character["name"].GetString();
+		QString tmp = QString::fromStdString(character["league"].GetString());
+        if (QString::fromStdString(character["league"].GetString()) == league_) {
+            QString name = QString::fromStdString(character["name"].GetString());
             ItemLocation location;
             location.set_type(ItemLocationType::CHARACTER);
             location.set_character(name);
@@ -167,7 +168,7 @@ void ItemsManagerWorker::OnCharacterListReceived() {
 
 QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, bool tabs) {
     QUrlQuery query;
-    query.addQueryItem("league", league_.c_str());
+    query.addQueryItem("league", league_);
     query.addQueryItem("tabs", tabs ? "1" : "0");
     query.addQueryItem("tabIndex", QString::number(tab_index));
 
@@ -176,10 +177,10 @@ QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, bool tabs) {
     return QNetworkRequest(url);
 }
 
-QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name) {
+QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const QString &name) {
     QUrlQuery query;
-    query.addQueryItem("character", name.c_str());
-    query.addQueryItem("accountName", account_name_.c_str());
+    query.addQueryItem("character", name);
+    query.addQueryItem("accountName", account_name_);
 
     QUrl url(kCharacterItemsUrl);
     url.setQuery(query);
@@ -187,7 +188,7 @@ QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name
 }
 
 void ItemsManagerWorker::QueueRequest(const QNetworkRequest &request, const ItemLocation &location) {
-    QLOG_INFO() << "Queued" << location.GetHeader().c_str();
+    QLOG_INFO() << "Queued" << location.GetHeader();
     ItemsRequest items_request;
     items_request.network_request = request;
     items_request.id = queue_id_++;
@@ -196,7 +197,7 @@ void ItemsManagerWorker::QueueRequest(const QNetworkRequest &request, const Item
 }
 
 void ItemsManagerWorker::FetchItems(int limit) {
-    std::string tab_titles;
+    QString tab_titles;
     int count = std::min(limit, static_cast<int>(queue_.size()));
     for (int i = 0; i < count; ++i) {
         ItemsRequest request = queue_.front();
@@ -213,7 +214,7 @@ void ItemsManagerWorker::FetchItems(int limit) {
 
         tab_titles += request.location.GetHeader() + " ";
     }
-    QLOG_INFO() << "Created" << count << "requests:" << tab_titles.c_str();
+    QLOG_INFO() << "Created" << count << "requests:" << tab_titles;
     requests_needed_ = count;
     requests_completed_ = 0;
 }
@@ -241,7 +242,7 @@ void ItemsManagerWorker::OnFirstTabReceived() {
     QLOG_INFO() << "Received tabs list, there are" << doc["tabs"].Size() << "tabs";
     tabs_.clear();
     for (auto &tab : doc["tabs"]) {
-        std::string label = tab["n"].GetString();
+        QString label = tab["n"].GetString();
         tabs_.push_back(label);
         if (index > 0) {
             ItemLocation location;
@@ -289,7 +290,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     }
 
     ItemsReply reply = replies_[request_id];
-    QLOG_INFO() << "Received a reply for" << reply.request.location.GetHeader().c_str();
+    QLOG_INFO() << "Received a reply for" << reply.request.location.GetHeader();
     QByteArray bytes = reply.network_reply->readAll();
     rapidjson::Document doc;
     doc.Parse(bytes.constData());
@@ -353,7 +354,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 }
 
 void ItemsManagerWorker::PreserveSelectedCharacter() {
-    if (selected_character_.empty())
+    if (selected_character_.isEmpty())
         return;
     network_manager_.get(MakeCharacterRequest(selected_character_));
 }

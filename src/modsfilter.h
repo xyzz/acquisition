@@ -31,7 +31,7 @@
 
 class SelectedMod {
 public:
-    SelectedMod(const std::string &name, double min, double max, bool min_selected, bool max_selected);
+    SelectedMod(const QString &name, double min, double max, bool min_selected, bool max_selected);
     SelectedMod(const SelectedMod&) = delete;
     SelectedMod& operator=(const SelectedMod&) = delete;
     SelectedMod(SelectedMod&& o) : 

@@ -1,22 +1,16 @@
-// Copyright (C) 2011 Milo Yip
+// Tencent is pleased to support the open source community by making RapidJSON available.
+// 
+// Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip. All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Licensed under the MIT License (the "License"); you may not use this file except
+// in compliance with the License. You may obtain a copy of the License at
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// http://opensource.org/licenses/MIT
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Unless required by applicable law or agreed to in writing, software distributed 
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// specific language governing permissions and limitations under the License.
 
 #ifndef RAPIDJSON_READER_H_
 #define RAPIDJSON_READER_H_
@@ -26,8 +20,8 @@
 #include "rapidjson.h"
 #include "encodings.h"
 #include "internal/meta.h"
-#include "internal/pow10.h"
 #include "internal/stack.h"
+#include "internal/strtod.h"
 
 #if defined(RAPIDJSON_SIMD) && defined(_MSC_VER)
 #include <intrin.h>
@@ -43,6 +37,11 @@
 RAPIDJSON_DIAG_PUSH
 RAPIDJSON_DIAG_OFF(4127)  // conditional expression is constant
 RAPIDJSON_DIAG_OFF(4702)  // unreachable code
+#endif
+
+#ifdef __GNUC__
+RAPIDJSON_DIAG_PUSH
+RAPIDJSON_DIAG_OFF(effc++)
 #endif
 
 //!@cond RAPIDJSON_HIDDEN_FROM_DOXYGEN
@@ -121,15 +120,27 @@ RAPIDJSON_NAMESPACE_BEGIN
 ///////////////////////////////////////////////////////////////////////////////
 // ParseFlag
 
+/*! \def RAPIDJSON_PARSE_DEFAULT_FLAGS 
+    \ingroup RAPIDJSON_CONFIG
+    \brief User-defined kParseDefaultFlags definition.
+
+    User can define this as any \c ParseFlag combinations.
+*/
+#ifndef RAPIDJSON_PARSE_DEFAULT_FLAGS
+#define RAPIDJSON_PARSE_DEFAULT_FLAGS kParseNoFlags
+#endif
+
 //! Combination of parseFlags
 /*! \see Reader::Parse, Document::Parse, Document::ParseInsitu, Document::ParseStream
  */
 enum ParseFlag {
-    kParseDefaultFlags = 0,         //!< Default parse flags. Non-destructive parsing. Text strings are decoded into allocated buffer.
+    kParseNoFlags = 0,              //!< No flags are set.
     kParseInsituFlag = 1,           //!< In-situ(destructive) parsing.
     kParseValidateEncodingFlag = 2, //!< Validate encoding of JSON strings.
     kParseIterativeFlag = 4,        //!< Iterative(constant complexity in terms of function call stack size) parsing.
-    kParseStopWhenDoneFlag = 8      //!< After parsing a complete JSON root from stream, stop further processing the rest of stream. When this flag is used, parser will not generate kParseErrorDocumentRootNotSingular error.
+    kParseStopWhenDoneFlag = 8,     //!< After parsing a complete JSON root from stream, stop further processing the rest of stream. When this flag is used, parser will not generate kParseErrorDocumentRootNotSingular error.
+    kParseFullPrecisionFlag = 16,   //!< Parse number in full precision (but slower).
+    kParseDefaultFlags = RAPIDJSON_PARSE_DEFAULT_FLAGS  //!< Default parse flags. Can be customized by defining RAPIDJSON_PARSE_DEFAULT_FLAGS
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -244,23 +255,23 @@ void SkipWhitespace(InputStream& is) {
 #ifdef RAPIDJSON_SSE42
 //! Skip whitespace with SSE 4.2 pcmpistrm instruction, testing 16 8-byte characters at once.
 inline const char *SkipWhitespace_SIMD(const char* p) {
-	// Fast return for single non-whitespace
-	if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
-		++p;
-	else
-		return p;
+    // Fast return for single non-whitespace
+    if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
+        ++p;
+    else
+        return p;
 
-	// 16-byte align to the next boundary
-	const char* nextAligned = reinterpret_cast<const char*>((reinterpret_cast<size_t>(p) + 15) & ~15);
-	while (p != nextAligned)
-		if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
-			++p;
-		else
-			return p;
+    // 16-byte align to the next boundary
+    const char* nextAligned = reinterpret_cast<const char*>((reinterpret_cast<size_t>(p) + 15) & ~15);
+    while (p != nextAligned)
+        if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
+            ++p;
+        else
+            return p;
 
     // The rest of string using SIMD
-	static const char whitespace[16] = " \n\r\t";
-	const __m128i w = _mm_loadu_si128((const __m128i *)&whitespace[0]);
+    static const char whitespace[16] = " \n\r\t";
+    const __m128i w = _mm_loadu_si128((const __m128i *)&whitespace[0]);
 
     for (;; p += 16) {
         const __m128i s = _mm_load_si128((const __m128i *)p);
@@ -281,31 +292,31 @@ inline const char *SkipWhitespace_SIMD(const char* p) {
 
 //! Skip whitespace with SSE2 instructions, testing 16 8-byte characters at once.
 inline const char *SkipWhitespace_SIMD(const char* p) {
-	// Fast return for single non-whitespace
-	if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
-		++p;
-	else
-		return p;
+    // Fast return for single non-whitespace
+    if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
+        ++p;
+    else
+        return p;
 
     // 16-byte align to the next boundary
-	const char* nextAligned = reinterpret_cast<const char*>((reinterpret_cast<size_t>(p) + 15) & ~15);
-	while (p != nextAligned)
-		if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
-			++p;
-		else
-			return p;
+    const char* nextAligned = reinterpret_cast<const char*>((reinterpret_cast<size_t>(p) + 15) & ~15);
+    while (p != nextAligned)
+        if (*p == ' ' || *p == '\n' || *p == '\r' || *p == '\t')
+            ++p;
+        else
+            return p;
 
     // The rest of string
-	static const char whitespaces[4][17] = {
-		"                ",
-		"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
-		"\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r",
-		"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"};
+    static const char whitespaces[4][17] = {
+        "                ",
+        "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r",
+        "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"};
 
-		const __m128i w0 = _mm_loadu_si128((const __m128i *)&whitespaces[0][0]);
-		const __m128i w1 = _mm_loadu_si128((const __m128i *)&whitespaces[1][0]);
-		const __m128i w2 = _mm_loadu_si128((const __m128i *)&whitespaces[2][0]);
-		const __m128i w3 = _mm_loadu_si128((const __m128i *)&whitespaces[3][0]);
+        const __m128i w0 = _mm_loadu_si128((const __m128i *)&whitespaces[0][0]);
+        const __m128i w1 = _mm_loadu_si128((const __m128i *)&whitespaces[1][0]);
+        const __m128i w2 = _mm_loadu_si128((const __m128i *)&whitespaces[2][0]);
+        const __m128i w3 = _mm_loadu_si128((const __m128i *)&whitespaces[3][0]);
 
     for (;; p += 16) {
         const __m128i s = _mm_load_si128((const __m128i *)p);
@@ -365,7 +376,7 @@ public:
     typedef typename SourceEncoding::Ch Ch; //!< SourceEncoding character type
 
     //! Constructor.
-    /*! \param allocator Optional allocator for allocating stack memory. (Only use for non-destructive parsing)
+    /*! \param stackAllocator Optional allocator for allocating stack memory. (Only use for non-destructive parsing)
         \param stackCapacity stack capacity in bytes for storing a single decoded string.  (Only use for non-destructive parsing)
     */
     GenericReader(StackAllocator* stackAllocator = 0, size_t stackCapacity = kDefaultStackCapacity) : stack_(stackAllocator, stackCapacity), parseResult_() {}
@@ -495,8 +506,7 @@ private:
                 case '}': 
                     if (!handler.EndObject(memberCount))
                         RAPIDJSON_PARSE_ERROR(kParseErrorTermination, is.Tell());
-                    else
-                        return;
+                    return;
                 default:  RAPIDJSON_PARSE_ERROR(kParseErrorObjectMissCommaOrCurlyBracket, is.Tell());
             }
         }
@@ -532,8 +542,7 @@ private:
                 case ']': 
                     if (!handler.EndArray(elementCount))
                         RAPIDJSON_PARSE_ERROR(kParseErrorTermination, is.Tell());
-                    else
-                        return;
+                    return;
                 default:  RAPIDJSON_PARSE_ERROR(kParseErrorArrayMissCommaOrSquareBracket, is.Tell());
             }
         }
@@ -600,21 +609,27 @@ private:
         return codepoint;
     }
 
+    template <typename CharType>
     class StackStream {
     public:
-        typedef typename TargetEncoding::Ch Ch;
+        typedef CharType Ch;
 
         StackStream(internal::Stack<StackAllocator>& stack) : stack_(stack), length_(0) {}
         RAPIDJSON_FORCEINLINE void Put(Ch c) {
             *stack_.template Push<Ch>() = c;
             ++length_;
         }
-        internal::Stack<StackAllocator>& stack_;
-        SizeType length_;
+        size_t Length() const { return length_; }
+        Ch* Pop() {
+            return stack_.template Pop<Ch>(length_);
+        }
 
     private:
         StackStream(const StackStream&);
         StackStream& operator=(const StackStream&);
+
+        internal::Stack<StackAllocator>& stack_;
+        SizeType length_;
     };
 
     // Parse string and generate String event. Different code paths for kParseInsituFlag.
@@ -634,11 +649,12 @@ private:
             success = (isKey ? handler.Key(str, SizeType(length), false) : handler.String(str, SizeType(length), false));
         }
         else {
-            StackStream stackStream(stack_);
+            StackStream<typename TargetEncoding::Ch> stackStream(stack_);
             ParseStringToStream<parseFlags, SourceEncoding, TargetEncoding>(s, stackStream);
             RAPIDJSON_PARSE_ERROR_EARLY_RETURN_VOID;
-            const typename TargetEncoding::Ch* const str = stack_.template Pop<typename TargetEncoding::Ch>(stackStream.length_);
-            success = (isKey ? handler.Key(str, stackStream.length_ - 1, true) : handler.String(str, stackStream.length_ - 1, true));
+            SizeType length = static_cast<SizeType>(stackStream.Length()) - 1;
+            const typename TargetEncoding::Ch* const str = stackStream.Pop();
+            success = (isKey ? handler.Key(str, length, true) : handler.String(str, length, true));
         }
         if (!success)
             RAPIDJSON_PARSE_ERROR(kParseErrorTermination, s.Tell());
@@ -673,11 +689,13 @@ private:
                 }
                 else if (e == 'u') {    // Unicode
                     unsigned codepoint = ParseHex4(is);
+                    RAPIDJSON_PARSE_ERROR_EARLY_RETURN_VOID;
                     if (codepoint >= 0xD800 && codepoint <= 0xDBFF) {
                         // Handle UTF-16 surrogate pair
                         if (is.Take() != '\\' || is.Take() != 'u')
                             RAPIDJSON_PARSE_ERROR(kParseErrorStringUnicodeSurrogateInvalid, is.Tell() - 2);
                         unsigned codepoint2 = ParseHex4(is);
+                        RAPIDJSON_PARSE_ERROR_EARLY_RETURN_VOID;
                         if (codepoint2 < 0xDC00 || codepoint2 > 0xDFFF)
                             RAPIDJSON_PARSE_ERROR(kParseErrorStringUnicodeSurrogateInvalid, is.Tell() - 2);
                         codepoint = (((codepoint - 0xD800) << 10) | (codepoint2 - 0xDC00)) + 0x10000;
@@ -705,22 +723,55 @@ private:
         }
     }
 
-    inline double StrtodFastPath(double significand, int exp) {
-        // Fast path only works on limited range of values.
-        // But for simplicity and performance, currently only implement this.
-        // see http://www.exploringbinary.com/fast-path-decimal-to-floating-point-conversion/
-        if (exp < -308)
-            return 0.0;
-        else if (exp >= 0)
-            return significand * internal::Pow10(exp);
-        else
-            return significand / internal::Pow10(-exp);
-    }
+    template<typename InputStream, bool backup>
+    class NumberStream;
+
+    template<typename InputStream>
+    class NumberStream<InputStream, false> {
+    public:
+        NumberStream(GenericReader& reader, InputStream& s) : is(s) { (void)reader;  }
+        ~NumberStream() {}
+
+        RAPIDJSON_FORCEINLINE Ch Peek() const { return is.Peek(); }
+        RAPIDJSON_FORCEINLINE Ch TakePush() { return is.Take(); }
+        RAPIDJSON_FORCEINLINE Ch Take() { return is.Take(); }
+        size_t Tell() { return is.Tell(); }
+        size_t Length() { return 0; }
+        const char* Pop() { return 0; }
+
+    protected:
+        NumberStream& operator=(const NumberStream&);
+
+        InputStream& is;
+    };
+
+    template<typename InputStream>
+    class NumberStream<InputStream, true> : public NumberStream<InputStream, false> {
+        typedef NumberStream<InputStream, false> Base;
+    public:
+        NumberStream(GenericReader& reader, InputStream& is) : NumberStream<InputStream, false>(reader, is), stackStream(reader.stack_) {}
+        ~NumberStream() {}
+
+        RAPIDJSON_FORCEINLINE Ch TakePush() {
+            stackStream.Put((char)Base::is.Peek());
+            return Base::is.Take();
+        }
+
+        size_t Length() { return stackStream.Length(); }
+
+        const char* Pop() {
+            stackStream.Put('\0');
+            return stackStream.Pop();
+        }
+
+    private:
+        StackStream<char> stackStream;
+    };
 
     template<unsigned parseFlags, typename InputStream, typename Handler>
     void ParseNumber(InputStream& is, Handler& handler) {
         internal::StreamLocalCopy<InputStream> copy(is);
-        InputStream& s(copy.s);
+        NumberStream<InputStream, (parseFlags & kParseFullPrecisionFlag) != 0> s(*this, copy.s);
 
         // Parse minus
         bool minus = false;
@@ -733,12 +784,13 @@ private:
         unsigned i = 0;
         uint64_t i64 = 0;
         bool use64bit = false;
+        int significandDigit = 0;
         if (s.Peek() == '0') {
             i = 0;
-            s.Take();
+            s.TakePush();
         }
         else if (s.Peek() >= '1' && s.Peek() <= '9') {
-            i = static_cast<unsigned>(s.Take() - '0');
+            i = static_cast<unsigned>(s.TakePush() - '0');
 
             if (minus)
                 while (s.Peek() >= '0' && s.Peek() <= '9') {
@@ -749,7 +801,8 @@ private:
                             break;
                         }
                     }
-                    i = i * 10 + static_cast<unsigned>(s.Take() - '0');
+                    i = i * 10 + static_cast<unsigned>(s.TakePush() - '0');
+                    significandDigit++;
                 }
             else
                 while (s.Peek() >= '0' && s.Peek() <= '9') {
@@ -760,35 +813,38 @@ private:
                             break;
                         }
                     }
-                    i = i * 10 + static_cast<unsigned>(s.Take() - '0');
+                    i = i * 10 + static_cast<unsigned>(s.TakePush() - '0');
+                    significandDigit++;
                 }
         }
         else
             RAPIDJSON_PARSE_ERROR(kParseErrorValueInvalid, s.Tell());
 
         // Parse 64bit int
-        double d = 0.0;
         bool useDouble = false;
+        double d = 0.0;
         if (use64bit) {
             if (minus) 
                 while (s.Peek() >= '0' && s.Peek() <= '9') {                    
                      if (i64 >= RAPIDJSON_UINT64_C2(0x0CCCCCCC, 0xCCCCCCCC)) // 2^63 = 9223372036854775808
                         if (i64 != RAPIDJSON_UINT64_C2(0x0CCCCCCC, 0xCCCCCCCC) || s.Peek() > '8') {
-                            d = (double)i64;
+                            d = i64;
                             useDouble = true;
                             break;
                         }
-                    i64 = i64 * 10 + static_cast<unsigned>(s.Take() - '0');
+                    i64 = i64 * 10 + static_cast<unsigned>(s.TakePush() - '0');
+                    significandDigit++;
                 }
             else
                 while (s.Peek() >= '0' && s.Peek() <= '9') {                    
                     if (i64 >= RAPIDJSON_UINT64_C2(0x19999999, 0x99999999)) // 2^64 - 1 = 18446744073709551615
                         if (i64 != RAPIDJSON_UINT64_C2(0x19999999, 0x99999999) || s.Peek() > '5') {
-                            d = (double)i64;
+                            d = i64;
                             useDouble = true;
                             break;
                         }
-                    i64 = i64 * 10 + static_cast<unsigned>(s.Take() - '0');
+                    i64 = i64 * 10 + static_cast<unsigned>(s.TakePush() - '0');
+                    significandDigit++;
                 }
         }
 
@@ -797,53 +853,64 @@ private:
             while (s.Peek() >= '0' && s.Peek() <= '9') {
                 if (d >= 1.7976931348623157e307) // DBL_MAX / 10.0
                     RAPIDJSON_PARSE_ERROR(kParseErrorNumberTooBig, s.Tell());
-                d = d * 10 + (s.Take() - '0');
+                d = d * 10 + (s.TakePush() - '0');
             }
         }
 
         // Parse frac = decimal-point 1*DIGIT
         int expFrac = 0;
+        size_t decimalPosition;
         if (s.Peek() == '.') {
             s.Take();
+            decimalPosition = s.Length();
 
-#if RAPIDJSON_64BIT
-            // Use i64 to store significand in 64-bit architecture
+            if (!(s.Peek() >= '0' && s.Peek() <= '9'))
+                RAPIDJSON_PARSE_ERROR(kParseErrorNumberMissFraction, s.Tell());
+
             if (!useDouble) {
+#if RAPIDJSON_64BIT
+                // Use i64 to store significand in 64-bit architecture
                 if (!use64bit)
                     i64 = i;
         
                 while (s.Peek() >= '0' && s.Peek() <= '9') {
-                    if (i64 >= RAPIDJSON_UINT64_C2(0x19999999, 0x99999999))
+                    if (i64 > RAPIDJSON_UINT64_C2(0x1FFFFF, 0xFFFFFFFF)) // 2^53 - 1 for fast path
                         break;
                     else {
-                        i64 = i64 * 10 + static_cast<unsigned>(s.Take() - '0');
+                        i64 = i64 * 10 + static_cast<unsigned>(s.TakePush() - '0');
                         --expFrac;
+                        if (i64 != 0)
+                            significandDigit++;
                     }
                 }
 
                 d = (double)i64;
-            }
 #else
-            // Use double to store significand in 32-bit architecture
-            if (!useDouble)
+                // Use double to store significand in 32-bit architecture
                 d = use64bit ? (double)i64 : (double)i;
 #endif
-            useDouble = true;
-
-            while (s.Peek() >= '0' && s.Peek() <= '9') {
-                d = d * 10 + (s.Take() - '0');
-                --expFrac;
+                useDouble = true;
             }
 
-            if (expFrac == 0)
-                RAPIDJSON_PARSE_ERROR(kParseErrorNumberMissFraction, s.Tell());
+            while (s.Peek() >= '0' && s.Peek() <= '9') {
+                if (significandDigit < 17) {
+                    d = d * 10.0 + (s.TakePush() - '0');
+                    --expFrac;
+                    if (d > 0.0)
+                        significandDigit++;
+                }
+                else
+                    s.TakePush();
+            }
         }
+        else
+            decimalPosition = s.Length(); // decimal position at the end of integer.
 
         // Parse exp = e [ minus / plus ] 1*DIGIT
         int exp = 0;
         if (s.Peek() == 'e' || s.Peek() == 'E') {
             if (!useDouble) {
-                d = use64bit ? (double)i64 : (double)i;
+                d = use64bit ? i64 : i;
                 useDouble = true;
             }
             s.Take();
@@ -858,10 +925,22 @@ private:
 
             if (s.Peek() >= '0' && s.Peek() <= '9') {
                 exp = s.Take() - '0';
-                while (s.Peek() >= '0' && s.Peek() <= '9') {
-                    exp = exp * 10 + (s.Take() - '0');
-                    if (exp > 308 && !expMinus) // exp > 308 should be rare, so it should be checked first.
-                        RAPIDJSON_PARSE_ERROR(kParseErrorNumberTooBig, s.Tell());
+                if (expMinus) {
+                    while (s.Peek() >= '0' && s.Peek() <= '9') {
+                        exp = exp * 10 + (s.Take() - '0');
+                        if (exp >= 214748364) {                         // Issue #313: prevent overflow exponent
+                            while (s.Peek() >= '0' && s.Peek() <= '9')  // Consume the rest of exponent
+                                s.Take();
+                        }
+                    }
+                }
+                else {  // positive exp
+                    int maxExp = 308 - expFrac;
+                    while (s.Peek() >= '0' && s.Peek() <= '9') {
+                        exp = exp * 10 + (s.Take() - '0');
+                        if (exp > maxExp)
+                            RAPIDJSON_PARSE_ERROR(kParseErrorNumberTooBig, s.Tell());
+                    }
                 }
             }
             else
@@ -873,28 +952,28 @@ private:
 
         // Finish parsing, call event according to the type of number.
         bool cont = true;
+        size_t length = s.Length();
+        const char* decimal = s.Pop();  // Pop stack no matter if it will be used or not.
+
         if (useDouble) {
-            int expSum = exp + expFrac;
-            if (expSum < -308) {
-                // Prevent expSum < -308, making Pow10(expSum) = 0
-                d = StrtodFastPath(d, exp);
-                d = StrtodFastPath(d, expFrac);
-            }
+            int p = exp + expFrac;
+            if (parseFlags & kParseFullPrecisionFlag)
+                d = internal::StrtodFullPrecision(d, p, decimal, length, decimalPosition, exp);
             else
-                d = StrtodFastPath(d, expSum);
+                d = internal::StrtodNormalPrecision(d, p);
 
             cont = handler.Double(minus ? -d : d);
         }
         else {
             if (use64bit) {
                 if (minus)
-                    cont = handler.Int64(-(int64_t)i64);
+                    cont = handler.Int64(static_cast<int64_t>(~i64 + 1));
                 else
                     cont = handler.Uint64(i64);
             }
             else {
                 if (minus)
-                    cont = handler.Int(-(int)i);
+                    cont = handler.Int(static_cast<int32_t>(~i + 1));
                 else
                     cont = handler.Uint(i);
             }
@@ -1160,14 +1239,9 @@ private:
     // May return a new state on state pop.
     template <unsigned parseFlags, typename InputStream, typename Handler>
     RAPIDJSON_FORCEINLINE IterativeParsingState Transit(IterativeParsingState src, Token token, IterativeParsingState dst, InputStream& is, Handler& handler) {
+        (void)token;
+
         switch (dst) {
-        case IterativeParsingStartState:
-            RAPIDJSON_ASSERT(false);
-            return IterativeParsingErrorState;
-
-        case IterativeParsingFinishState:
-            return dst;
-
         case IterativeParsingErrorState:
             return dst;
 
@@ -1206,12 +1280,9 @@ private:
                 return dst;
 
         case IterativeParsingKeyValueDelimiterState:
-            if (token == ColonToken) {
-                is.Take();
-                return dst;
-            }
-            else
-                return IterativeParsingErrorState;
+            RAPIDJSON_ASSERT(token == ColonToken);
+            is.Take();
+            return dst;
 
         case IterativeParsingMemberValueState:
             // Must be non-compound value. Or it would be ObjectInitial or ArrayInitial state.
@@ -1286,17 +1357,25 @@ private:
             }
         }
 
-        case IterativeParsingValueState:
+        default:
+            // This branch is for IterativeParsingValueState actually.
+            // Use `default:` rather than
+            // `case IterativeParsingValueState:` is for code coverage.
+
+            // The IterativeParsingStartState is not enumerated in this switch-case.
+            // It is impossible for that case. And it can be caught by following assertion.
+
+            // The IterativeParsingFinishState is not enumerated in this switch-case either.
+            // It is a "derivative" state which cannot triggered from Predict() directly.
+            // Therefore it cannot happen here. And it can be caught by following assertion.
+            RAPIDJSON_ASSERT(dst == IterativeParsingValueState);
+
             // Must be non-compound value. Or it would be ObjectInitial or ArrayInitial state.
             ParseValue<parseFlags>(is, handler);
             if (HasParseError()) {
                 return IterativeParsingErrorState;
             }
             return IterativeParsingFinishState;
-
-        default:
-            RAPIDJSON_ASSERT(false);
-            return IterativeParsingErrorState;
         }
     }
 
@@ -1308,13 +1387,13 @@ private:
         }
         
         switch (src) {
-        case IterativeParsingStartState:            RAPIDJSON_PARSE_ERROR(kParseErrorDocumentEmpty, is.Tell());
-        case IterativeParsingFinishState:           RAPIDJSON_PARSE_ERROR(kParseErrorDocumentRootNotSingular, is.Tell());
+        case IterativeParsingStartState:            RAPIDJSON_PARSE_ERROR(kParseErrorDocumentEmpty, is.Tell()); return;
+        case IterativeParsingFinishState:           RAPIDJSON_PARSE_ERROR(kParseErrorDocumentRootNotSingular, is.Tell()); return;
         case IterativeParsingObjectInitialState:
-        case IterativeParsingMemberDelimiterState:  RAPIDJSON_PARSE_ERROR(kParseErrorObjectMissName, is.Tell());
-        case IterativeParsingMemberKeyState:        RAPIDJSON_PARSE_ERROR(kParseErrorObjectMissColon, is.Tell());
-        case IterativeParsingMemberValueState:      RAPIDJSON_PARSE_ERROR(kParseErrorObjectMissCommaOrCurlyBracket, is.Tell());
-        case IterativeParsingElementState:          RAPIDJSON_PARSE_ERROR(kParseErrorArrayMissCommaOrSquareBracket, is.Tell());
+        case IterativeParsingMemberDelimiterState:  RAPIDJSON_PARSE_ERROR(kParseErrorObjectMissName, is.Tell()); return;
+        case IterativeParsingMemberKeyState:        RAPIDJSON_PARSE_ERROR(kParseErrorObjectMissColon, is.Tell()); return;
+        case IterativeParsingMemberValueState:      RAPIDJSON_PARSE_ERROR(kParseErrorObjectMissCommaOrCurlyBracket, is.Tell()); return;
+        case IterativeParsingElementState:          RAPIDJSON_PARSE_ERROR(kParseErrorArrayMissCommaOrSquareBracket, is.Tell()); return;
         default:                                    RAPIDJSON_PARSE_ERROR(kParseErrorUnspecificSyntaxError, is.Tell());
         }       
     }
@@ -1361,6 +1440,10 @@ private:
 typedef GenericReader<UTF8<>, UTF8<> > Reader;
 
 RAPIDJSON_NAMESPACE_END
+
+#ifdef __GNUC__
+RAPIDJSON_DIAG_POP
+#endif
 
 #ifdef _MSC_VER
 RAPIDJSON_DIAG_POP

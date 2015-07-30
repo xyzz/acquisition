@@ -71,7 +71,7 @@ int ItemsModel::columnCount(const QModelIndex &parent) const {
 
 QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, int role) const {
     if (role == Qt::DisplayRole)
-        return QString(search_.columns()[section]->name().c_str());
+        return QString(search_.columns()[section]->name());
     return QVariant();
 }
 
@@ -80,9 +80,9 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     if (index.internalId() == 0) {
         if (role == Qt::DisplayRole && index.column() == 0) {
             const ItemLocation &location = search_.buckets()[index.row()]->location();
-            QString title(location.GetHeader().c_str());
+            QString title(location.GetHeader());
             if (bo_manager_.ExistsTab(location.GetUniqueHash()))
-                title += QString(" [%1]").arg(Util::BuyoutAsText(bo_manager_.GetTab(location.GetUniqueHash())).c_str());
+                title += QString(" [%1]").arg(Util::BuyoutAsText(bo_manager_.GetTab(location.GetUniqueHash())));
             return title;
         }
         return QVariant();
@@ -90,7 +90,7 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     auto &column = search_.columns()[index.column()];
     const Item &item = *search_.buckets()[index.parent().row()]->items()[index.row()];
     if (role == Qt::DisplayRole)
-        return QString(column->value(item).c_str());
+        return QString(column->value(item));
     else if (role == Qt::ForegroundRole)
         return column->color(item);
     return QVariant();
