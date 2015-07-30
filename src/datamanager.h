@@ -19,21 +19,23 @@
 
 #pragma once
 
-#include "sqlite/sqlite3.h"
-#include <string>
+#include <QString>
+#include <QString>
+#include <QtSql/QtSql>
 
 class Application;
 
 class DataManager {
 public:
-    DataManager(const std::string &filename_);
+    DataManager(const QString &filename_, const QString &connectionName);
     ~DataManager();
-    void Set(const std::string &key, const std::string &value);
-    std::string Get(const std::string &key, const std::string &default_value = "");
-    void SetBool(const std::string &key, bool value);
-    bool GetBool(const std::string &key, bool default_value = false);
-    static std::string MakeFilename(const std::string &name, const std::string &league);
+    void Set(const QString &key, const QString &value);
+    QString Get(const QString &key, const QString &default_value = "");
+    void SetBool(const QString &key, bool value);
+    bool GetBool(const QString &key, bool default_value = false);
+    static QString MakeFilename(const QString &name, const QString &league);
 private:
-    std::string filename_;
-    sqlite3 *db_;
+	QString filename_;
+	QString connectionName_;
+	QSqlDatabase db_;
 };

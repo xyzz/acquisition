@@ -21,6 +21,7 @@
 
 #include <QNetworkAccessManager>
 #include <QObject>
+#include <QString>
 
 #include "item.h"
 
@@ -39,24 +40,24 @@ public:
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
     // Should be called by login dialog after login
-    void InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager, const std::string &league, const std::string &email);
-    const std::string &league() const { return league_; }
-    const std::string &email() const { return email_; }
+    void InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager, const QString &league, const QString &email);
+    const QString &league() const { return league_; }
+    const QString &email() const { return email_; }
     const Items &items() const { return items_; }
     ItemsManager &items_manager() { return *items_manager_; }
     DataManager &data_manager() const { return *data_manager_; }
     DataManager &sensitive_data_manager() const { return *sensitive_data_manager_; }
     BuyoutManager &buyout_manager() const { return *buyout_manager_; }
     QNetworkAccessManager &logged_in_nm() const { return *logged_in_nm_; }
-    const std::vector<std::string> &tabs() const { return tabs_; }
+    const std::vector<QString> &tabs() const { return tabs_; }
     Shop &shop() const { return *shop_; }
 public slots:
-    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
+    void OnItemsRefreshed(const Items &items, const std::vector<QString> &tabs);
 private:
     Items items_;
-    std::vector<std::string> tabs_;
-    std::string league_;
-    std::string email_;
+    std::vector<QString> tabs_;
+	QString league_;
+    QString email_;
     std::unique_ptr<DataManager> data_manager_;
     // stores sensitive data that you'd rather not share, like control.poe.xyz.is secret URL
     std::unique_ptr<DataManager> sensitive_data_manager_;

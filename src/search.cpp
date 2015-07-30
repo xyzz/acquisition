@@ -29,7 +29,7 @@
 #include "filters.h"
 #include "porting.h"
 
-Search::Search(const BuyoutManager &bo_manager, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters) :
+Search::Search(const BuyoutManager &bo_manager, const QString &caption, const std::vector<std::unique_ptr<Filter>> &filters) :
     caption_(caption),
     model_(std::make_unique<ItemsModel>(bo_manager, *this))
 {
@@ -104,7 +104,7 @@ void Search::FilterItems(const Items &items) {
 }
 
 QString Search::GetCaption() {
-    return QString("%1 [%2]").arg(caption_.c_str()).arg(GetItemsCount());
+    return QString("%1 [%2]").arg(caption_).arg(GetItemsCount());
 }
 
 int Search::GetItemsCount() {

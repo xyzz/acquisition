@@ -27,27 +27,27 @@
 #include "mainwindow.h"
 #include "util.h"
 
-ImageCache::ImageCache(const std::string &directory):
+ImageCache::ImageCache(const QString &directory):
     directory_(directory)
 {
-    if (!QDir(directory_.c_str()).exists())
-        QDir().mkpath(directory_.c_str());
+    if (!QDir(directory_).exists())
+        QDir().mkpath(directory_);
 }
 
-bool ImageCache::Exists(const std::string &url) {
-    std::string path = GetPath(url);
-    QFile file(QString(path.c_str()));
+bool ImageCache::Exists(const QString &url) {
+    QString path = GetPath(url);
+    QFile file(path);
     return file.exists();
 }
 
-QImage ImageCache::Get(const std::string &url) {
-    return QImage(QString(GetPath(url).c_str()));
+QImage ImageCache::Get(const QString &url) {
+    return QImage(GetPath(url));
 }
 
-void ImageCache::Set(const std::string &url, const QImage &image) {
-    image.save(QString(GetPath(url).c_str()));
+void ImageCache::Set(const QString &url, const QImage &image) {
+    image.save(GetPath(url));
 }
 
-std::string ImageCache::GetPath(const std::string &url) {
+QString ImageCache::GetPath(const QString &url) {
     return directory_ + "/" + Util::Md5(url) + ".png";
 }

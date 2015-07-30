@@ -48,10 +48,10 @@ void ItemLocation::ToItemJson(rapidjson::Value *root_ptr, rapidjson_allocator &a
     root.AddMember("_type", static_cast<int>(type_), alloc);
     if (type_ == ItemLocationType::STASH) {
         root.AddMember("_tab", tab_id_, alloc);
-        string_val.SetString(tab_label_.c_str(), alloc);
+        string_val.SetString(tab_label_.toStdString().c_str(), alloc);
         root.AddMember("_tab_label", string_val, alloc);
     } else {
-        string_val.SetString(character_.c_str(), alloc);
+        string_val.SetString(character_.toStdString().c_str(), alloc);
         root.AddMember("_character", string_val, alloc);
     }
     if (socketed_) {
@@ -61,10 +61,10 @@ void ItemLocation::ToItemJson(rapidjson::Value *root_ptr, rapidjson_allocator &a
     root.AddMember("_socketed", socketed_, alloc);
 }
 
-std::string ItemLocation::GetHeader() const {
+QString ItemLocation::GetHeader() const {
     if (type_ == ItemLocationType::STASH) {
         QString format("#%1, \"%2\"");
-        return format.arg(tab_id_ + 1).arg(tab_label_.c_str()).toStdString();
+        return format.arg(tab_id_ + 1).arg(tab_label_);
     } else {
         return character_;
     }
@@ -79,17 +79,17 @@ QRectF ItemLocation::GetRect() const {
     return result;
 }
 
-std::string ItemLocation::GetForumCode(const std::string &league) const {
+QString ItemLocation::GetForumCode(const QString &league) const {
     if (type_ == ItemLocationType::STASH) {
         QString format("[linkItem location=\"Stash%1\" league=\"%2\" x=\"%3\" y=\"%4\"]");
-        return format.arg(QString::number(tab_id_ + 1), league.c_str(), QString::number(x_), QString::number(y_)).toStdString();
+        return format.arg(QString::number(tab_id_ + 1), league, QString::number(x_), QString::number(y_));
     } else {
         QString format("[linkItem location=\"%1\" character=\"%2\" x=\"%3\" y=\"%4\"]");
-        return format.arg(inventory_id_.c_str(), character_.c_str(), QString::number(x_), QString::number(y_)).toStdString();
+        return format.arg(inventory_id_, character_, QString::number(x_), QString::number(y_));
     }
 }
 
-std::string ItemLocation::GetUniqueHash() const {
+QString ItemLocation::GetUniqueHash() const {
     if (type_ == ItemLocationType::STASH)
         return "stash:" + tab_label_;
     else

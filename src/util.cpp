@@ -33,16 +33,16 @@
 #include "buyoutmanager.h"
 #include "porting.h"
 
-std::string Util::Md5(const std::string &value) {
-    QString hash = QString(QCryptographicHash::hash(value.c_str(), QCryptographicHash::Md5).toHex());
+QString Util::Md5(const QString &value) {
+    QString hash = QString(QCryptographicHash::hash(value.toUtf8(), QCryptographicHash::Md5).toHex());
     return hash.toUtf8().constData();
 }
 
-double Util::AverageDamage(const std::string &s) {
-    size_t x = s.find("-");
-    if (x == std::string::npos)
+double Util::AverageDamage(const QString &s) {
+    size_t x = s.indexOf("-");
+    if (x == -1)
         return 0;
-    return (std::stod(s.substr(0, x)) + std::stod(s.substr(x + 1))) / 2;
+    return (s.mid(0, x).toDouble() + s.mid(x + 1).toDouble() ) / 2;
 }
 
 void Util::PopulateBuyoutTypeComboBox(QComboBox *combobox) {
@@ -51,18 +51,18 @@ void Util::PopulateBuyoutTypeComboBox(QComboBox *combobox) {
 
 void Util::PopulateBuyoutCurrencyComboBox(QComboBox *combobox) {
     for (auto &currency : CurrencyAsString)
-        combobox->addItem(QString(currency.c_str()));
+        combobox->addItem(currency);
 }
 
-int Util::TagAsBuyoutType(const std::string &tag) {
+int Util::TagAsBuyoutType(const QString &tag) {
     return std::find(BuyoutTypeAsTag.begin(), BuyoutTypeAsTag.end(), tag) - BuyoutTypeAsTag.begin();
 }
 
-int Util::TagAsCurrency(const std::string &tag) {
+int Util::TagAsCurrency(const QString &tag) {
     return std::find(CurrencyAsTag.begin(), CurrencyAsTag.end(), tag) - CurrencyAsTag.begin();
 }
 
-static std::vector<std::string> width_strings = {
+static std::vector<QString> width_strings = {
     "max#",
     "R. Level",
     "R##",
@@ -79,7 +79,7 @@ int Util::TextWidth(TextWidthId id) {
         QLineEdit textbox;
         QFontMetrics fm(textbox.fontMetrics());
         for (size_t i = 0; i < width_strings.size(); ++i)
-            result[i] = fm.width(width_strings[i].c_str());
+            result[i] = fm.width(width_strings[i]);
     }
     return result[static_cast<int>(id)];
 }
@@ -89,31 +89,31 @@ void Util::ParseJson(QNetworkReply *reply, rapidjson::Document *doc) {
     doc->Parse(bytes.constData());
 }
 
-std::string Util::GetCsrfToken(const std::string &page, const std::string &name) {
-    std::string needle = "name=\"" + name + "\" value=\"";
-    if (page.find(needle) == std::string::npos)
+QString Util::GetCsrfToken(const QString &page, const QString &name) {
+    QString needle = "name=\"" + name + "\" value=\"";
+    if (page.indexOf(needle) == -1)
         return "";
-    return page.substr(page.find(needle) + needle.size(), 32);
+    return page.mid(page.indexOf(needle) + needle.length(), 32);
 }
 
-std::string Util::FindTextBetween(const std::string &page, const std::string &left, const std::string &right) {
-    size_t first = page.find(left);
-    size_t last = page.find(right, first);
-    if (first == std::string::npos || last == std::string::npos || first > last)
+QString Util::FindTextBetween(const QString &page, const QString &left, const QString &right) {
+    size_t first = page.indexOf(left);
+    size_t last = page.indexOf(right, first);
+    if (first == -1 || last == -1 || first > last)
         return "";
-    return page.substr(first + left.size(), last - first - left.size());
+    return page.mid(first + left.length(), last - first - left.length());
 }
 
-std::string Util::BuyoutAsText(const Buyout &bo) {
+QString Util::BuyoutAsText(const Buyout &bo) {
     if (bo.type != BUYOUT_TYPE_NO_PRICE) {
-        return BuyoutTypeAsTag[bo.type] + " " + QString::number(bo.value).toStdString() + " " + CurrencyAsTag[bo.currency];
+        return BuyoutTypeAsTag[bo.type] + " " + QString::number(bo.value) + " " + CurrencyAsTag[bo.currency];
     } else {
         return BuyoutTypeAsTag[bo.type];
     }
 }
 
-std::string Util::ModListAsString(const ItemMods &list) {
-    std::string mods;
+QString Util::ModListAsString(const ItemMods &list) {
+    QString mods;
     bool first = true;
     for (auto &mod : list) {
         mods += (first ? "" : "<br>") + mod;
@@ -122,59 +122,45 @@ std::string Util::ModListAsString(const ItemMods &list) {
     return mods;
 }
 
-std::string Util::RapidjsonSerialize(const rapidjson::Value &val) {
+QString Util::RapidjsonSerialize(const rapidjson::Value &val) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     val.Accept(writer);
     return buffer.GetString();
 }
 
-void Util::RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const std::string &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc) {
+void Util::RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const QString &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc) {
     rapidjson::Value rjson_name;
     rjson_name.SetString(name, strlen(name));
     rapidjson::Value rjson_val;
-    rjson_val.SetString(value.c_str(), value.size());
+    rjson_val.SetString(value.toStdString().c_str(), value.toStdString().size());
     object->AddMember(rjson_name, rjson_val, alloc);
 }
 
-std::string Util::StringReplace(const std::string &haystack, const std::string &needle, const std::string &replace) {
-    std::string out = haystack;
+QString Util::StringReplace(const QString &haystack, const QString &needle, const QString &replace) {
+    QString out = haystack;
     for (size_t pos = 0; ; pos += replace.length()) {
-        pos = out.find(needle, pos);
-        if (pos == std::string::npos)
+        pos = out.indexOf(needle, pos);
+        if (pos == -1)
             break;
-        out.erase(pos, needle.length());
+        out.remove(pos, needle.length());
         out.insert(pos, replace);
     }
     return out;
 }
 
-bool Util::MatchMod(const char *match, const char *mod, double *output) {
+bool Util::MatchMod(const QString match, const QString mod, double *output) {
     double result = 0.0;
-    auto pmatch = match;
-    auto pmod = mod;
-    int cnt = 0;
-
-    while (*pmatch && *pmod) {
-        if (*pmatch == '#') {
-            ++cnt;
-            auto prev = pmod;
-            while ((*pmod >= '0' && *pmod <= '9') || *pmod == '.')
-                ++pmod;
-            result += std::strtod(prev, NULL);
-            ++pmatch;
-        } else if (*pmatch == *pmod) {
-            ++pmatch;
-            ++pmod;
-        } else {
-            return false;
-        }
-    }
-    *output = result / cnt;
-    return !*pmatch && !*pmod;
+	QString pmatch = QString(match).replace(QString("#"),QString("([\\d\\.]+)"));
+	QRegExp rx(pmatch);
+	if (!rx.isValid() || rx.indexIn(mod) == -1)
+		return false;
+	result = rx.cap(1).toDouble();
+    *output = result;
+	return true;
 }
 
-std::string Util::TimeAgoInWords(const QDateTime buyout_time){
+QString Util::TimeAgoInWords(const QDateTime buyout_time){
     QDateTime current_date = QDateTime::currentDateTime();
     qint64 days = buyout_time.daysTo(current_date);
     qint64 secs = buyout_time.secsTo(current_date);
@@ -186,28 +172,28 @@ std::string Util::TimeAgoInWords(const QDateTime buyout_time){
         int years = (days / 365);
         if (days % 365 != 0)
             years++;
-        return QString("%1 %2 ago").arg(years).arg(years == 1 ? "year" : "years").toStdString();
+        return QString("%1 %2 ago").arg(years).arg(years == 1 ? "year" : "years");
     }
     // MONTHS
     if (days > 30){
         int months = (days / 365);
         if (days % 30 != 0)
             months++;
-        return QString("%1 %2 ago").arg(months).arg(months == 1 ? "month" : "months").toStdString();
+        return QString("%1 %2 ago").arg(months).arg(months == 1 ? "month" : "months");
     // DAYS
     }else if (days > 0){
-        return QString("%1 %2 ago").arg(days).arg(days == 1 ? "day" : "days").toStdString();
+        return QString("%1 %2 ago").arg(days).arg(days == 1 ? "day" : "days");
     // HOURS
     }else if (hours > 0){
-        return QString("%1 %2 ago").arg(hours).arg(hours == 1 ? "hour" : "hours").toStdString();
+        return QString("%1 %2 ago").arg(hours).arg(hours == 1 ? "hour" : "hours");
     //MINUTES
     }else if (minutes > 0){
-        return QString("%1 %2 ago").arg(minutes).arg(minutes == 1 ? "minute" : "minutes").toStdString();
+        return QString("%1 %2 ago").arg(minutes).arg(minutes == 1 ? "minute" : "minutes");
     // SECONDS
     }else if (secs > 5){
-        return QString("%1 %2 ago").arg(secs).arg("seconds").toStdString();
+        return QString("%1 %2 ago").arg(secs).arg("seconds");
     }else if (secs < 5){
-        return QString("just now").toStdString();
+        return QString("just now");
     }else{
         return "";
     }

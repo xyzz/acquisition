@@ -59,29 +59,29 @@ bool BuyoutManager::Exists(const Item &item) const {
     return buyouts_.count(ItemHash(item)) > 0;
 }
 
-std::string BuyoutManager::ItemHash(const Item &item) const {
+QString BuyoutManager::ItemHash(const Item &item) const {
     return item.hash();
 }
 
-Buyout BuyoutManager::GetTab(const std::string &tab) const {
+Buyout BuyoutManager::GetTab(const QString &tab) const {
     return tab_buyouts_.at(tab);
 }
 
-void BuyoutManager::SetTab(const std::string &tab, const Buyout &buyout) {
+void BuyoutManager::SetTab(const QString &tab, const Buyout &buyout) {
     save_needed_ = true;
     tab_buyouts_[tab] = buyout;
 }
 
-bool BuyoutManager::ExistsTab(const std::string &tab) const {
+bool BuyoutManager::ExistsTab(const QString &tab) const {
     return tab_buyouts_.count(tab) > 0;
 }
 
-void BuyoutManager::DeleteTab(const std::string &tab) {
+void BuyoutManager::DeleteTab(const QString &tab) {
     save_needed_ = true;
     tab_buyouts_.erase(tab);
 }
 
-std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyouts) {
+QString BuyoutManager::Serialize(const std::map<QString, Buyout> &buyouts) {
     rapidjson::Document doc;
     doc.SetObject();
     auto &alloc = doc.GetAllocator();
@@ -108,22 +108,22 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
         Util::RapidjsonAddConstString(&item, "type", BuyoutTypeAsTag[buyout.type], alloc);
         Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[buyout.currency], alloc);
 
-        rapidjson::Value name(bo.first.c_str(), alloc);
+        rapidjson::Value name(bo.first.toStdString().c_str(), alloc);
         doc.AddMember(name, item, alloc);
     }
 
     return Util::RapidjsonSerialize(doc);
 }
 
-void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts) {
+void BuyoutManager::Deserialize(const QString &data, std::map<QString, Buyout> *buyouts) {
     buyouts->clear();
 
     // if data is empty (on first use) we shouldn't make user panic by showing ERROR messages
-    if (data.empty())
+    if (data.isEmpty())
         return;
 
     rapidjson::Document doc;
-    if (doc.Parse(data.c_str()).HasParseError()) {
+    if (doc.Parse(data.toStdString().c_str()).HasParseError()) {
         QLOG_ERROR() << "Error while parsing buyouts.";
         QLOG_ERROR() << rapidjson::GetParseError_En(doc.GetParseError());
         return;
@@ -132,7 +132,7 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
         return;
     for (auto itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr) {
         auto &object = itr->value;
-        const std::string &name = itr->name.GetString();
+        const QString &name = itr->name.GetString();
         Buyout bo;
 
         bo.currency = static_cast<Currency>(Util::TagAsCurrency(object["currency"].GetString()));

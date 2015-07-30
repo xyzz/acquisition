@@ -21,7 +21,7 @@
 
 #include "porting.h"
 
-std::string user_dir;
+QString user_dir;
 
 namespace Filesystem {
 
@@ -29,11 +29,11 @@ void Init() {
     SetUserDir(porting::DefaultUserDir());
 }
 
-void SetUserDir(const std::string &dir) {
+void SetUserDir(const QString &dir) {
     user_dir = dir;
 }
 
-std::string UserDir() {
+QString UserDir() {
     return user_dir;
 }
 

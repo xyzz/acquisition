@@ -19,8 +19,9 @@
 
 #pragma once
 
-#include <string>
+#include <QString>
 #include <QDateTime>
+#include <QString>
 #include "rapidjson/document.h"
 
 #include "item.h"
@@ -38,34 +39,34 @@ enum class TextWidthId {
 };
 
 namespace Util {
-std::string Md5(const std::string &value);
-double AverageDamage(const std::string &s);
+QString Md5(const QString &value);
+double AverageDamage(const QString &s);
 void PopulateBuyoutTypeComboBox(QComboBox *combobox);
 void PopulateBuyoutCurrencyComboBox(QComboBox *combobox);
-int TagAsCurrency(const std::string &tag);
-int TagAsBuyoutType(const std::string &tag);
+int TagAsCurrency(const QString &tag);
+int TagAsBuyoutType(const QString &tag);
 
 int TextWidth(TextWidthId id);
 
 void ParseJson(QNetworkReply *reply, rapidjson::Document *doc);
-std::string GetCsrfToken(const std::string &page, const std::string &name);
-std::string FindTextBetween(const std::string &page, const std::string &left, const std::string &right);
+QString GetCsrfToken(const QString &page, const QString &name);
+QString FindTextBetween(const QString &page, const QString &left, const QString &right);
 
-std::string BuyoutAsText(const Buyout &bo);
+QString BuyoutAsText(const Buyout &bo);
 
-std::string ModListAsString(const ItemMods &list);
+QString ModListAsString(const ItemMods &list);
 
-std::string RapidjsonSerialize(const rapidjson::Value &val);
-void RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const std::string &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc);
+QString RapidjsonSerialize(const rapidjson::Value &val);
+void RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const QString &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc);
 
-std::string StringReplace(const std::string &haystack, const std::string &needle, const std::string &replace);
+QString StringReplace(const QString &haystack, const QString &needle, const QString &replace);
 
 /*
     Example usage:
         MatchMod("+# to Life", "+12.3 to Life", &result);
     Will return true if matches and save average value to output.
 */
-bool MatchMod(const char *match, const char *mod, double *output);
+bool MatchMod(const QString match, const QString mod, double *output);
 
-std::string TimeAgoInWords(const QDateTime buyout_time);
+QString TimeAgoInWords(const QDateTime buyout_time);
 }

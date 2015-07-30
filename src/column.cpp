@@ -30,11 +30,11 @@ QColor Column::color(const Item & /* item */) {
     return QColor();
 }
 
-std::string NameColumn::name() {
+QString NameColumn::name() {
     return "Name";
 }
 
-std::string NameColumn::value(const Item &item) {
+QString NameColumn::value(const Item &item) {
     return item.PrettyName();
 }
 
@@ -56,63 +56,63 @@ QColor NameColumn::color(const Item &item) {
     return QColor();
 }
 
-std::string CorruptedColumn::name() {
+QString CorruptedColumn::name() {
     return "Cr";
 }
 
-std::string CorruptedColumn::value(const Item &item) {
+QString CorruptedColumn::value(const Item &item) {
     if (item.corrupted())
         return "C";
     return "";
 }
 
-PropertyColumn::PropertyColumn(const std::string &name):
+PropertyColumn::PropertyColumn(const QString &name):
     name_(name),
     property_(name)
 {}
 
-PropertyColumn::PropertyColumn(const std::string &name, const std::string &property):
+PropertyColumn::PropertyColumn(const QString &name, const QString &property):
     name_(name),
     property_(property)
 {}
 
-std::string PropertyColumn::name() {
+QString PropertyColumn::name() {
     return name_;
 }
 
-std::string PropertyColumn::value(const Item &item) {
+QString PropertyColumn::value(const Item &item) {
     if (item.properties().count(property_))
         return item.properties().find(property_)->second;
     return "";
 }
 
-std::string DPSColumn::name() {
+QString DPSColumn::name() {
     return "DPS";
 }
 
-std::string DPSColumn::value(const Item &item) {
+QString DPSColumn::value(const Item &item) {
     double dps = item.DPS();
     if (fabs(dps) < EPS)
         return "";
     return QString::number(dps).toUtf8().constData();
 }
 
-std::string pDPSColumn::name() {
+QString pDPSColumn::name() {
     return "pDPS";
 }
 
-std::string pDPSColumn::value(const Item &item) {
+QString pDPSColumn::value(const Item &item) {
     double pdps = item.pDPS();
     if (fabs(pdps) < EPS)
         return "";
     return QString::number(pdps).toUtf8().constData();
 }
 
-std::string eDPSColumn::name() {
+QString eDPSColumn::name() {
     return "eDPS";
 }
 
-std::string eDPSColumn::value(const Item &item) {
+QString eDPSColumn::value(const Item &item) {
     double edps = item.eDPS();
     if (fabs(edps) < EPS)
         return "";
@@ -123,13 +123,13 @@ ElementalDamageColumn::ElementalDamageColumn(int index):
     index_(index)
 {}
 
-std::string ElementalDamageColumn::name() {
+QString ElementalDamageColumn::name() {
     if (index_ == 0)
         return "ED";
     return "";
 }
 
-std::string ElementalDamageColumn::value(const Item &item) {
+QString ElementalDamageColumn::value(const Item &item) {
     if (item.elemental_damage().size() > index_) {
         auto &ed = item.elemental_damage().at(index_);
         return ed.first;
@@ -156,11 +156,11 @@ PriceColumn::PriceColumn(const BuyoutManager &bo_manager):
     bo_manager_(bo_manager)
 {}
 
-std::string PriceColumn::name() {
+QString PriceColumn::name() {
     return "Price";
 }
 
-std::string PriceColumn::value(const Item &item) {
+QString PriceColumn::value(const Item &item) {
     if (!bo_manager_.Exists(item))
         return "";
     const Buyout &bo = bo_manager_.Get(item);
@@ -171,11 +171,11 @@ DateColumn::DateColumn(const BuyoutManager &bo_manager):
     bo_manager_(bo_manager)
 {}
 
-std::string DateColumn::name() {
+QString DateColumn::name() {
     return "Last Update";
 }
 
-std::string DateColumn::value(const Item &item) {
+QString DateColumn::value(const Item &item) {
     if (!bo_manager_.Exists(item))
         return "";
 

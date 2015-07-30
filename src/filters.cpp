@@ -62,7 +62,7 @@ void NameSearchFilter::FromForm(FilterData *data) {
 }
 
 void NameSearchFilter::ToForm(FilterData *data) {
-    textbox_->setText(data->text_query.c_str());
+    textbox_->setText(data->text_query);
 }
 
 void NameSearchFilter::ResetForm() {
@@ -70,11 +70,10 @@ void NameSearchFilter::ResetForm() {
 }
 
 bool NameSearchFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
-    std::string query = data->text_query;
-    std::string name = item->PrettyName();
-    std::transform(query.begin(), query.end(), query.begin(), ::tolower);
-    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-    return name.find(query) != std::string::npos;
+    QString query = data->text_query.toLower();
+    QString name = item->PrettyName().toLower();
+
+    return name.indexOf(query) != -1;
 }
 
 void NameSearchFilter::Initialize(QLayout *parent) {
@@ -84,14 +83,14 @@ void NameSearchFilter::Initialize(QLayout *parent) {
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
 }
 
-MinMaxFilter::MinMaxFilter(QLayout *parent, std::string property):
+MinMaxFilter::MinMaxFilter(QLayout *parent, QString property):
     property_(property),
     caption_(property)
 {
     Initialize(parent);
 }
 
-MinMaxFilter::MinMaxFilter(QLayout *parent, std::string property, std::string caption):
+MinMaxFilter::MinMaxFilter(QLayout *parent, QString property, QString caption):
     property_(property),
     caption_(caption)
 {
@@ -102,7 +101,7 @@ void MinMaxFilter::Initialize(QLayout *parent) {
     QWidget *group = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout;
     layout->setMargin(0);
-    QLabel *label = new QLabel(caption_.c_str());
+    QLabel *label = new QLabel(caption_);
     label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     textbox_min_ = new QLineEdit;
     textbox_max_ = new QLineEdit;
@@ -163,7 +162,7 @@ bool SimplePropertyFilter::IsValuePresent(const std::shared_ptr<Item> &item) {
 }
 
 double SimplePropertyFilter::GetValue(const std::shared_ptr<Item> &item) {
-    return std::stod(item->properties().at(property_));
+    return item->properties().at(property_).toDouble();
 }
 
 double DefaultPropertyFilter::GetValue(const std::shared_ptr<Item> &item) {
@@ -179,7 +178,7 @@ double RequiredStatFilter::GetValue(const std::shared_ptr<Item> &item) {
     return 0;
 }
 
-ItemMethodFilter::ItemMethodFilter(QLayout *parent, std::function<double (Item *)> func, std::string caption):
+ItemMethodFilter::ItemMethodFilter(QLayout *parent, std::function<double (Item *)> func, QString caption):
     MinMaxFilter(parent, caption, caption),
     func_(func)
 {}
@@ -297,7 +296,7 @@ bool LinksColorsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *d
     return false;
 }
 
-BooleanFilter::BooleanFilter(QLayout *parent, std::string property, std::string caption):
+BooleanFilter::BooleanFilter(QLayout *parent, QString property, QString caption):
     property_(property),
     caption_(caption)
 {
@@ -308,7 +307,7 @@ void BooleanFilter::Initialize(QLayout *parent) {
     QWidget *group = new QWidget;
     QHBoxLayout *layout = new QHBoxLayout;
     layout->setMargin(0);
-    QLabel *label = new QLabel(caption_.c_str());
+    QLabel *label = new QLabel(caption_);
     label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     checkbox_ = new QCheckBox;
     layout->addWidget(label);
@@ -341,7 +340,7 @@ bool MTXFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
 }
 
 bool AltartFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
-    static std::vector<std::string> altart = {
+    static std::vector<QString> altart = {
         // season 1
         "RedBeak2.png", "Wanderlust2.png", "Ring2b.png", "Goldrim2.png", "FaceBreaker2.png", "Atzirismirror2.png",
         // season 2
@@ -367,7 +366,7 @@ bool AltartFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) 
     if (!data->checked)
         return true;
     for (auto &needle : altart)
-        if (item->icon().find(needle) != std::string::npos)
+        if (item->icon().indexOf(needle) != -1)
             return true;
     return false;
 }

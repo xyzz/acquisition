@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include <string>
+#include <QString>
 
 namespace Filesystem {
     void Init();
-    std::string UserDir();
-    void SetUserDir(const std::string &dir);
+    QString UserDir();
+    void SetUserDir(const QString &dir);
 }

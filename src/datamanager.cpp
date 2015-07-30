@@ -27,56 +27,63 @@
 
 #include "application.h"
 
-DataManager::DataManager(const std::string &filename) :
-    filename_(filename)
+DataManager::DataManager(const QString &filename, const QString &connectionName) :
+    filename_(filename),
+	connectionName_(connectionName)
 {
-    QDir dir((filename + "/..").c_str());
+
+    QDir dir(filename_ + "/..");
     if (!dir.exists())
         QDir().mkpath(dir.path());
-    if (sqlite3_open(filename_.c_str(), &db_) != SQLITE_OK) {
-        throw std::runtime_error("Failed to open sqlite3 database.");
-    }
-    std::string query = "CREATE TABLE IF NOT EXISTS data(key TEXT PRIMARY KEY, value BLOB)";
-    if (sqlite3_exec(db_, query.c_str(), 0, 0, 0) != SQLITE_OK) {
+
+	db_ = QSqlDatabase::addDatabase("QSQLITE",connectionName);
+	db_.setDatabaseName(filename_);
+
+	if (!db_.open())
+	{
+		throw std::runtime_error("Failed to open sqlite3 database. "+ db_.lastError().text().toStdString());
+	}
+
+	QSqlQuery query("CREATE TABLE IF NOT EXISTS data(key VARCHAR(255) PRIMARY KEY, value TEXT)", db_);
+    if (!query.exec()) {
         throw std::runtime_error("Failed to execute creation statement.");
     }
 }
 
-std::string DataManager::Get(const std::string &key, const std::string &default_value) {
-    std::string query = "SELECT value FROM data WHERE key = ?";
-    sqlite3_stmt *stmt;
-    sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
-    sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
-    std::string result(default_value);
-    if (sqlite3_step(stmt) == SQLITE_ROW)
-        result = std::string(static_cast<const char*>(sqlite3_column_blob(stmt, 0)), sqlite3_column_bytes(stmt, 0));
-    sqlite3_finalize(stmt);
+QString DataManager::Get(const QString &key, const QString &default_value) {
+	QString result(default_value);
+	QSqlQuery query("", db_); 
+	query.prepare("SELECT value FROM data WHERE key = :key");
+	query.bindValue(":key", key);
+	if (query.exec() && query.size())
+	{
+		query.next();
+		result = query.value(0).toString();
+	}
     return result;
 }
 
-void DataManager::Set(const std::string &key, const std::string &value) {
-    std::string query = "INSERT OR REPLACE INTO data (key, value) VALUES (?, ?)";
-    sqlite3_stmt *stmt;
-    sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
-    sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_blob(stmt, 2, value.c_str(), value.size(), SQLITE_STATIC);
-    sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
+void DataManager::Set(const QString &key, const QString &value) {
+	QSqlQuery query("", db_);
+	query.prepare("INSERT OR REPLACE INTO data (key, value) VALUES (:key, :value)");
+	query.bindValue(":key", key);
+	query.bindValue(":value", value);
+	query.exec();
 }
 
-void DataManager::SetBool(const std::string &key, bool value) {
-    Set(key, std::to_string(static_cast<int>(value)));
+void DataManager::SetBool(const QString &key, bool value) {
+    Set(key, value?"1":"0");
 }
 
-bool DataManager::GetBool(const std::string &key, bool default_value) {
-    return static_cast<bool>(std::stoi(Get(key, default_value ? "1" : "0")));
+bool DataManager::GetBool(const QString &key, bool default_value) {
+    return Get(key, default_value ? "1" : "0")=="1";
 }
 
 DataManager::~DataManager() {
-    sqlite3_close(db_);
+	db_.close();
 }
 
-std::string DataManager::MakeFilename(const std::string &name, const std::string &league) {
-    std::string key = name + "|" + league;
-    return QString(QCryptographicHash::hash(key.c_str(), QCryptographicHash::Md5).toHex()).toStdString();
+QString DataManager::MakeFilename(const QString &name, const QString &league) {
+    QString key = name + "|" + league;
+    return QString(QCryptographicHash::hash(key.toUtf8(), QCryptographicHash::Md5).toHex());
 }

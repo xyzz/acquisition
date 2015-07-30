@@ -1,17 +1,17 @@
 #pragma once
 
 #include <QImage>
-#include <string>
+#include <QString>
 
 class MainWindow;
 
 class ImageCache {
 public:
-    explicit ImageCache(const std::string &directory);
-    bool Exists(const std::string &url);
-    QImage Get(const std::string &url);
-    void Set(const std::string &url, const QImage &image);
+    explicit ImageCache(const QString &directory);
+    bool Exists(const QString &url);
+    QImage Get(const QString &url);
+    void Set(const QString &url, const QImage &image);
 private:
-    std::string GetPath(const std::string &url);
-    std::string directory_;
+    QString GetPath(const QString &url);
+    QString directory_;
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <QString>
 
 #include "item.h"
 

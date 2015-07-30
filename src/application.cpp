@@ -35,25 +35,25 @@ Application::~Application() {
         buyout_manager_->Save();
 }
 
-void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager, const std::string &league, const std::string &email) {
+void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager, const QString &league, const QString &email) {
     league_ = league;
     email_ = email;
     logged_in_nm_ = std::move(login_manager);
 
-    std::string data_file = DataManager::MakeFilename(email, league);
-    data_manager_ = std::make_unique<DataManager>(Filesystem::UserDir() + "/data/" + data_file);
-    sensitive_data_manager_ = std::make_unique<DataManager>(Filesystem::UserDir() + "/sensitive_data/" + data_file);
+    QString data_file = DataManager::MakeFilename(email, league);
+    data_manager_ = std::make_unique<DataManager>(Filesystem::UserDir() + "/data/" + data_file, "data_manager");
+    sensitive_data_manager_ = std::make_unique<DataManager>(Filesystem::UserDir() + "/sensitive_data/" + data_file, "sensitive_data_manager");
     buyout_manager_ = std::make_unique<BuyoutManager>(*data_manager_);
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);
-    connect(items_manager_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
-        this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>)));
+    connect(items_manager_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<QString>)),
+        this, SLOT(OnItemsRefreshed(Items, std::vector<QString>)));
 
     items_manager_->Start();
     items_manager_->Update();
 }
 
-void Application::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {
+void Application::OnItemsRefreshed(const Items &items, const std::vector<QString> &tabs) {
     items_ = items;
     tabs_ = tabs;
     shop_->Update();

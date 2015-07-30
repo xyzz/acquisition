@@ -29,10 +29,10 @@ class AutoOnline : public QObject {
     Q_OBJECT
 public:
     AutoOnline(DataManager &data, DataManager &sensitive_data);
-    void SetUrl(const std::string &url);
+    void SetUrl(const QString &url);
     void SetEnabled(bool enabled);
     bool enabled() { return enabled_; }
-    bool IsUrlSet() { return !url_.empty(); }
+    bool IsUrlSet() { return !url_.isEmpty(); }
 public slots:
     void Check();
 signals:
@@ -41,7 +41,7 @@ private:
     DataManager &data_;
     DataManager &sensitive_data_;
     bool enabled_;
-    std::string url_;
+    QString url_;
     bool previous_status_;
     QTimer timer_;
     QNetworkAccessManager nm_;

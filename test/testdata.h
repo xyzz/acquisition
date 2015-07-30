@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <string>
+#include <QString>
 
-extern const std::string kItem1;
-extern const std::string kSocketedItem;
+extern const QString kItem1;
+extern const QString kSocketedItem;

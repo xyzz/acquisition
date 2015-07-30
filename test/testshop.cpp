@@ -20,7 +20,7 @@ void TestShop::initTestCase() {
 
 void TestShop::SocketedGemsNotLinked() {
     rapidjson::Document doc;
-    doc.Parse(kSocketedItem.c_str());
+    doc.Parse(kSocketedItem.toStdString().c_str());
 
     Items items = { std::make_shared<Item>(doc) };
     app_.OnItemsRefreshed(items, {});
@@ -32,13 +32,13 @@ void TestShop::SocketedGemsNotLinked() {
     app_.buyout_manager().Set(*items[0], bo);
 
     app_.shop().Update();
-    std::string shop = app_.shop().shop_data();
-    QVERIFY(shop.find("~price") == std::string::npos);
+    QString shop = app_.shop().shop_data();
+    QVERIFY(shop.indexOf("~price") == -1);
 }
 
 void TestShop::TemplatedShopGeneration() {
     rapidjson::Document doc;
-    doc.Parse(kItem1.c_str());
+    doc.Parse(kItem1.toStdString().c_str());
 
     Items items = { std::make_shared<Item>(doc) };
     app_.OnItemsRefreshed(items, {});
@@ -51,8 +51,8 @@ void TestShop::TemplatedShopGeneration() {
 
     app_.shop().SetShopTemplate("My awesome shop [items]");
     app_.shop().Update();
-    std::string shop = app_.shop().shop_data();
+    QString shop = app_.shop().shop_data();
 
-    QVERIFY(shop.find("~price") != std::string::npos);
-    QVERIFY(shop.find("My awesome shop") != std::string::npos);
+    QVERIFY(shop.indexOf("~price") != -1);
+    QVERIFY(shop.indexOf("My awesome shop") != -1);
 }

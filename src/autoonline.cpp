@@ -94,14 +94,15 @@ static bool IsPoeRunning() {
 void AutoOnline::Check() {
     bool running = IsPoeRunning();
 
-    std::string url = url_;
+    QString url = url_;
     if (!running)
         url += "/offline";
 
     if (running || previous_status_) {
-        QNetworkRequest request(QUrl(url.c_str()));
+		QUrl u(url);
+        QNetworkRequest request(u);
         QByteArray data;
-        request.setHeader(QNetworkRequest::UserAgentHeader, (std::string("Acquisition ") + VERSION_NAME).c_str());
+        request.setHeader(QNetworkRequest::UserAgentHeader, QString("Acquisition ") + QString(VERSION_NAME));
         nm_.post(request, data);
     }
 
@@ -110,16 +111,15 @@ void AutoOnline::Check() {
     emit Update(running);
 }
 
-const std::string url_valid_prefix = "http://control.poe.xyz.is/";
+const QString url_valid_prefix = "http://control.poe.xyz.is/";
 
-void AutoOnline::SetUrl(const std::string &url) {
-    if (url.compare(0, url_valid_prefix.size(), url_valid_prefix)) {
+void AutoOnline::SetUrl(const QString &url) {
+    if (url.indexOf(url_valid_prefix)) {
         QLOG_WARN() << "Online URL is probably invalid.";
     }
     url_ = url;
     // remove trailing '/'s
-    while (url_.size() > 0 && url_[url_.size() - 1] == '/')
-        url_.erase(url_.size() - 1);
+	while (url_.endsWith('/')) url_.chop(1);
     sensitive_data_.Set("online_url", url_);
 }
 

@@ -41,7 +41,7 @@ enum Currency {
     CURRENCY_DIVINE_ORB
 };
 
-const std::vector<std::string> CurrencyAsString({
+const std::vector<QString> CurrencyAsString({
     "",
     "Orb of Alteration",
     "Orb of Fusing",
@@ -60,7 +60,7 @@ const std::vector<std::string> CurrencyAsString({
     "Divine Orb"
 });
 
-const std::vector<std::string> CurrencyAsTag({
+const std::vector<QString> CurrencyAsTag({
     "",
     "alt",
     "fuse",
@@ -86,14 +86,14 @@ enum BuyoutType {
     BUYOUT_TYPE_NO_PRICE
 };
 
-const std::vector<std::string> BuyoutTypeAsTag({
+const std::vector<QString> BuyoutTypeAsTag({
     "",
     "b/o",
     "price",
     "no price",
 });
 
-const std::vector<std::string> BuyoutTypeAsPrefix({
+const std::vector<QString> BuyoutTypeAsPrefix({
     "",
     " ~b/o ",
     " ~price ",
@@ -117,21 +117,21 @@ public:
     void Delete(const Item &item);
     bool Exists(const Item &item) const;
 
-    void SetTab(const std::string &tab, const Buyout &buyout);
-    Buyout GetTab(const std::string &tab) const;
-    void DeleteTab(const std::string &tab);
-    bool ExistsTab(const std::string &tab) const;
+    void SetTab(const QString &tab, const Buyout &buyout);
+    Buyout GetTab(const QString &tab) const;
+    void DeleteTab(const QString &tab);
+    bool ExistsTab(const QString &tab) const;
 
     void Save();
     void Load();
 private:
-    std::string ItemHash(const Item &item) const;
-    std::string Serialize(const std::map<std::string, Buyout> &buyouts);
-    void Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts);
+    QString ItemHash(const Item &item) const;
+    QString Serialize(const std::map<QString, Buyout> &buyouts);
+    void Deserialize(const QString &data, std::map<QString, Buyout> *buyouts);
 
     DataManager &data_manager_;
-    std::map<std::string, Buyout> buyouts_;
-    std::map<std::string, Buyout> tab_buyouts_;
+    std::map<QString, Buyout> buyouts_;
+    std::map<QString, Buyout> tab_buyouts_;
     bool save_needed_;
 };
 
