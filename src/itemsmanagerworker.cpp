@@ -34,10 +34,17 @@
 #include "datamanager.h"
 #include "util.h"
 
+#ifdef _GARENA
 const char *kStashItemsUrl = "https://web.poe.garena.ru/character-window/get-stash-items";
 const char *kCharacterItemsUrl = "https://web.poe.garena.ru/character-window/get-items";
 const char *kGetCharactersUrl = "https://web.poe.garena.ru/character-window/get-characters";
 const char *kMainPage = "https://web.poe.garena.ru/";
+#else
+const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-stash-items";
+const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
+const char *kGetCharactersUrl = "https://www.pathofexile.com/character-window/get-characters";
+const char *kMainPage = "https://www.pathofexile.com/";
+#endif
 
 ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     data_manager_(app.data_manager()),

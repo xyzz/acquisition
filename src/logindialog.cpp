@@ -44,10 +44,17 @@
 #include "util.h"
 #include "version.h"
 
+#ifdef _GARENA
 const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
 const char* POE_LOGIN_URL = "https://web.poe.garena.ru/login";
 const char* POE_MAIN_PAGE = "https://web.poe.garena.ru/";
 const char* POE_MY_ACCOUNT = "https://web.poe.garena.ru/my-account";
+#else
+const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
+const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
+const char* POE_MAIN_PAGE = "https://www.pathofexile.com/";
+const char* POE_MY_ACCOUNT = "https://www.pathofexile.com/my-account";
+#endif
 const char* POE_COOKIE_NAME = "PHPSESSID";
 
 const char* POE_GARENA_REDIRECT_HEADER = "Location";
@@ -103,13 +110,17 @@ void LoginDialog::OnLeaguesRequestFinished() {
     leagues_.clear();
     // ignore actual response completely since it's broken anyway (at the moment of writing!)
     if (true) {
-        QLOG_ERROR() << "Failed to parse leagues. The output was:";
+        //QLOG_ERROR() << "Failed to parse leagues. The output was:";
         //QLOG_ERROR() << QString(bytes);
 
         // But let's do our best and try to add at least some leagues!
         // It's in case GGG's API is broken and suddenly starts returning empty pages,
         // which of course will never happen.
-        leagues_ = { QString("Отряды"), QString("Буря"), QString("Стандарт"), QString("Одна жизнь") };
+#ifdef _GARENA
+        leagues_ = { "Отряды", "Буря", "Стандарт", "Одна жизнь" };
+#else
+		leagues_ = { "Warbands", "Tempest", "Standard", "Hardcore" };
+#endif
     } else {
         for (auto &league : doc)
             leagues_.push_back(QString::fromStdString(league["id"].GetString()));
@@ -154,28 +165,7 @@ void LoginDialog::OnLoginPageFinished() {
     }
     switch (ui->loginTabs->currentIndex()) {
         case LOGIN_PASSWORD: {
-			/*
-            QByteArray bytes = reply->readAll();
-            QString page(bytes.constData(), bytes.size());
-            QString hash = Util::GetCsrfToken(page, "hash");
-            if (hash.empty()) {
-                DisplayError("Failed to log in (can't extract form hash from page)");
-                return;
-            }
-
-            QUrlQuery query;
-            query.addQueryItem("login_email", EncodeSpecialCharacters(ui->emailLineEdit->text()));
-            query.addQueryItem("login_password", EncodeSpecialCharacters(ui->passwordLineEdit->text()));
-            query.addQueryItem("hash", QString(hash.c_str()));
-            query.addQueryItem("login", "Login");
-
-            QUrl url(POE_LOGIN_URL);
-            QByteArray data(query.query().toUtf8());
-            QNetworkRequest request(url);
-            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-            QNetworkReply *logged_in = login_manager_->post(request, data);
-            connect(logged_in, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
-			*/
+#ifdef _GARENA
 			if (reply->hasRawHeader(POE_GARENA_REDIRECT_HEADER))
 			{
 				qint64 date = QDateTime().toMSecsSinceEpoch();
@@ -194,6 +184,27 @@ void LoginDialog::OnLoginPageFinished() {
 				QNetworkReply *aouth = login_manager_->get(request);
 				connect(aouth, SIGNAL(finished()), this, SLOT(OnGarenaOauthPreLogin()));
 			}
+#else
+			QByteArray bytes = reply->readAll();
+			QString hash = Util::GetCsrfToken(bytes.constData(), "hash");
+			if (hash.isEmpty()) {
+				DisplayError("Failed to log in (can't extract form hash from page)");
+				return;
+			}
+
+			QUrlQuery query;
+			query.addQueryItem("login_email", EncodeSpecialCharacters(ui->emailLineEdit->text()));
+			query.addQueryItem("login_password", EncodeSpecialCharacters(ui->passwordLineEdit->text()));
+			query.addQueryItem("hash", hash);
+			query.addQueryItem("login", "Login");
+
+			QUrl url(POE_LOGIN_URL);
+			QByteArray data(query.query().toUtf8());
+			QNetworkRequest request(url);
+			request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+			QNetworkReply *logged_in = login_manager_->post(request, data);
+			connect(logged_in, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
+#endif
             break;
         }
         case LOGIN_STEAM: {
@@ -353,7 +364,6 @@ void LoginDialog::OnGarenaLogin()
 	connect(main_page, SIGNAL(finished()), this, SLOT(OnMainPageFinished()));
 }
 
-
 void LoginDialog::OnLoggedIn() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
@@ -384,8 +394,11 @@ void LoginDialog::OnSteamCookieReceived(const QString &cookie) {
 void LoginDialog::LoginWithCookie(const QString &cookie) {
     QNetworkCookie poeCookie(POE_COOKIE_NAME, cookie.toUtf8());
     poeCookie.setPath("/");
+#ifdef _GARENA
     poeCookie.setDomain("web.poe.garena.ru");
-
+#else
+	poeCookie.setDomain("www.pathofexile.com");
+#endif
     login_manager_->cookieJar()->insertCookie(poeCookie);
 
     QNetworkReply *login_page = login_manager_->get(QNetworkRequest(QUrl(POE_LOGIN_URL)));
