@@ -65,6 +65,9 @@ public:
     MainWindow(std::unique_ptr<Application> app);
     ~MainWindow();
     std::vector<Column*> columns;
+    void RemoveTab(int index);
+    void GenerateCurrentItemHeader();
+    void UpdateSettingsBox();
 public slots:
     void OnTreeChange(const QModelIndex &index, const QModelIndex &prev);
     void OnSearchFormChange();
@@ -78,6 +81,7 @@ public slots:
     void OnCollapseAll();
     void OnUpdateAvailable();
     void OnOnlineUpdate(bool online);
+    void OnTabClose(int index);
 private slots:
     void on_actionForum_shop_thread_triggered();
     void on_actionCopy_shop_data_to_clipboard_triggered();
@@ -89,6 +93,29 @@ private slots:
     void on_actionAutomatically_update_shop_triggered();
     void on_actionControl_poe_xyz_is_URL_triggered();
     void on_actionAutomatically_refresh_online_status_triggered();
+    void on_advancedSearchButton_toggled(bool checked);
+    void on_darkThemeRadioButton_clicked();
+    void on_lightThemeRadioButton_clicked();
+    void on_buyoutStyleBox_toggled(bool checked);
+    void on_showMenuBarBox_toggled(bool checked);
+    void on_updateShopButton_clicked();
+    void on_refreshItemsButton_clicked();
+    void on_showTradeURL_toggled(bool checked);
+    void on_refreshTradeBox_toggled(bool checked);
+
+    void on_tradeURLLineEdit_editingFinished();
+
+    void on_refreshItemsIntervalBox_editingFinished();
+
+    void on_refreshItemsBox_toggled(bool checked);
+
+    void on_shopThreadIdBox_editingFinished();
+
+    void on_editShopTemplateButton_clicked();
+
+    void on_updateShopBox_toggled(bool checked);
+
+    void on_copyClipboardButton_clicked();
 
 private:
     void UpdateCurrentBucket();
@@ -127,6 +154,8 @@ private:
     QPushButton update_button_;
     AutoOnline auto_online_;
     QLabel online_label_;
+    QPalette light_palette_;
+    QString light_style_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif

@@ -19,6 +19,9 @@
 
 #include "column.h"
 
+#include <QVariant>
+#include <QApplication>
+#include <QPalette>
 #include <cmath>
 
 #include "buyoutmanager.h"
@@ -27,7 +30,7 @@
 const double EPS = 1e-6;
 
 QColor Column::color(const Item & /* item */) {
-    return QColor();
+    return QColor(qApp->palette().text().color());
 }
 
 std::string NameColumn::name() {
@@ -38,10 +41,14 @@ std::string NameColumn::value(const Item &item) {
     return item.PrettyName();
 }
 
+QVariant NameColumn::sortValue(const Item &item) {
+    return QString::fromStdString(item.PrettyName());
+}
+
 QColor NameColumn::color(const Item &item) {
     switch(item.frameType()) {
     case FRAME_TYPE_NORMAL:
-        return QColor();
+        break;
     case FRAME_TYPE_MAGIC:
         return QColor(Qt::blue);
     case FRAME_TYPE_RARE:
@@ -53,31 +60,44 @@ QColor NameColumn::color(const Item &item) {
     case FRAME_TYPE_CURRENCY:
         return QColor(0x77, 0x6e, 0x59);
     }
-    return QColor();
+    return QColor(qApp->palette().text().color());
 }
 
 std::string CorruptedColumn::name() {
-    return "Cr";
+    return "Corrupted";
+}
+
+QVariant CorruptedColumn::sortValue(const Item &item) {
+    return item.corrupted();
 }
 
 std::string CorruptedColumn::value(const Item &item) {
     if (item.corrupted())
-        return "C";
+        return "Yes";
     return "";
 }
 
-PropertyColumn::PropertyColumn(const std::string &name):
+PropertyColumn::PropertyColumn(const std::string &name, const QVariant::Type type):
     name_(name),
-    property_(name)
+    property_(name),
+    type_(type)
 {}
 
-PropertyColumn::PropertyColumn(const std::string &name, const std::string &property):
+PropertyColumn::PropertyColumn(const std::string &name, const std::string &property, const QVariant::Type type):
     name_(name),
-    property_(property)
+    property_(property),
+    type_(type)
 {}
 
 std::string PropertyColumn::name() {
     return name_;
+}
+
+QVariant PropertyColumn::sortValue(const Item &item) {
+    QVariant val = QString::fromStdString(value(item));
+    if (!val.canConvert(type_) || !val.convert(type_))
+        return val.toString();
+    return val;
 }
 
 std::string PropertyColumn::value(const Item &item) {
@@ -86,8 +106,19 @@ std::string PropertyColumn::value(const Item &item) {
     return "";
 }
 
+std::string PropertyColumn::tooltip() {
+    return property_;
+}
+
 std::string DPSColumn::name() {
     return "DPS";
+}
+
+QVariant DPSColumn::sortValue(const Item &item) {
+    double dps = item.DPS();
+    if (fabs(dps) < EPS)
+        return 0;
+    return dps;
 }
 
 std::string DPSColumn::value(const Item &item) {
@@ -101,6 +132,13 @@ std::string pDPSColumn::name() {
     return "pDPS";
 }
 
+QVariant pDPSColumn::sortValue(const Item &item) {
+    double pdps = item.pDPS();
+    if (fabs(pdps) < EPS)
+        return 0;
+    return pdps;
+}
+
 std::string pDPSColumn::value(const Item &item) {
     double pdps = item.pDPS();
     if (fabs(pdps) < EPS)
@@ -112,6 +150,13 @@ std::string eDPSColumn::name() {
     return "eDPS";
 }
 
+QVariant eDPSColumn::sortValue(const Item &item) {
+    double edps = item.eDPS();
+    if (fabs(edps) < EPS)
+        return 0;
+    return edps;
+}
+
 std::string eDPSColumn::value(const Item &item) {
     double edps = item.eDPS();
     if (fabs(edps) < EPS)
@@ -119,37 +164,91 @@ std::string eDPSColumn::value(const Item &item) {
     return QString::number(edps).toUtf8().constData();
 }
 
-ElementalDamageColumn::ElementalDamageColumn(int index):
-    index_(index)
+ElementalDamageColumn::ElementalDamageColumn(ELEMENTAL_DAMAGE_TYPES type):
+    type_(type),
+    index_(16)
 {}
 
 std::string ElementalDamageColumn::name() {
-    if (index_ == 0)
-        return "ED";
+    switch (type_) {
+    case ED_FIRE:
+        return "FD";
+    case ED_COLD:
+        return "CD";
+    case ED_LIGHTNING:
+        return "LD";
+    }
     return "";
 }
 
-std::string ElementalDamageColumn::value(const Item &item) {
+std::string ElementalDamageColumn::tooltip() {
+    switch (type_) {
+    case ED_FIRE:
+        return "Fire Damage";
+    case ED_COLD:
+        return "Cold Damage";
+    case ED_LIGHTNING:
+        return "Lightning Damage";
+    }
+    return "";
+}
+
+QVariant ElementalDamageColumn::sortValue(const Item &item) {
+    GetIndex(item);
     if (item.elemental_damage().size() > index_) {
         auto &ed = item.elemental_damage().at(index_);
-        return ed.first;
+        if (ed.second == type_) {
+            QString r = QString::fromStdString(ed.first);
+            if (!r.isEmpty()) {
+                QStringList range = r.split("-");
+                if (range.size() == 2) {
+                    uint low = range.first().toUInt();
+                    uint high = range.last().toUInt();
+                    return (high + low) / 2.0;
+                }
+            }
+        }
+    }
+    return 0.0;
+}
+
+std::string ElementalDamageColumn::value(const Item &item) {
+    GetIndex(item);
+    if (item.elemental_damage().size() > index_) {
+        auto &ed = item.elemental_damage().at(index_);
+        if (ed.second == type_) {
+            return ed.first;
+        }
     }
     return "";
 }
 
 QColor ElementalDamageColumn::color(const Item &item) {
-    if (item.elemental_damage().size() > index_) {
-        auto &ed = item.elemental_damage().at(index_);
-        switch (ed.second) {
-        case ED_FIRE:
-            return QColor(0xc5, 0x13, 0x13);
-        case ED_COLD:
-            return QColor(0x36, 0x64, 0x92);
-        case ED_LIGHTNING:
-            return QColor(0xb9, 0x9c, 0x00);
-        }
+    Q_UNUSED(item)
+    switch (type_) {
+    case ED_FIRE:
+        return QColor(0xc5, 0x13, 0x13);
+    case ED_COLD:
+        return QColor(0x36, 0x64, 0x92);
+    case ED_LIGHTNING:
+        return QColor(0xb9, 0x9c, 0x00);
     }
     return QColor();
+}
+
+int ElementalDamageColumn::GetIndex(const Item &item)
+{
+    if (index_ != 16) return index_;
+
+    for (uint i = 0; i < item.elemental_damage().size(); i++) {
+        if (item.elemental_damage().at(i).second == type_) {
+            index_ = i;
+            return index_;
+        }
+    }
+
+    index_ = 16;
+    return index_;
 }
 
 PriceColumn::PriceColumn(const BuyoutManager &bo_manager):
@@ -158,6 +257,14 @@ PriceColumn::PriceColumn(const BuyoutManager &bo_manager):
 
 std::string PriceColumn::name() {
     return "Price";
+}
+
+QVariant PriceColumn::sortValue(const Item &item) {
+    if (!bo_manager_.Exists(item))
+        return 0;
+    const Buyout &bo = bo_manager_.Get(item);
+    // TODO(novynn): Implement some sort of currency exchange model for this...
+    return QString::fromStdString(Util::BuyoutAsText(bo));
 }
 
 std::string PriceColumn::value(const Item &item) {
@@ -175,6 +282,15 @@ std::string DateColumn::name() {
     return "Last Update";
 }
 
+
+QVariant DateColumn::sortValue(const Item &item) {
+    if (!bo_manager_.Exists(item))
+        return "";
+
+    const Buyout &bo = bo_manager_.Get(item);
+    return bo.last_update;
+}
+
 std::string DateColumn::value(const Item &item) {
     if (!bo_manager_.Exists(item))
         return "";
@@ -182,4 +298,50 @@ std::string DateColumn::value(const Item &item) {
     const Buyout &bo = bo_manager_.Get(item);
     return Util::TimeAgoInWords(bo.last_update);
 
+}
+
+
+QVariant PercentPropertyColumn::sortValue(const Item &item) {
+    QString original = QString::fromStdString(value(item));
+    QVariant val = original.replace("%", "").replace("+", "");
+    if (!val.canConvert(type_) || !val.convert(type_))
+        return val.toString();
+    return val;
+}
+
+
+std::string StackColumn::name() {
+    return "Stack";
+}
+
+QVariant StackColumn::sortValue(const Item &item) {
+    QStringList fraction = QString::fromStdString(value(item)).split("/");
+    if (fraction.size() != 2) {
+        return 0;
+    }
+    uint numerator = fraction.first().toUInt();
+    uint denominator = fraction.last().toUInt();
+    return (float)numerator / denominator;
+}
+
+std::string StackColumn::value(const Item &item) {
+    if (item.properties().count("Stack Size"))
+        return item.properties().find("Stack Size")->second;
+    return "";
+}
+
+
+QVariant RangePropertyColumn::sortValue(const Item &item) {
+    QString original = QString::fromStdString(value(item));
+    QStringList parts = original.split("-");
+    if (parts.size() != 2) {
+        return 0;
+    }
+    uint low = parts.first().toUInt();
+    uint high = parts.last().toUInt();
+
+    QVariant val = (low + high) / 2.0;
+    if (!val.canConvert(type_) || !val.convert(type_))
+        return val.toString();
+    return val;
 }

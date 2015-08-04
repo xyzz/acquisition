@@ -43,10 +43,14 @@ SelectedMod::SelectedMod(const std::string &name, double min, double max, bool m
 {
     FillMods(mod_select_.get());
     mod_select_->setCurrentIndex(mod_select_->findText(name.c_str()));
+    min_text_->setPlaceholderText("min");
+    max_text_->setPlaceholderText("max");
     if (min_filled)
         min_text_->setText(QString::number(min));
     if (max_filled)
         max_text_->setText(QString::number(max));
+
+    delete_button_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 
 void SelectedMod::Update() {
@@ -64,13 +68,18 @@ enum LayoutColumn {
     kColumnCount
 };
 
-void SelectedMod::AddToLayout(QGridLayout *layout, int index) {
-    int combobox_pos = index * 2;
-    int minmax_pos = index * 2 + 1;
-    layout->addWidget(mod_select_.get(), combobox_pos, 0, 1, LayoutColumn::kColumnCount);
-    layout->addWidget(min_text_.get(), minmax_pos, LayoutColumn::kMinField);
-    layout->addWidget(max_text_.get(), minmax_pos, LayoutColumn::kMaxField);
-    layout->addWidget(delete_button_.get(), minmax_pos, LayoutColumn::kDeleteButton);
+void SelectedMod::AddToLayout(QVBoxLayout *layout, int index) {
+    QWidget* widget = new QWidget;
+    QHBoxLayout* grouping = new QHBoxLayout;
+    grouping->setContentsMargins(0, 0, 0, 0);
+    grouping->setSpacing(6);
+    grouping->addWidget(mod_select_.get());
+    grouping->addWidget(min_text_.get());
+    grouping->addWidget(max_text_.get());
+    grouping->addWidget(delete_button_.get());
+    widget->setLayout(grouping);
+    widget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    layout->addWidget(widget);
 }
 
 void SelectedMod::CreateSignalMappings(QSignalMapper *signal_mapper, int index) {
@@ -137,15 +146,18 @@ bool ModsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
 }
 
 void ModsFilter::Initialize(QLayout *parent) {
-    layout_ = std::make_unique<QGridLayout>();
-    add_button_ = std::make_unique<QPushButton>("Add mod");
+    layout_ = std::make_unique<QVBoxLayout>();
+    add_button_ = std::make_unique<QPushButton>("Add Mod");
     QObject::connect(add_button_.get(), SIGNAL(clicked()), &signal_handler_, SLOT(OnAddButtonClicked()));
     Refill();
 
     auto widget = new QWidget;
     widget->setContentsMargins(0, 0, 0, 0);
     widget->setLayout(layout_.get());
+    widget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     parent->addWidget(widget);
+    parent->addWidget(add_button_.get());
+    dynamic_cast<QBoxLayout*>(parent)->addSpacerItem(new QSpacerItem(40, 20, QSizePolicy::Minimum, QSizePolicy::Expanding));
 
     QObject::connect(&signal_mapper_, SIGNAL(mapped(int)), &signal_handler_, SLOT(OnModChanged(int)));
 }
@@ -173,8 +185,9 @@ void ModsFilter::ClearSignalMapper() {
 }
 
 void ModsFilter::ClearLayout() {
-    QLayoutItem *item;
-    while ((item = layout_->takeAt(0))) {}
+    QLayout* layout = layout_.get();
+    while (layout->count() > 0) { layout->takeAt(0); }
+    layout = 0;
 }
 
 void ModsFilter::Clear() {
@@ -194,8 +207,6 @@ void ModsFilter::Refill() {
 
         ++i;
     }
-
-    layout_->addWidget(add_button_.get(), 2 * mods_.size(), 0, 1, LayoutColumn::kColumnCount);
 }
 
 void ModsFilterSignalHandler::OnAddButtonClicked() {

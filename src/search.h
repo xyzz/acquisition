@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <QSortFilterProxyModel>
 #include <memory>
 #include <vector>
 
@@ -47,6 +48,7 @@ public:
     int GetItemsCount();
     // Sets this search as current, will display items in passed QTreeView.
     void Activate(const Items &items, QTreeView *tree);
+    QModelIndex GetIndex(const QModelIndex &index) const;
 private:
     std::vector<std::unique_ptr<FilterData>> filters_;
     std::vector<std::unique_ptr<Column>> columns_;
@@ -54,4 +56,5 @@ private:
     Items items_;
     std::unique_ptr<ItemsModel> model_;
     std::vector<std::unique_ptr<Bucket>> buckets_;
+    std::unique_ptr<QSortFilterProxyModel> sortFilter_;
 };

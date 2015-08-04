@@ -51,7 +51,7 @@ int ItemsModel::rowCount(const QModelIndex &parent) const {
     if (!parent.isValid())
         return search_.buckets().size();
     // Bucket, contains elements
-    if (parent.isValid() && !parent.parent().isValid()) {
+    if (parent.isValid() && !parent.parent().isValid() && parent.row() < search_.buckets().size()) {
         return search_.buckets()[parent.row()]->items().size();
     }
     // Element, contains nothing
@@ -72,13 +72,16 @@ int ItemsModel::columnCount(const QModelIndex &parent) const {
 QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, int role) const {
     if (role == Qt::DisplayRole)
         return QString(search_.columns()[section]->name().c_str());
+    else if (role == Qt::ToolTipRole) {
+        return QString(search_.columns()[section]->tooltip().c_str());
+    }
     return QVariant();
 }
 
 QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     // Bucket title
     if (index.internalId() == 0) {
-        if (role == Qt::DisplayRole && index.column() == 0) {
+        if (role == Qt::DisplayRole && index.column() == 0 && search_.buckets().size() > 0) {
             const ItemLocation &location = search_.buckets()[index.row()]->location();
             QString title(location.GetHeader().c_str());
             if (bo_manager_.ExistsTab(location.GetUniqueHash()))
@@ -93,6 +96,9 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
         return QString(column->value(item).c_str());
     else if (role == Qt::ForegroundRole)
         return column->color(item);
+    else if (role == SortRole) {
+        return column->sortValue(item);
+    }
     return QVariant();
 }
 

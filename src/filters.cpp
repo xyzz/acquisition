@@ -53,8 +53,8 @@ void FilterData::ToForm() {
     filter_->ToForm(this);
 }
 
-NameSearchFilter::NameSearchFilter(QLayout *parent) {
-    Initialize(parent);
+NameSearchFilter::NameSearchFilter(QLineEdit *textbox) {
+    Initialize(textbox);
 }
 
 void NameSearchFilter::FromForm(FilterData *data) {
@@ -77,11 +77,10 @@ bool NameSearchFilter::Matches(const std::shared_ptr<Item> &item, FilterData *da
     return name.find(query) != std::string::npos;
 }
 
-void NameSearchFilter::Initialize(QLayout *parent) {
-    textbox_ = new QLineEdit;
-    parent->addWidget(textbox_);
+void NameSearchFilter::Initialize(QLineEdit *textbox) {
+    textbox_ = textbox;
     QObject::connect(textbox_, SIGNAL(textEdited(const QString&)),
-                     parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
+                     textbox->parentWidget()->window(), SLOT(OnSearchFormChange()));
 }
 
 MinMaxFilter::MinMaxFilter(QLayout *parent, std::string property):

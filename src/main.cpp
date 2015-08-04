@@ -20,6 +20,7 @@
 #include "logindialog.h"
 
 #include <QApplication>
+#include <QStyleFactory>
 #include <QCommandLineParser>
 #include <QDir>
 #include <QLocale>
@@ -86,6 +87,8 @@ int main(int argc, char *argv[])
         QsLogging::DestinationFactory::MakeDebugOutputDestination() );
     logger.addDestination(debugDestination);
     logger.addDestination(fileDestination);
+
+    qApp->setStyle(QStyleFactory::create("Fusion"));
 
     QLOG_INFO() << "--------------------------------------------------------------------------------";
     QLOG_INFO() << "Built with Qt" << QT_VERSION_STR << "running on" << qVersion();

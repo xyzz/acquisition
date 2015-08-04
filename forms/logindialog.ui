@@ -12,7 +12,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>484</width>
+    <width>466</width>
     <height>235</height>
    </size>
   </property>
@@ -33,7 +33,7 @@
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Login/password</string>
+       <string>Site Login</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>

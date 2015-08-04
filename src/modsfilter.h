@@ -21,7 +21,7 @@
 
 #include "filters.h"
 
-#include <QGridLayout>
+#include <QVBoxLayout>
 #include <QObject>
 #include <QSignalMapper>
 #include <vector>
@@ -51,7 +51,7 @@ public:
     }
 
     void Update();
-    void AddToLayout(QGridLayout *layout, int index);
+    void AddToLayout(QVBoxLayout *layout, int index);
     void CreateSignalMappings(QSignalMapper *signal_mapper, int index);
     void RemoveSignalMappings(QSignalMapper *signal_mapper);
     const ModFilterData &data() const { return data_; }
@@ -97,7 +97,7 @@ private:
     void UpdateMod(int id);
     void DeleteMod(int id);
 
-    std::unique_ptr<QGridLayout> layout_;
+    std::unique_ptr<QVBoxLayout> layout_;
     std::unique_ptr<QPushButton> add_button_;
     std::vector<SelectedMod> mods_;
     ModsFilterSignalHandler signal_handler_;

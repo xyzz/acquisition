@@ -1,7 +1,8 @@
-TARGET = acquisition
+TARGET = acquisitionplus
 TEMPLATE = app
 
 QT += core gui network webkitwidgets testlib
+QT -= console
 
 win32 {
     QT += winextras

@@ -33,6 +33,7 @@ public:
     void SetEnabled(bool enabled);
     bool enabled() { return enabled_; }
     bool IsUrlSet() { return !url_.empty(); }
+    const std::string GetUrl() { return url_; }
 public slots:
     void Check();
 signals:
