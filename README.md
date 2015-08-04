@@ -1,10 +1,12 @@
-# Acquisition [![Build Status](https://travis-ci.org/xyzz/acquisition.svg?branch=master)](https://travis-ci.org/xyzz/acquisition) [![Build status](https://ci.appveyor.com/api/projects/status/yutua4cn9cjv6wym?svg=true)](https://ci.appveyor.com/project/xyzz/acquisition)
+# Acquisition Plus
 
-Acquisition is an inventory management tool for [Path of Exile](https://www.pathofexile.com/).
+Acquisition Plus is an inventory management tool for [Path of Exile](https://www.pathofexile.com/).
+
+IMPORTANT! Please not that Acquisition Plus is a modified version of the original Acquisition, which can be found [here](https://github.com/xyzz/acquisition).
 
 It is written in C++, uses Qt widget toolkit and runs on Windows and Linux.
 
-You can find screenshots of it in action [here](http://imgur.com/a/So5Mk) or download Windows executables [here](https://github.com/xyzz/acquisition/releases).
+You can find screenshots of it in action [here](http://imgur.com/a/QIPQJ).
 
 ## Compiling/developing Acquisition
 
@@ -19,5 +21,3 @@ Either open `acquisition.pro` in Qt Creator and build or do `qmake && make`.
 ## Command line arguments
 
 `--data-dir <path>`: set the path where Acquisition should save its data. By default it's `%localappdata%\acquisition` on Windows and `~/.local/share/acquisition` on Linux.
-
-`--test`: run tests. Zero exit code on success, other values indicate errors.
