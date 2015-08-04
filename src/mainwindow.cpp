@@ -40,6 +40,7 @@
 #include "application.h"
 #include "buyoutmanager.h"
 #include "column.h"
+#include "datamanager.h"
 #include "filesystem.h"
 #include "filters.h"
 #include "modsfilter.h"
@@ -954,6 +955,7 @@ void MainWindow::on_darkThemeRadioButton_clicked() {
         w->setPalette(palette);
 
     qApp->setPalette(palette);
+    app_->data_manager().SetBool("DarkTheme", true);
 }
 
 void MainWindow::on_lightThemeRadioButton_clicked() {
@@ -965,6 +967,7 @@ void MainWindow::on_lightThemeRadioButton_clicked() {
         w->setPalette(light_palette_);
 
     qApp->setPalette(light_palette_);
+    app_->data_manager().SetBool("DarkTheme", false);
 }
 
 void MainWindow::UpdateSettingsBox() {
@@ -981,10 +984,28 @@ void MainWindow::UpdateSettingsBox() {
     ui->refreshTradeBox->setChecked(auto_online_.enabled());
     ui->tradeURLLineEdit->setText(QString::fromStdString(auto_online_.GetUrl()));
     ui->showTradeURL->setChecked(false);
+    ui->tradeURLLineEdit->setEchoMode(QLineEdit::Password);
+
+    // Visual
+    ui->darkThemeRadioButton->setChecked(app_->data_manager().GetBool("DarkTheme"));
+    if (ui->darkThemeRadioButton->isChecked()) {
+        on_darkThemeRadioButton_clicked();
+    }
+    bool flag = app_->data_manager().GetBool("ProcBuyoutStyle");
+    ui->buyoutStyleBox->setChecked(flag);
+    // Force update
+    on_buyoutStyleBox_toggled(flag);
+
+    flag = app_->data_manager().GetBool("ShowOldMenu");
+    ui->showMenuBarBox->setChecked(flag);
+    // Force update
+    on_showMenuBarBox_toggled(flag);
+
 }
 
 void MainWindow::on_buyoutStyleBox_toggled(bool checked) {
     ui->buyoutCurrencyComboBox->setHidden(checked);
+    app_->data_manager().SetBool("ProcBuyoutStyle", checked);
 }
 
 void MainWindow::on_showMenuBarBox_toggled(bool checked) {
