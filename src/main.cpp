@@ -49,15 +49,15 @@ int main(int argc, char *argv[])
 
     QLocale::setDefault(QLocale::C);
 
-#if defined(CRASHRPT) && !defined(DEBUG)
-    CR_INSTALL_INFOW info;
-    memset(&info, 0, sizeof(CR_INSTALL_INFOW));
-    info.cb = sizeof(CR_INSTALL_INFOW);
-    info.pszAppName = L"Acquisition";
-    info.pszAppVersion = L"0.0";
-    info.pszUrl = L"https://xyz.is/acquisition/utils/crashrpt.php";
-    CrAutoInstallHelper cr_install_helper(&info);
-#endif
+//#if defined(CRASHRPT) && !defined(DEBUG)
+//    CR_INSTALL_INFOW info;
+//    memset(&info, 0, sizeof(CR_INSTALL_INFOW));
+//    info.cb = sizeof(CR_INSTALL_INFOW);
+//    info.pszAppName = L"Acquisition";
+//    info.pszAppVersion = L"0.0";
+//    info.pszUrl = L"https://xyz.is/acquisition/utils/crashrpt.php";
+//    CrAutoInstallHelper cr_install_helper(&info);
+//#endif
 
     InitModlist();
 
