@@ -63,7 +63,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     ui->setupUi(this);
     ui->errorLabel->hide();
     ui->errorLabel->setStyleSheet("QLabel { color : red; }");
-    setWindowTitle(QString("Login [") + VERSION_NAME + "]");
+    setWindowTitle(QString("Acquisition Plus - Login [") + VERSION_NAME + "]");
 
     settings_path_ = Filesystem::UserDir() + "/settings.ini";
     LoadSettings();
