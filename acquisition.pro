@@ -1,8 +1,8 @@
 TARGET = acquisitionplus
 TEMPLATE = app
 
-QT += core gui network webkitwidgets testlib
-QT -= console
+QT += core gui network webkitwidgets
+QT -= testlib
 
 win32 {
     QT += winextras
@@ -48,12 +48,7 @@ SOURCES += \
     src/verticalscrollarea.cpp \
     src/updatechecker.cpp \
     src/autoonline.cpp \
-    src/filesystem.cpp \
-    test/testmain.cpp \
-    test/testdata.cpp \
-    test/testitem.cpp \
-    test/testshop.cpp \
-    test/testutil.cpp
+    src/filesystem.cpp
 
 HEADERS += \
     src/item.h \
@@ -87,12 +82,7 @@ HEADERS += \
     src/verticalscrollarea.h \
     src/updatechecker.h \
     src/autoonline.h \
-    src/filesystem.h \
-    test/testmain.h \
-    test/testdata.h \
-    test/testitem.h \
-    test/testshop.h \
-    test/testutil.h
+    src/filesystem.h
 
 FORMS += \
     forms/mainwindow.ui \
