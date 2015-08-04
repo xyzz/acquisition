@@ -35,7 +35,6 @@
 #include "modlist.h"
 #include "porting.h"
 #include "version.h"
-#include "../test/testmain.h"
 
 #ifdef CRASHRPT
 #include "CrashRpt.h"
@@ -66,13 +65,9 @@ int main(int argc, char *argv[])
     Filesystem::Init();
 
     QCommandLineParser parser;
-    QCommandLineOption option_test("test"), option_data_dir("data-dir", "Where to save Acquisition data.", "data-dir");
-    parser.addOption(option_test);
+    QCommandLineOption option_data_dir("data-dir", "Where to save Acquisition data.", "data-dir");
     parser.addOption(option_data_dir);
     parser.process(a);
-
-    if (parser.isSet(option_test))
-        return test_main();
 
     if (parser.isSet(option_data_dir))
         Filesystem::SetUserDir(parser.value(option_data_dir).toStdString());

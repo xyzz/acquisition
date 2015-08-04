@@ -176,7 +176,7 @@
         <enum>QTabWidget::Rounded</enum>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <property name="documentMode">
         <bool>false</bool>
@@ -897,8 +897,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>457</width>
-              <height>295</height>
+              <width>205</width>
+              <height>120</height>
              </rect>
             </property>
             <attribute name="label">
@@ -965,8 +965,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>457</width>
-              <height>295</height>
+              <width>98</width>
+              <height>69</height>
              </rect>
             </property>
             <attribute name="label">
