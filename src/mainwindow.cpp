@@ -109,6 +109,54 @@ void MainWindow::InitializeUi() {
     connect(tab_bar_, SIGNAL(currentChanged(int)), this, SLOT(OnTabChange(int)));
     connect(tab_bar_, SIGNAL(tabCloseRequested(int)), this, SLOT(OnTabClose(int)));
 
+
+    QAction* action = tab_context_menu_.addAction("Rename Tab...");
+    connect(action, &QAction::triggered, [this] {
+        int index = tab_bar_->tabAt(tab_bar_->mapFromGlobal(tab_context_menu_.pos()));
+        if (index != -1) {
+            Search* search = searches_[index];
+            bool ok;
+            QString caption = QInputDialog::getText(this, "Tab Caption", "Enter tab caption:", QLineEdit::Normal,
+                search->GetCaption(false), &ok);
+            if (ok && !caption.isEmpty()) {
+                search->SetCaption(caption);
+                tab_bar_->setTabText(index, search->GetCaption());
+            }
+        }
+    });
+
+    action = new QAction(this);
+    action->setShortcutContext(Qt::WindowShortcut);
+    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_T));
+    connect(action, &QAction::triggered, [this] {
+        // Select "+"
+        tab_bar_->setCurrentIndex(tab_bar_->count() - 1);
+    });
+    this->addAction(action);
+
+
+    action = tab_context_menu_.addAction("Close Tab");
+    action->setShortcutContext(Qt::WindowShortcut);
+    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
+    this->addAction(action);
+    connect(action, &QAction::triggered, [this] {
+        int index = tab_bar_->tabAt(tab_bar_->mapFromGlobal(tab_context_menu_.pos()));
+        if (tab_context_menu_.isVisible() && index != -1) {
+            RemoveTab(index);
+        }
+        else {
+            RemoveTab(tab_bar_->currentIndex());
+        }
+    });
+
+    tab_bar_->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(tab_bar_, &QTreeView::customContextMenuRequested, [&](const QPoint &pos) {
+        int index = tab_bar_->tabAt(pos);
+        if (index != -1 && index != tab_bar_->count() - 1) {
+            tab_context_menu_.popup(tab_bar_->mapToGlobal(pos));
+        }
+    });
+
     Util::PopulateBuyoutTypeComboBox(ui->buyoutTypeComboBox);
     Util::PopulateBuyoutCurrencyComboBox(ui->buyoutCurrencyComboBox);
 
@@ -131,11 +179,30 @@ void MainWindow::InitializeUi() {
     ui->splitter_2->setStretchFactor(1, 0);
 
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
-    context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
-    context_menu_.addAction("Collapse All", this, SLOT(OnCollapseAll()));
+    default_context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
+    default_context_menu_.addAction("Collapse All", this, SLOT(OnCollapseAll()));
+    default_context_menu_.addSeparator();
+    default_context_menu_showhidden_ = default_context_menu_.addAction("Show Hidden");
+    default_context_menu_showhidden_->setCheckable(true);
+    connect(default_context_menu_showhidden_, SIGNAL(toggled(bool)), this, SLOT(ToggleShowHiddenBuckets(bool)));
+
+    bucket_context_menu_toggle_ = bucket_context_menu_.addAction("Hide Bucket", this, SLOT(ToggleBucketAtMenu()));
 
     connect(ui->treeView, &QTreeView::customContextMenuRequested, [&](const QPoint &pos) {
-        context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
+        QModelIndex index = ui->treeView->indexAt(pos);
+        if (index.isValid() && !index.parent().isValid()) {
+            QString hash = ui->treeView->model()->data(index, ItemsModel::HashRole).toString();
+            if (current_search_->IsBucketHidden(hash)) {
+                bucket_context_menu_toggle_->setText("Show Bucket");
+            }
+            else {
+                bucket_context_menu_toggle_->setText("Hide Bucket");
+            }
+            bucket_context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
+        }
+        else {
+            default_context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
+        }
     });
 
     ui->propertiesLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
@@ -165,6 +232,26 @@ void MainWindow::ExpandCollapse(TreeState state) {
     ui->treeView->blockSignals(false);
 
     ResizeTreeColumns();
+}
+
+void MainWindow::ToggleBucketAtMenu() {
+    QPoint pos = ui->treeView->viewport()->mapFromGlobal(bucket_context_menu_.pos());
+    QModelIndex index = ui->treeView->indexAt(pos);
+    if (index.isValid()) {
+        QString hash = ui->treeView->model()->data(index, ItemsModel::HashRole).toString();
+        if (current_search_->IsBucketHidden(hash)) {
+            current_search_->HideBucket(hash, false);
+        }
+        else {
+            current_search_->HideBucket(hash);
+        }
+        current_search_->Activate(app_->items(), ui->treeView);
+    }
+}
+
+void MainWindow::ToggleShowHiddenBuckets(bool checked) {
+    current_search_->ShowHiddenBuckets(checked);
+    current_search_->Activate(app_->items(), ui->treeView);
 }
 
 void MainWindow::OnExpandAll() {
@@ -337,7 +424,22 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
 }
 
 void MainWindow::OnSearchFormChange() {
+    // Update whether or not we're showing hidden buckets
+    default_context_menu_showhidden_->setChecked(current_search_->ShowingHiddenBuckets());
+
+    // Save buyouts
     app_->buyout_manager().Save();
+
+    QStringList expandedHashes;
+    if (ui->treeView->model()) {
+        for (int i = 0; i < ui->treeView->model()->rowCount(); i++) {
+            QModelIndex index = ui->treeView->model()->index(i, 0);
+            if (ui->treeView->isExpanded(index)) {
+                QString hash = ui->treeView->model()->data(index, ItemsModel::HashRole).toString();
+                expandedHashes.append(hash);
+            }
+        }
+    }
 
     current_search_->Activate(app_->items(), ui->treeView);
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
@@ -345,7 +447,18 @@ void MainWindow::OnSearchFormChange() {
     ui->treeView->reset();
 
     if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
-        ExpandCollapse(TreeState::kExpand);
+        ExpandCollapse(TreeState::kCollapse);
+
+    if (!expandedHashes.isEmpty()) {
+        for (int i = 0; i < ui->treeView->model()->rowCount(); i++) {
+            QModelIndex index = ui->treeView->model()->index(i, 0);
+            QString hash = ui->treeView->model()->data(index, ItemsModel::HashRole).toString();
+            if (expandedHashes.contains(hash)) {
+                ui->treeView->expand(index);
+            }
+        }
+    }
+
     ResizeTreeColumns();
 
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());

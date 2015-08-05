@@ -81,24 +81,34 @@ QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, 
 QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     // Bucket title
     if (index.internalId() == 0) {
-        if (role == Qt::DisplayRole && index.column() == 0 && search_.buckets().size() > 0) {
+        if (index.column() == 0 && search_.buckets().size() > 0) {
             const ItemLocation &location = search_.buckets()[index.row()]->location();
-            QString title(location.GetHeader().c_str());
-            if (bo_manager_.ExistsTab(location.GetUniqueHash()))
-                title += QString(" [%1]").arg(Util::BuyoutAsText(bo_manager_.GetTab(location.GetUniqueHash())).c_str());
-            return title;
+            if (role == Qt::DisplayRole) {
+                QString title(location.GetHeader().c_str());
+                if (bo_manager_.ExistsTab(location.GetUniqueHash()))
+                    title += QString(" [%1]").arg(Util::BuyoutAsText(bo_manager_.GetTab(location.GetUniqueHash())).c_str());
+                if (search_.IsBucketHidden(QString::fromStdString(location.GetUniqueHash()))) {
+                    title += " [Hidden]";
+                }
+                return title;
+            }
+            else if (role == HashRole) {
+                return QString::fromStdString(location.GetUniqueHash());
+            }
         }
         return QVariant();
     }
     auto &column = search_.columns()[index.column()];
     const Item &item = *search_.buckets()[index.parent().row()]->items()[index.row()];
+
     if (role == Qt::DisplayRole)
         return QString(column->value(item).c_str());
     else if (role == Qt::ForegroundRole)
         return column->color(item);
-    else if (role == SortRole) {
+    else if (role == SortRole)
         return column->sortValue(item);
-    }
+    else if (role == HashRole)
+        return QString::fromStdString(item.hash());
     return QVariant();
 }
 

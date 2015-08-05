@@ -44,9 +44,14 @@ public:
     const Items &items() const { return items_; }
     const std::vector<std::unique_ptr<Column>> &columns() const { return columns_; }
     const std::vector<std::unique_ptr<Bucket>> &buckets() const { return buckets_; }
-    QString GetCaption();
+    void SetCaption(const QString &caption) { caption_ = caption.toStdString(); }
+    QString GetCaption(bool withCount = true);
     int GetItemsCount();
     // Sets this search as current, will display items in passed QTreeView.
+    void HideBucket(const QString &hash, bool hide = true);
+    bool IsBucketHidden(const QString &hash) const { return hiddenBuckets_.contains(hash); }
+    void ShowHiddenBuckets(bool show = true) { showHiddenBuckets_ = show; }
+    bool ShowingHiddenBuckets() { return showHiddenBuckets_; }
     void Activate(const Items &items, QTreeView *tree);
     QModelIndex GetIndex(const QModelIndex &index) const;
 private:
@@ -57,4 +62,6 @@ private:
     std::unique_ptr<ItemsModel> model_;
     std::vector<std::unique_ptr<Bucket>> buckets_;
     std::unique_ptr<QSortFilterProxyModel> sortFilter_;
+    QStringList hiddenBuckets_;
+    bool showHiddenBuckets_;
 };

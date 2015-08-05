@@ -82,6 +82,8 @@ public slots:
     void OnUpdateAvailable();
     void OnOnlineUpdate(bool online);
     void OnTabClose(int index);
+    void ToggleBucketAtMenu();
+    void ToggleShowHiddenBuckets(bool checked);
 private slots:
     void on_actionForum_shop_thread_triggered();
     void on_actionCopy_shop_data_to_clipboard_triggered();
@@ -149,7 +151,11 @@ private:
     ImageCache *image_cache_;
     QLabel *status_bar_label_;
     QVBoxLayout *search_form_layout_;
-    QMenu context_menu_;
+    QMenu tab_context_menu_;
+    QMenu default_context_menu_;
+    QAction* default_context_menu_showhidden_;
+    QMenu bucket_context_menu_;
+    QAction* bucket_context_menu_toggle_;
     UpdateChecker update_checker_;
     QPushButton update_button_;
     AutoOnline auto_online_;

@@ -32,7 +32,8 @@
 Search::Search(const BuyoutManager &bo_manager, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters) :
     caption_(caption),
     model_(std::make_unique<ItemsModel>(bo_manager, *this)),
-    sortFilter_(std::make_unique<QSortFilterProxyModel>())
+    sortFilter_(std::make_unique<QSortFilterProxyModel>()),
+    showHiddenBuckets_(false)
 {
     using move_only = std::unique_ptr<Column>;
     move_only init[] = {
@@ -100,12 +101,22 @@ void Search::FilterItems(const Items &items) {
     }
 
     buckets_.clear();
-    for (auto &element : bucketed_tabs)
+    // filter buckets
+    QString hash;
+    for (auto &element : bucketed_tabs){
+        if (!showHiddenBuckets_) {
+            hash = QString::fromStdString(element.first.GetUniqueHash());
+            if (hiddenBuckets_.contains(hash)) continue;
+        }
         buckets_.push_back(std::move(element.second));
+    }
+
 }
 
-QString Search::GetCaption() {
-    return QString("%1 [%2]").arg(caption_.c_str()).arg(GetItemsCount());
+QString Search::GetCaption(bool withCount) {
+    if (withCount)
+        return QString("%1 [%2]").arg(caption_.c_str()).arg(GetItemsCount());
+    return QString::fromStdString(caption_);
 }
 
 int Search::GetItemsCount() {
@@ -113,6 +124,14 @@ int Search::GetItemsCount() {
     for (auto &item : items_)
         count += item->count();
     return count;
+}
+
+void Search::HideBucket(const QString &hash, bool hide) {
+    if (hide)
+        hiddenBuckets_.append(hash);
+    else
+        hiddenBuckets_.removeAll(hash);
+    hiddenBuckets_.removeDuplicates();
 }
 
 void Search::Activate(const Items &items, QTreeView *tree) {

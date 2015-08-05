@@ -31,7 +31,8 @@ class ItemsModel : public QAbstractItemModel {
     Q_OBJECT
 public:
     enum Role {
-        SortRole = Qt::UserRole
+        SortRole = Qt::UserRole,
+        HashRole = Qt::UserRole + 1
     };
 
     ItemsModel(const BuyoutManager &bo_manager, const Search &search);
