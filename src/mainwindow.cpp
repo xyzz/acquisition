@@ -109,7 +109,6 @@ void MainWindow::InitializeUi() {
     connect(tab_bar_, SIGNAL(currentChanged(int)), this, SLOT(OnTabChange(int)));
     connect(tab_bar_, SIGNAL(tabCloseRequested(int)), this, SLOT(OnTabClose(int)));
 
-
     QAction* action = tab_context_menu_.addAction("Rename Tab...");
     connect(action, &QAction::triggered, [this] {
         int index = tab_bar_->tabAt(tab_bar_->mapFromGlobal(tab_context_menu_.pos()));

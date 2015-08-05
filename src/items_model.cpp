@@ -81,7 +81,7 @@ QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, 
 QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     // Bucket title
     if (index.internalId() == 0) {
-        if (index.column() == 0 && search_.buckets().size() > 0) {
+        if (role == Qt::DisplayRole && index.column() == 0 && search_.buckets().size() > 0) {
             const ItemLocation &location = search_.buckets()[index.row()]->location();
             if (role == Qt::DisplayRole) {
                 QString title(location.GetHeader().c_str());
