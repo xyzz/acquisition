@@ -93,7 +93,7 @@ void MainWindow::InitializeLogging() {
 }
 
 void MainWindow::InitializeActions() {
-    action = new QAction(this);
+    QAction* action = new QAction(this);
     action->setShortcutContext(Qt::WindowShortcut);
     action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_T));
     connect(action, &QAction::triggered, [this] {
@@ -270,6 +270,16 @@ void MainWindow::InitializeUi() {
     statusBar()->addPermanentWidget(&update_button_);
     connect(&update_button_, &QPushButton::clicked, [=](){
         UpdateChecker::AskUserToUpdate(this);
+    });
+
+    connect(&app_->shop(), &Shop::ShopUpdateBegin, [this] () {
+       ui->updateShopButton->setEnabled(false);
+       ui->updateShopButton->setText("Updating Shop...");
+    });
+
+    connect(&app_->shop(), &Shop::ShopUpdateFinished, [this] () {
+       ui->updateShopButton->setEnabled(true);
+       ui->updateShopButton->setText("Update Shop");
     });
 
     UpdateSettingsBox();

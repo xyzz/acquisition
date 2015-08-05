@@ -43,6 +43,9 @@ public:
     const std::string &thread() const { return thread_; }
     const std::string &shop_data() const { return shop_data_; }
     const std::string &shop_template() const { return shop_template_; }
+signals:
+    void ShopUpdateBegin();
+    void ShopUpdateFinished();
 public slots:
     void OnEditPageFinished();
     void OnShopSubmitted();

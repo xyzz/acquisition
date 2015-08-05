@@ -126,6 +126,9 @@ void Shop::SubmitShopToForum() {
     // first, get to the edit-thread page
     QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopEditUrl().c_str())));
     connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
+
+    emit ShopUpdateBegin();
+    QLOG_INFO() << "Updating shop...";
 }
 
 void Shop::SubmitShopBumpToForum() {
@@ -153,6 +156,7 @@ void Shop::OnEditPageFinished() {
     std::string hash = Util::GetCsrfToken(page, "forum_thread");
     if (hash.empty()) {
         QLOG_ERROR() << "Can't update shop -- cannot extract CSRF token from the page. Check if thread ID is valid.";
+        emit ShopUpdateFinished();
         return;
     }
 
@@ -162,6 +166,7 @@ void Shop::OnEditPageFinished() {
     std::string title = Util::FindTextBetween(page, "<input type=\"text\" name=\"title\" id=\"title\" value=\"", "\" class=\"textInput\">");
     if (title.empty()) {
         QLOG_ERROR() << "Can't update shop -- title is empty. Check if thread ID is valid.";
+        emit ShopUpdateFinished();
         return;
     }
 
@@ -223,6 +228,7 @@ void Shop::OnShopSubmitted() {
     std::string error = Util::FindTextBetween(page, "<ul class=\"errors\"><li>", "</li></ul>");
     if (!error.empty()) {
         QLOG_ERROR() << "Error while submitting shop to forums:" << error.c_str();
+        emit ShopUpdateFinished();
         return;
     }
 
@@ -237,6 +243,7 @@ void Shop::OnShopSubmitted() {
     if (app_.data_manager().GetBool("shop_bump")) {
         SubmitShopBumpToForum();
     }
+    emit ShopUpdateFinished();
 }
 
 void Shop::CopyToClipboard() {
