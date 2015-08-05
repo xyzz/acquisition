@@ -30,6 +30,10 @@ class Search;
 class ItemsModel : public QAbstractItemModel {
     Q_OBJECT
 public:
+    enum Role {
+        SortRole = Qt::UserRole
+    };
+
     ItemsModel(const BuyoutManager &bo_manager, const Search &search);
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
