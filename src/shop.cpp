@@ -234,7 +234,9 @@ void Shop::OnShopSubmitted() {
 
     QLOG_INFO() << "Shop updated successfully!";
 
-    SubmitShopBumpToForum();
+    if (app_.data_manager().GetBool("shop_bump")) {
+        SubmitShopBumpToForum();
+    }
 }
 
 void Shop::CopyToClipboard() {

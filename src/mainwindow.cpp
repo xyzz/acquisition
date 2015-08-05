@@ -1132,6 +1132,7 @@ void MainWindow::on_buyoutStyleBox_toggled(bool checked) {
 
 void MainWindow::on_showMenuBarBox_toggled(bool checked) {
     ui->menuBar->setVisible(checked);
+    app_->data_manager().SetBool("ShowOldMenu", checked);
 }
 
 void MainWindow::on_updateShopButton_clicked() {
@@ -1188,4 +1189,8 @@ void MainWindow::on_updateShopBox_toggled(bool checked) {
 
 void MainWindow::on_copyClipboardButton_clicked() {
     on_actionCopy_shop_data_to_clipboard_triggered();
+}
+
+void MainWindow::on_bumpShopBox_toggled(bool checked) {
+    app_->data_manager().SetBool("shop_bump", checked);
 }
