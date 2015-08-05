@@ -87,12 +87,12 @@ private:
 
 class NameSearchFilter : public Filter {
 public:
-    explicit NameSearchFilter(QLayout *parent);
+    explicit NameSearchFilter(QLineEdit *textbox);
     void FromForm(FilterData *data);
     void ToForm(FilterData *data);
     void ResetForm();
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
-    void Initialize(QLayout *parent);
+    void Initialize(QLineEdit *textbox);
 private:
     QLineEdit *textbox_;
 };
