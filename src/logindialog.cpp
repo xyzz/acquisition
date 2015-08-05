@@ -91,8 +91,9 @@ void LoginDialog::OnLeaguesRequestFinished() {
     leagues_.clear();
     // ignore actual response completely since it's broken anyway (at the moment of writing!)
     if (true) {
-        QLOG_ERROR() << "Failed to parse leagues. The output was:";
-        QLOG_ERROR() << QString(bytes);
+        // QLOG_ERROR() << "Failed to parse leagues. The output was:";
+        // QLOG_ERROR() << QString(bytes);
+        QLOG_ERROR() << "Using temporary leagues list, as GGG's response is invalid.";
 
         // But let's do our best and try to add at least some leagues!
         // It's in case GGG's API is broken and suddenly starts returning empty pages,
@@ -232,7 +233,7 @@ void LoginDialog::OnMainPageFinished() {
     std::string league(ui->leagueComboBox->currentText().toStdString());
     app_->InitLogin(std::move(login_manager_), league, account.toStdString());
     mw = new MainWindow(std::move(app_));
-    mw->setWindowTitle(QString("Acquisition - %1").arg(league.c_str()));
+    mw->setWindowTitle(QString("Acquisition Plus - %1").arg(league.c_str()));
     mw->show();
     close();
 }

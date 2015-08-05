@@ -53,7 +53,7 @@ void UpdateChecker::OnUpdateCheckCompleted() {
 
 void UpdateChecker::AskUserToUpdate(QWidget *parent) {
     QMessageBox::StandardButton result = QMessageBox::information(parent, "Update",
-        "A newer version of Acquisition is available. "
+        "A newer version of Acquisition Plus is available. "
         "Would you like to navigate to GitHub to download it?",
         QMessageBox::Yes | QMessageBox::No,
         QMessageBox::Yes);

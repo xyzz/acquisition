@@ -23,5 +23,5 @@
 const int VERSION_CODE = VER_CODE;
 const char VERSION_NAME[] = VER_STR;
 
-const char UPDATE_CHECK_URL[] = "https://xyz.is/acquisition/version.txt";
-const char UPDATE_DOWNLOAD_LOCATION[] = "https://github.com/xyzz/acquisition/releases";
+const char UPDATE_CHECK_URL[] = "http://rory.io/acquisitionplus/version.txt";
+const char UPDATE_DOWNLOAD_LOCATION[] = "https://github.com/Novynn/acquisition/releases";

@@ -101,7 +101,7 @@ void AutoOnline::Check() {
     if (running || previous_status_) {
         QNetworkRequest request(QUrl(url.c_str()));
         QByteArray data;
-        request.setHeader(QNetworkRequest::UserAgentHeader, (std::string("Acquisition ") + VERSION_NAME).c_str());
+        request.setHeader(QNetworkRequest::UserAgentHeader, (std::string("Acquisition Plus ") + VERSION_NAME).c_str());
         nm_.post(request, data);
     }
 
