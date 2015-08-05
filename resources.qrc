@@ -7,4 +7,24 @@
         <file alias="S.png">assets/Socket_S.png</file>
         <file alias="G.png">assets/Socket_G.png</file>
     </qresource>
+    <qresource prefix="/headers">
+        <file alias="ItemHeaderUniqueLeft.png">assets/ItemHeaderUniqueLeft.png</file>
+        <file alias="ItemHeaderUniqueMiddle.png">assets/ItemHeaderUniqueMiddle.png</file>
+        <file alias="ItemHeaderUniqueRight.png">assets/ItemHeaderUniqueRight.png</file>
+        <file alias="ItemHeaderRareLeft.png">assets/ItemHeaderRareLeft.png</file>
+        <file alias="ItemHeaderRareMiddle.png">assets/ItemHeaderRareMiddle.png</file>
+        <file alias="ItemHeaderRareRight.png">assets/ItemHeaderRareRight.png</file>
+        <file alias="ItemHeaderGemLeft.png">assets/ItemHeaderGemLeft.png</file>
+        <file alias="ItemHeaderGemMiddle.png">assets/ItemHeaderGemMiddle.png</file>
+        <file alias="ItemHeaderGemRight.png">assets/ItemHeaderGemRight.png</file>
+        <file alias="ItemHeaderWhiteLeft.png">assets/ItemHeaderWhiteLeft.png</file>
+        <file alias="ItemHeaderWhiteMiddle.png">assets/ItemHeaderWhiteMiddle.png</file>
+        <file alias="ItemHeaderWhiteRight.png">assets/ItemHeaderWhiteRight.png</file>
+        <file alias="ItemHeaderMagicLeft.png">assets/ItemHeaderMagicLeft.png</file>
+        <file alias="ItemHeaderMagicMiddle.png">assets/ItemHeaderMagicMiddle.png</file>
+        <file alias="ItemHeaderMagicRight.png">assets/ItemHeaderMagicRight.png</file>
+        <file alias="ItemHeaderCurrencyLeft.png">assets/ItemHeaderCurrencyLeft.png</file>
+        <file alias="ItemHeaderCurrencyMiddle.png">assets/ItemHeaderCurrencyMiddle.png</file>
+        <file alias="ItemHeaderCurrencyRight.png">assets/ItemHeaderCurrencyRight.png</file>
+    </qresource>
 </RCC>
