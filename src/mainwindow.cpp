@@ -417,7 +417,6 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e) {
     else if (o == ui->buyoutValueLineEdit && e->type() == QEvent::KeyPress) {
         QKeyEvent* event = static_cast<QKeyEvent* >(e);
         if (event->key() == Qt::Key_Tab) {
-            qDebug() << "Caught tab off line edit!";
             ui->treeView->setFocus();
             QModelIndex index = ui->treeView->selectionModel()->currentIndex();
             index = ui->treeView->model()->index(index.row() + 1, 0, index.parent());
