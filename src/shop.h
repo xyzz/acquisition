@@ -20,6 +20,7 @@
 #pragma once
 
 #include <QObject>
+#include <QDateTime>
 #include <string>
 
 extern const std::string kShopTemplateItems;
@@ -37,6 +38,7 @@ public:
     void CopyToClipboard();
     void ExpireShopData();
     void SubmitShopToForum();
+    void SubmitShopBumpToForum();
     bool auto_update() const { return auto_update_; }
     const std::string &thread() const { return thread_; }
     const std::string &shop_data() const { return shop_data_; }
@@ -44,8 +46,11 @@ public:
 public slots:
     void OnEditPageFinished();
     void OnShopSubmitted();
+    void OnBumpPageFinished();
+    void OnBumpSubmitted();
 private:
     std::string ShopEditUrl();
+    std::string ShopBumpUrl();
     Application &app_;
     std::string thread_;
     std::string shop_data_;
@@ -53,4 +58,6 @@ private:
     std::string shop_template_;
     bool shop_data_outdated_;
     bool auto_update_;
+
+    QDateTime lastBumped_;
 };

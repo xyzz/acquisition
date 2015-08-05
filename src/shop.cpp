@@ -34,7 +34,10 @@
 #include "util.h"
 
 const std::string POE_EDIT_THREAD = "https://www.pathofexile.com/forum/edit-thread/";
+const std::string POE_BUMP_THREAD = "https://www.pathofexile.com/forum/post-reply/";
+const std::string POE_BUMP_MESSAGE = "[url=https://github.com/Novynn/acquisitionplus/releases]Bumped with Acquisition Plus![/url]";
 const std::string kShopTemplateItems = "[items]";
+const int POE_BUMP_DELAY = 300;
 
 Shop::Shop(Application &app) :
     app_(app),
@@ -103,6 +106,10 @@ std::string Shop::ShopEditUrl() {
     return POE_EDIT_THREAD + thread_;
 }
 
+std::string Shop::ShopBumpUrl() {
+    return POE_BUMP_THREAD + thread_;
+}
+
 void Shop::SubmitShopToForum() {
     if (thread_.empty()) {
         QLOG_WARN() << "Asked to update a shop with empty thread ID.";
@@ -120,6 +127,24 @@ void Shop::SubmitShopToForum() {
     QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopEditUrl().c_str())));
     connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
 }
+
+void Shop::SubmitShopBumpToForum() {
+    if (thread_.empty()) {
+        QLOG_WARN() << "Asked to bump a shop with empty thread ID.";
+        return;
+    }
+
+    if (!lastBumped_.isNull() && lastBumped_.secsTo(QDateTime::currentDateTime()) < POE_BUMP_DELAY) {
+        QLOG_WARN() << "Asked to bump too often! Ignoring request.";
+        return;
+    }
+
+    // first, get to the post-reply page
+    QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopBumpUrl().c_str())));
+    connect(fetched, SIGNAL(finished()), this, SLOT(OnBumpPageFinished()));
+}
+
+
 
 void Shop::OnEditPageFinished() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
@@ -153,6 +178,44 @@ void Shop::OnEditPageFinished() {
     connect(submitted, SIGNAL(finished()), this, SLOT(OnShopSubmitted()));
 }
 
+void Shop::OnBumpPageFinished() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
+    QByteArray bytes = reply->readAll();
+    std::string page(bytes.constData(), bytes.size());
+    std::string hash = Util::GetCsrfToken(page, "forum_post");
+    if (hash.empty()) {
+        QLOG_ERROR() << "Can't bump shop -- cannot extract CSRF token from the page. Check if thread ID is valid.";
+        return;
+    }
+
+    // now submit our bump
+
+    QUrlQuery query;
+    query.addQueryItem("forum_post", hash.c_str());
+    query.addQueryItem("content", POE_BUMP_MESSAGE.c_str());
+    query.addQueryItem("post_submit", "Submit");
+
+    QByteArray data(query.query().toUtf8());
+    QNetworkRequest request((QUrl(ShopBumpUrl().c_str())));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    QNetworkReply *submitted = app_.logged_in_nm().post(request, data);
+    connect(submitted, SIGNAL(finished()), this, SLOT(OnBumpSubmitted()));
+}
+
+void Shop::OnBumpSubmitted() {
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
+    QByteArray bytes = reply->readAll();
+    std::string page(bytes.constData(), bytes.size());
+    std::string error = Util::FindTextBetween(page, "<ul class=\"errors\"><li>", "</li></ul>");
+    if (!error.empty()) {
+        QLOG_ERROR() << "Error while bumping shop on forums:" << error.c_str();
+        return;
+    }
+
+    QLOG_INFO() << "Shop bumped successfully!";
+    lastBumped_ = QDateTime::currentDateTime();
+}
+
 void Shop::OnShopSubmitted() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
@@ -168,6 +231,10 @@ void Shop::OnShopSubmitted() {
     app_.logged_in_nm().get(request);
 
     app_.data_manager().Set("shop_hash", shop_hash_);
+
+    QLOG_INFO() << "Shop updated successfully!";
+
+    SubmitShopBumpToForum();
 }
 
 void Shop::CopyToClipboard() {
