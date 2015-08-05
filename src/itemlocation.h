@@ -22,6 +22,7 @@ public:
     std::string GetForumCode(const std::string &league) const;
     std::string GetUniqueHash() const;
     bool operator<(const ItemLocation &other) const;
+    ItemLocationType type() const { return type_; }
     void set_type(const ItemLocationType type) { type_ = type; }
     void set_character(const std::string &character) { character_ = character; }
     void set_tab_id(int tab_id) { tab_id_ = tab_id; }
