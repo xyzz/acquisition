@@ -133,6 +133,13 @@ void MainWindow::InitializeUi() {
     });
     this->addAction(action);
 
+    action = new QAction(this);
+    action->setShortcutContext(Qt::WindowShortcut);
+    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+    connect(action, &QAction::triggered, [this] {
+        ui->buyoutTypeComboBox->setFocus();
+    });
+    this->addAction(action);
 
     action = tab_context_menu_.addAction("Close Tab");
     action->setShortcutContext(Qt::WindowShortcut);
@@ -162,6 +169,9 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutCurrencyComboBox, SIGNAL(activated(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutTypeComboBox, SIGNAL(activated(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutValueLineEdit, SIGNAL(textEdited(QString)), this, SLOT(OnBuyoutChange()));
+    connect(ui->buyoutValueLineEdit, &QLineEdit::returnPressed, [this] () {
+        ui->treeView->setFocus();
+    });
 
     ui->buyoutCurrencyComboBox->hide();
 
