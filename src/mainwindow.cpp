@@ -92,6 +92,64 @@ void MainWindow::InitializeLogging() {
     QsLogging::Logger::instance().addDestination(log_panel_ptr);
 }
 
+void MainWindow::InitializeActions() {
+    action = new QAction(this);
+    action->setShortcutContext(Qt::WindowShortcut);
+    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_T));
+    connect(action, &QAction::triggered, [this] {
+        // Select "+"
+        tab_bar_->setCurrentIndex(tab_bar_->count() - 1);
+    });
+    this->addAction(action);
+
+    action = new QAction(this);
+    action->setShortcutContext(Qt::WindowShortcut);
+    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+    connect(action, &QAction::triggered, [this] {
+        ui->buyoutTypeComboBox->setFocus();
+    });
+    this->addAction(action);
+
+    action = new QAction(this);
+    action->setShortcutContext(Qt::WindowShortcut);
+    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_R));
+    connect(action, &QAction::triggered, [this] {
+        ui->buyoutTypeComboBox->setCurrentIndex(0);
+        OnBuyoutChange();
+    });
+    this->addAction(action);
+
+    action = new QAction(this);
+    action->setShortcutContext(Qt::WindowShortcut);
+    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
+    connect(action, &QAction::triggered, [this] {
+        ui->buyoutTypeComboBox->setCurrentIndex(1);
+        OnBuyoutChange(false);
+        ui->buyoutValueLineEdit->setFocus();
+    });
+    this->addAction(action);
+
+    action = new QAction(this);
+    action->setShortcutContext(Qt::WindowShortcut);
+    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F));
+    connect(action, &QAction::triggered, [this] {
+        ui->buyoutTypeComboBox->setCurrentIndex(2);
+        OnBuyoutChange(false);
+        ui->buyoutValueLineEdit->setFocus();
+    });
+    this->addAction(action);
+
+    action = new QAction(this);
+    action->setShortcutContext(Qt::WindowShortcut);
+    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
+    connect(action, &QAction::triggered, [this] {
+        ui->buyoutTypeComboBox->setCurrentIndex(3);
+        OnBuyoutChange(false);
+        ui->buyoutValueLineEdit->setFocus();
+    });
+    this->addAction(action);
+}
+
 void MainWindow::InitializeUi() {
     ui->setupUi(this);
     status_bar_label_ = new QLabel("Ready");
@@ -124,23 +182,6 @@ void MainWindow::InitializeUi() {
         }
     });
 
-    action = new QAction(this);
-    action->setShortcutContext(Qt::WindowShortcut);
-    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_T));
-    connect(action, &QAction::triggered, [this] {
-        // Select "+"
-        tab_bar_->setCurrentIndex(tab_bar_->count() - 1);
-    });
-    this->addAction(action);
-
-    action = new QAction(this);
-    action->setShortcutContext(Qt::WindowShortcut);
-    action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
-    connect(action, &QAction::triggered, [this] {
-        ui->buyoutTypeComboBox->setFocus();
-    });
-    this->addAction(action);
-
     action = tab_context_menu_.addAction("Close Tab");
     action->setShortcutContext(Qt::WindowShortcut);
     action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
@@ -162,6 +203,8 @@ void MainWindow::InitializeUi() {
             tab_context_menu_.popup(tab_bar_->mapToGlobal(pos));
         }
     });
+
+    InitializeActions();
 
     Util::PopulateBuyoutTypeComboBox(ui->buyoutTypeComboBox);
     Util::PopulateBuyoutCurrencyComboBox(ui->buyoutCurrencyComboBox);
@@ -277,11 +320,20 @@ void MainWindow::ResizeTreeColumns() {
         ui->treeView->resizeColumnToContents(i);
 }
 
-void MainWindow::OnBuyoutChange() {
-    app_->shop().ExpireShopData();
-
+void MainWindow::OnBuyoutChange(bool doParse) {
     Buyout bo;
     bo.type = static_cast<BuyoutType>(ui->buyoutTypeComboBox->currentIndex());
+
+    if (bo.type == BUYOUT_TYPE_NONE && ui->buyoutValueLineEdit->isEnabled()) {
+        ui->buyoutCurrencyComboBox->setEnabled(false);
+        ui->buyoutValueLineEdit->setEnabled(false);
+    } else if (!ui->buyoutValueLineEdit->isEnabled()){
+        ui->buyoutCurrencyComboBox->setEnabled(true);
+        ui->buyoutValueLineEdit->setEnabled(true);
+    }
+
+    if (!doParse) return;
+
     if (ui->buyoutCurrencyComboBox->isVisible()) {
         bo.currency = static_cast<Currency>(ui->buyoutCurrencyComboBox->currentIndex());
         bo.value = ui->buyoutValueLineEdit->text().replace(',', ".").toDouble();
@@ -333,14 +385,6 @@ void MainWindow::OnBuyoutChange() {
 
     bo.last_update = QDateTime::currentDateTime();
 
-    if (bo.type == BUYOUT_TYPE_NONE) {
-        ui->buyoutCurrencyComboBox->setEnabled(false);
-        ui->buyoutValueLineEdit->setEnabled(false);
-    } else {
-        ui->buyoutCurrencyComboBox->setEnabled(true);
-        ui->buyoutValueLineEdit->setEnabled(true);
-    }
-
     bool isUpdated = true;
     if (current_item_) {
         if (app_->buyout_manager().Exists(*current_item_)) {
@@ -379,7 +423,8 @@ void MainWindow::OnBuyoutChange() {
     // refresh treeView to immediately reflect price changes
     if (isUpdated) {
         ui->treeView->model()->layoutChanged();
-        ResizeTreeColumns();
+        //ResizeTreeColumns();
+        app_->shop().ExpireShopData();
     }
 }
 

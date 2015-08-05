@@ -68,6 +68,7 @@ public:
     void RemoveTab(int index);
     void GenerateCurrentItemHeader();
     void UpdateSettingsBox();
+    void InitializeActions();
 public slots:
     void OnTreeChange(const QModelIndex &index, const QModelIndex &prev);
     void OnSearchFormChange();
@@ -75,7 +76,7 @@ public slots:
     void OnImageFetched(QNetworkReply *reply);
     void OnItemsRefreshed();
     void OnItemsManagerStatusUpdate(const ItemsFetchStatus &status);
-    void OnBuyoutChange();
+    void OnBuyoutChange(bool doParse=true);
     void ResizeTreeColumns();
     void OnExpandAll();
     void OnCollapseAll();
