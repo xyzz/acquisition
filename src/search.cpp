@@ -31,30 +31,31 @@
 
 Search::Search(const BuyoutManager &bo_manager, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters) :
     caption_(caption),
-    model_(std::make_unique<ItemsModel>(bo_manager, *this))
+    model_(std::make_unique<ItemsModel>(bo_manager, *this)),
+    sortFilter_(std::make_unique<QSortFilterProxyModel>())
 {
     using move_only = std::unique_ptr<Column>;
     move_only init[] = {
         std::make_unique<NameColumn>(),
         std::make_unique<PriceColumn>(bo_manager),
         std::make_unique<DateColumn>(bo_manager),
-        std::make_unique<PropertyColumn>("Q", "Quality"),
-        std::make_unique<PropertyColumn>("Stack", "Stack Size"),
+        std::make_unique<PercentPropertyColumn>("Quality", "Quality", QVariant::UInt),
+        std::make_unique<StackColumn>(),
         std::make_unique<CorruptedColumn>(),
-        std::make_unique<PropertyColumn>("PD", "Physical Damage"),
-        std::make_unique<ElementalDamageColumn>(0),
-        std::make_unique<ElementalDamageColumn>(1),
-        std::make_unique<ElementalDamageColumn>(2),
-        std::make_unique<PropertyColumn>("APS", "Attacks per Second"),
+        std::make_unique<RangePropertyColumn>("PD", "Physical Damage", QVariant::UInt),
+        std::make_unique<ElementalDamageColumn>(ED_COLD),
+        std::make_unique<ElementalDamageColumn>(ED_FIRE),
+        std::make_unique<ElementalDamageColumn>(ED_LIGHTNING),
+        std::make_unique<PropertyColumn>("APS", "Attacks per Second", QVariant::Double),
         std::make_unique<DPSColumn>(),
         std::make_unique<pDPSColumn>(),
         std::make_unique<eDPSColumn>(),
-        std::make_unique<PropertyColumn>("Crit", "Critical Strike Chance"),
-        std::make_unique<PropertyColumn>("Ar", "Armour"),
-        std::make_unique<PropertyColumn>("Ev", "Evasion Rating"),
-        std::make_unique<PropertyColumn>("ES", "Energy Shield"),
+        std::make_unique<PercentPropertyColumn>("Crit", "Critical Strike Chance", QVariant::Double),
+        std::make_unique<PropertyColumn>("Ar", "Armour", QVariant::UInt),
+        std::make_unique<PropertyColumn>("Ev", "Evasion Rating", QVariant::UInt),
+        std::make_unique<PropertyColumn>("ES", "Energy Shield", QVariant::UInt),
         std::make_unique<PropertyColumn>("B", "Chance to Block"),
-        std::make_unique<PropertyColumn>("Lvl", "Level")
+        std::make_unique<PropertyColumn>("Lvl", "Level", QVariant::UInt)
     };
     columns_ = std::vector<move_only>(std::make_move_iterator(std::begin(init)), std::make_move_iterator(std::end(init)));
 
@@ -117,5 +118,14 @@ int Search::GetItemsCount() {
 void Search::Activate(const Items &items, QTreeView *tree) {
     FromForm();
     FilterItems(items);
-    tree->setModel(model_.get());
+
+    QSortFilterProxyModel* mod = sortFilter_.get();
+    mod->setSourceModel(model_.get());
+    mod->setSortRole(ItemsModel::SortRole);
+    tree->setModel(mod);
+}
+
+QModelIndex Search::GetIndex(const QModelIndex &index) const
+{
+    return sortFilter_->mapToSource(index);
 }
