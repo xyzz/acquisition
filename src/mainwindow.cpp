@@ -472,14 +472,16 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e) {
     else if (o == ui->buyoutValueLineEdit && e->type() == QEvent::KeyPress) {
         QKeyEvent* event = static_cast<QKeyEvent* >(e);
         if (event->key() == Qt::Key_Tab) {
-            ui->treeView->setFocus();
-            QModelIndex index = ui->treeView->selectionModel()->currentIndex();
-            index = ui->treeView->model()->index(index.row() + 1, 0, index.parent());
-            if (index.isValid())
-                ui->treeView->setCurrentIndex(index);
+            if (!ui->buyoutCurrencyComboBox->isVisible()) {
+                ui->treeView->setFocus();
+                QModelIndex index = ui->treeView->selectionModel()->currentIndex();
+                index = ui->treeView->model()->index(index.row() + 1, 0, index.parent());
+                if (index.isValid())
+                    ui->treeView->setCurrentIndex(index);
 
-            event->accept();
-            return true;
+                event->accept();
+                return true;
+            }
         }
     }
     return QMainWindow::eventFilter(o, e);
