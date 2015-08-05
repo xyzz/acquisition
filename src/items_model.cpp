@@ -81,7 +81,7 @@ QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, 
 QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     // Bucket title
     if (index.internalId() == 0) {
-        if (role == Qt::DisplayRole && index.column() == 0 && search_.buckets().size() > 0) {
+        if (index.column() == 0 && search_.buckets().size() > 0) {
             const ItemLocation &location = search_.buckets()[index.row()]->location();
             if (role == Qt::DisplayRole) {
                 QString title(location.GetHeader().c_str());
@@ -126,4 +126,8 @@ QModelIndex ItemsModel::index(int row, int column, const QModelIndex &parent) co
         return createIndex(row, column, static_cast<quintptr>(0));
     // item, we pass parent's (bucket's) row through ID parameter
     return createIndex(row, column, static_cast<quintptr>(parent.row() + 1));
+}
+
+void ItemsModel::updateAll() {
+    emit dataChanged(QModelIndex(), QModelIndex());
 }

@@ -42,6 +42,7 @@ public:
     QModelIndex parent(const QModelIndex &index) const;
     QModelIndex index(int row, int column, const QModelIndex &parent) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    void updateAll();
 private:
     const BuyoutManager &bo_manager_;
     const Search &search_;
