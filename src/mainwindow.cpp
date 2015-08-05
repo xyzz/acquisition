@@ -172,6 +172,7 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutValueLineEdit, &QLineEdit::returnPressed, [this] () {
         ui->treeView->setFocus();
     });
+    ui->buyoutValueLineEdit->installEventFilter(this);
 
     ui->buyoutCurrencyComboBox->hide();
 
@@ -410,6 +411,20 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e) {
             if (index < tab_bar_->count() - 1) {
                 RemoveTab(index);
             }
+            return true;
+        }
+    }
+    else if (o == ui->buyoutValueLineEdit && e->type() == QEvent::KeyPress) {
+        QKeyEvent* event = static_cast<QKeyEvent* >(e);
+        if (event->key() == Qt::Key_Tab) {
+            qDebug() << "Caught tab off line edit!";
+            ui->treeView->setFocus();
+            QModelIndex index = ui->treeView->selectionModel()->currentIndex();
+            index = ui->treeView->model()->index(index.row() + 1, 0, index.parent());
+            if (index.isValid())
+                ui->treeView->setCurrentIndex(index);
+
+            event->accept();
             return true;
         }
     }

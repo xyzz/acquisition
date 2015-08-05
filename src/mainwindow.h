@@ -119,6 +119,8 @@ private slots:
 
     void on_copyClipboardButton_clicked();
 
+    void on_bumpShopBox_toggled(bool checked);
+
 private:
     void UpdateCurrentBucket();
     void UpdateCurrentItem();
