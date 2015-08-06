@@ -52,6 +52,7 @@
 #include "shop.h"
 #include "util.h"
 #include "verticalscrollarea.h"
+#include "currencymanager.h"
 
 const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
 
@@ -695,4 +696,8 @@ void MainWindow::on_actionControl_poe_xyz_is_URL_triggered() {
 void MainWindow::on_actionAutomatically_refresh_online_status_triggered() {
     auto_online_.SetEnabled(ui->actionAutomatically_refresh_online_status->isChecked());
     UpdateOnlineGui();
+}
+
+void MainWindow::on_actionList_currency_triggered() {
+    app_->currency_manager().DisplayCurrency();
 }

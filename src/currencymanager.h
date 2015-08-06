@@ -19,6 +19,9 @@
 
 #pragma once
 #include <QWidget>
+#include <QtGui>
+
+#include <QtWidgets>
 #include "item.h"
 #include "itemsmanagerworker.h"
 #include "buyoutmanager.h"
@@ -28,7 +31,32 @@ struct CurrencyItem {
     double exalt;
     double base;
 };
-class CurrencyManager {
+class CurrencyManager;
+
+class DialogCurrency : public QDialog
+{
+    Q_OBJECT
+public:
+    DialogCurrency(CurrencyManager &manager);
+public slots:
+    void Update();
+private:
+    CurrencyManager &m_;
+    QGridLayout *layout_;
+    QPushButton *button_close_;
+    std::vector<QLabel *> names_;
+    std::vector<QDoubleSpinBox *> values_;
+    std::vector<QDoubleSpinBox *> base_values_;
+    QDoubleSpinBox *total_value_;
+    QSignalMapper *mapper;
+    void UpdateTotalExaltedValue();
+private slots:
+    void OnBaseValueChanged(int index);
+};
+
+class CurrencyManager : public QWidget
+{
+    Q_OBJECT
 public:
     CurrencyManager(Application &app);
     ~CurrencyManager();
@@ -36,16 +64,20 @@ public:
     //Called in itemmanagerworker::ParseItem
     void ParseSingleItem(std::shared_ptr<Item> item);
     void UpdateBaseValue(int ind, double value);
+    std::vector<CurrencyItem> currencys() const { return currencys_;}
+    double TotalExaltedValue();
+    void DisplayCurrency();
+
 private:
     Application &app_;
     DataManager &data_;
     std::vector<CurrencyItem> currencys_;
-    double TotalExaltedValue();
+    DialogCurrency *dialog_;
     //database interaction
     void InitCurrency();
     void LoadCurrency();
     void SaveCurrency();
 
-private slots:
+public slots:
     void UpdateExaltedValue();
 };

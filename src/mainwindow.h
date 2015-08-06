@@ -89,6 +89,7 @@ private slots:
     void on_actionAutomatically_update_shop_triggered();
     void on_actionControl_poe_xyz_is_URL_triggered();
     void on_actionAutomatically_refresh_online_status_triggered();
+    void on_actionList_currency_triggered();
 
 private:
     void UpdateCurrentBucket();
