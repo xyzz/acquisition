@@ -95,8 +95,12 @@ private:
     //database interaction
     void InitCurrency();
     void LoadCurrency();
-    void SaveCurrency();
+    void SaveCurrencyBase();
+    //CSV export
+    void ExportCurrency(std::string value);
 
 public slots:
     void UpdateExaltedValue();
+    void SaveCurrencyValue();
+
 };

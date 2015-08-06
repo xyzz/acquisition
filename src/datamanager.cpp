@@ -40,10 +40,15 @@ DataManager::DataManager(const std::string &filename) :
     if (sqlite3_exec(db_, query.c_str(), 0, 0, 0) != SQLITE_OK) {
         throw std::runtime_error("Failed to execute creation statement.");
     }
+    std::string query_currency = "CREATE TABLE IF NOT EXISTS currency(key TEXT PRIMARY KEY, value BLOB)";
+    if (sqlite3_exec(db_, query_currency.c_str(), 0, 0, 0) != SQLITE_OK) {
+        throw std::runtime_error("Failed to execute creation statement.");
+    }
 }
 
-std::string DataManager::Get(const std::string &key, const std::string &default_value) {
-    std::string query = "SELECT value FROM data WHERE key = ?";
+std::string DataManager::Get(const std::string &key, const std::string &default_value, const std::string &table) {
+    //Can't use SQLite bind parameters for the table name
+    std::string query = "SELECT value FROM " + table + " WHERE key = ?";
     sqlite3_stmt *stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
     sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
@@ -54,8 +59,8 @@ std::string DataManager::Get(const std::string &key, const std::string &default_
     return result;
 }
 
-void DataManager::Set(const std::string &key, const std::string &value) {
-    std::string query = "INSERT OR REPLACE INTO data (key, value) VALUES (?, ?)";
+void DataManager::Set(const std::string &key, const std::string &value, const std::string &table) {
+    std::string query = "INSERT OR REPLACE INTO "+ table + " (key, value) VALUES (?, ?)";
     sqlite3_stmt *stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
     sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);

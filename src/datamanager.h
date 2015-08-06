@@ -28,8 +28,9 @@ class DataManager {
 public:
     DataManager(const std::string &filename_);
     ~DataManager();
-    void Set(const std::string &key, const std::string &value);
-    std::string Get(const std::string &key, const std::string &default_value = "");
+    void Set(const std::string &key, const std::string &value, const std::string &table = "data");
+    std::string Get(const std::string &key, const std::string &default_value = "", const std::string &table = "data");
+
     void SetBool(const std::string &key, bool value);
     bool GetBool(const std::string &key, bool default_value = false);
     static std::string MakeFilename(const std::string &name, const std::string &league);

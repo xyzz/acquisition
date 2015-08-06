@@ -19,6 +19,8 @@
 #include <QWidget>
 #include <QtGui>
 #include <QDialog>
+#include <ctime>
+#include "QsLog.h"
 #include "application.h"
 #include "datamanager.h"
 #include "buyoutmanager.h"
@@ -27,16 +29,18 @@
 #include "item.h"
 CurrencyManager::CurrencyManager(Application &app) : app_(app), data_(app.data_manager())
 {
-    if (data_.Get("currency_base") == "")
+    if (data_.Get("base", "", "currency") == "")
         InitCurrency();
     LoadCurrency();
     connect(&app_.items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
         this, SLOT(UpdateExaltedValue()));
+    connect(&app_.items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
+        this, SLOT(SaveCurrencyValue()));
 }
 
 CurrencyManager::~CurrencyManager()
 {
-    SaveCurrency();
+    SaveCurrencyBase();
 }
 
 void CurrencyManager::UpdateBaseValue(int ind, double value)
@@ -83,17 +87,31 @@ void CurrencyManager::ClearCurrency()
 void CurrencyManager::InitCurrency()
 {
     std::string value = "";
+    std::string header_csv = "";
     for (auto curr : CurrencyAsString) {
-        value += "10;";
+        value += "0;";
+        if (curr != "")
+            header_csv += curr + ";";
     }
     value.pop_back();//Remove the last ";"
-    data_.Set("currency_base", value);
+    header_csv += "Total value; Timestamp";
+    data_.Set("base", value, "currency");
+    data_.Set("last_value",value, "currency");
+    //Create header for .csv
+    QFile file("export_currency.csv");
+    if (file.open(QFile::WriteOnly | QFile::Truncate)){
+        QTextStream out(&file);
+        out  << header_csv.c_str();
+    }
+    else {
+        QLOG_WARN() << "CurrencyManager::ExportCurrency : couldn't open CSV export file ";
+    }
 }
 
 void CurrencyManager::LoadCurrency()
 {
     //Way easier to use QT function instead of re-implementing a split() in C++
-    QStringList list = QString(data_.Get("currency_base").c_str()).split(";");
+    QStringList list = QString(data_.Get("base", "", "currency").c_str()).split(";");
     for (int i=0; i < list.size(); i++) {
         CurrencyItem curr;
         curr.count = 0;
@@ -111,14 +129,46 @@ void CurrencyManager::LoadCurrency()
 
 }
 
-void CurrencyManager::SaveCurrency()
+void CurrencyManager::SaveCurrencyBase()
 {
     std::string value = "";
     for (auto currency : currencys_) {
         value += std::to_string(currency.base) + ";";
     }
     value.pop_back();//Remove the last ";"
-    data_.Set("currency_base", value);
+    data_.Set("base", value, "currency");
+}
+void CurrencyManager::SaveCurrencyValue()
+{
+    std::string value = "";
+    //Useless to save if every count is 0.
+    bool empty = true;
+    for (auto currency : currencys_) {
+        if (currency.name !="")
+            value += std::to_string(currency.count) + ";";
+        if (currency.count !=0)
+            empty = false;
+    }
+    value += std::to_string(TotalExaltedValue());
+    std::string old_value = data_.Get("last_value", "", "currency");
+    if (value != old_value && !empty){
+        std::string timestamp = std::to_string(std::time(nullptr));
+        data_.Set(timestamp, value, "currency");
+        data_.Set("last_value", value, "currency");
+        ExportCurrency(value + ";" + timestamp);
+    }
+}
+
+void CurrencyManager::ExportCurrency(std::string value)
+{
+    QFile file("export_currency.csv");
+    if (file.open(QFile::Append | QFile::Text)){
+        QTextStream out(&file);
+        out << "\n" << value.c_str();
+    }
+    else {
+        QLOG_WARN() << "CurrencyManager::ExportCurrency : couldn't open CSV export file ";
+    }
 }
 
 void CurrencyManager::ParseSingleItem(std::shared_ptr<Item> item)
