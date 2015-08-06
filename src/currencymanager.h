@@ -31,6 +31,20 @@ struct CurrencyItem {
     double exalt;
     double base;
 };
+const std::vector<std::string> CurrencyForWisdom({
+    "Scroll of Wisdom",
+    "Portal Scroll",
+    "Armourer's Scrap",
+    "Blacksmith's Whetstone",
+    "Orb of Transmutation"
+});
+const std::vector<int> CurrencyWisdomValue({
+    1,
+    1,
+    2,
+    4,
+    4
+});
 class CurrencyManager;
 
 class DialogCurrency : public QDialog
@@ -48,8 +62,10 @@ private:
     std::vector<QDoubleSpinBox *> values_;
     std::vector<QDoubleSpinBox *> base_values_;
     QDoubleSpinBox *total_value_;
+    QDoubleSpinBox *total_wisdom_value_;
     QSignalMapper *mapper;
     void UpdateTotalExaltedValue();
+    void UpdateTotalWisdomValue();
 private slots:
     void OnBaseValueChanged(int index);
 };
@@ -66,12 +82,15 @@ public:
     void UpdateBaseValue(int ind, double value);
     std::vector<CurrencyItem> currencys() const { return currencys_;}
     double TotalExaltedValue();
+    int TotalWisdomValue();
     void DisplayCurrency();
 
 private:
     Application &app_;
     DataManager &data_;
     std::vector<CurrencyItem> currencys_;
+    //We only need the "count" of a CurrencyItem so int will be enough
+    std::vector<int> wisdoms_;
     DialogCurrency *dialog_;
     //database interaction
     void InitCurrency();

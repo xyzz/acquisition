@@ -61,10 +61,22 @@ double CurrencyManager::TotalExaltedValue()
     return out;
 }
 
+int CurrencyManager::TotalWisdomValue()
+{
+    int out = 0;
+    for (unsigned int i=0; i < wisdoms_.size(); i++) {
+        out += wisdoms_[i] * CurrencyWisdomValue[i];
+    }
+    return out;
+}
+
 void CurrencyManager::ClearCurrency()
 {
-    for( auto &currency : currencys_) {
+    for(auto &currency : currencys_) {
         currency.count = 0;
+    }
+    for( auto &wisdom : wisdoms_) {
+        wisdom = 0;
     }
 }
 
@@ -92,6 +104,10 @@ void CurrencyManager::LoadCurrency()
         curr.exalt = 0;
         currencys_.push_back(curr);
     }
+    for (unsigned int i=0; i < CurrencyWisdomValue.size(); i++)
+    {
+        wisdoms_.push_back(0);
+    }
 
 }
 
@@ -110,6 +126,11 @@ void CurrencyManager::ParseSingleItem(std::shared_ptr<Item> item)
     for (unsigned int i=0; i < currencys_.size(); i++) {
         if (item->PrettyName() == currencys_[i].name) {
             currencys_[i].count += item->count();
+        }
+    }
+    for (unsigned int i=0; i < wisdoms_.size(); i++) {
+        if (item->PrettyName() == CurrencyForWisdom[i]) {
+            wisdoms_[i] += item->count();
         }
     }
 }
@@ -159,8 +180,14 @@ DialogCurrency::DialogCurrency(CurrencyManager &manager) : m_(manager)
     total_value_->setEnabled(false);
     UpdateTotalExaltedValue();
     layout_->addWidget(total_value_, curr_row, 1);
+    total_wisdom_value_ = new QDoubleSpinBox;
+    total_wisdom_value_->setMaximum(100000);
+    total_wisdom_value_->setEnabled(false);
+    UpdateTotalWisdomValue();
+    layout_->addWidget(new QLabel("Total wisdom scrolls"), curr_row + 1, 0);
+    layout_->addWidget(total_wisdom_value_, curr_row + 1, 1);
     button_close_ = new QPushButton("Close");
-    layout_->addWidget(button_close_, curr_row + 1, 0);
+    layout_->addWidget(button_close_, curr_row + 2, 0);
     connect(button_close_, SIGNAL(clicked()), this, SLOT(close()));
     setLayout(layout_);
     show();
@@ -183,9 +210,15 @@ void DialogCurrency::Update()
         values_[i]->setValue(curr.exalt);
     }
     UpdateTotalExaltedValue();
+    UpdateTotalWisdomValue();
 }
 
 void DialogCurrency::UpdateTotalExaltedValue()
 {
     total_value_->setValue(m_.TotalExaltedValue());
+}
+
+void DialogCurrency::UpdateTotalWisdomValue()
+{
+    total_wisdom_value_->setValue(m_.TotalWisdomValue());
 }
