@@ -112,8 +112,8 @@ void ItemsManager::PropagateTabBuyouts() {
 void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {
     items_ = items;
     tabs_ = tabs;
-    PropagateTabBuyouts();
     MigrateBuyouts();
+    PropagateTabBuyouts();
 
     emit ItemsRefreshed();
 }
