@@ -113,10 +113,6 @@ void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::s
     items_ = items;
     tabs_ = tabs;
     PropagateTabBuyouts();
-    shop_.ExpireShopData();
-    if (shop_.auto_update())
-        shop_.SubmitShopToForum();
-
     MigrateBuyouts();
 
     emit ItemsRefreshed();

@@ -48,6 +48,8 @@ public:
     BuyoutManager &buyout_manager() const { return *buyout_manager_; }
     QNetworkAccessManager &logged_in_nm() const { return *logged_in_nm_; }
     Shop &shop() const { return *shop_; }
+public slots:
+    void OnItemsRefreshed();
 private:
     std::string league_;
     std::string email_;

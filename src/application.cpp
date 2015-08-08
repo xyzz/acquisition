@@ -47,6 +47,15 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);
 
+    connect(items_manager_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
+        this, SLOT(OnItemsRefreshed()));
+
     items_manager_->Start();
     items_manager_->Update();
+}
+
+void Application::OnItemsRefreshed() {
+    shop_->ExpireShopData();
+    if (shop_->auto_update())
+        shop_->SubmitShopToForum();
 }
