@@ -163,10 +163,9 @@ void CurrencyManager::ExportCurrency()
     header_csv += "Total value;Timestamp";
     std::vector<std::string> result = data_.GetAllCurrency();
 
-    QString dir = QFileDialog::getExistingDirectory(this, tr("Select Directory"), QDir::homePath(),
-                                                    QFileDialog::ShowDirsOnly);
-    QString location = QDir::toNativeSeparators(dir + "/acquisition_export_currency.csv");
-    QFile file(location);
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Export file"),
+                                                    QDir::toNativeSeparators(QDir::homePath() + "/" + "acquisition_export_currency.csv"));
+    QFile file(QDir::toNativeSeparators(fileName));
     if (file.open(QFile::WriteOnly | QFile::Text)){
         QTextStream out(&file);
         out << header_csv.c_str() << "\n";
