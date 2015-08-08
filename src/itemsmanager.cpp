@@ -73,8 +73,8 @@ void ItemsManager::OnStatusUpdate(const ItemsFetchStatus &status) {
     emit StatusUpdate(status);
 }
 
-void ItemsManager::PropagateTabBuyouts(const Items &items) {
-    for (auto &item_ptr : items) {
+void ItemsManager::PropagateTabBuyouts() {
+    for (auto &item_ptr : items_) {
         auto &item = *item_ptr;
         auto &bo = app_.buyout_manager();
         std::string hash = item.location().GetUniqueHash();
@@ -112,7 +112,7 @@ void ItemsManager::PropagateTabBuyouts(const Items &items) {
 void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {
     items_ = items;
     tabs_ = tabs;
-    PropagateTabBuyouts(items_);
+    PropagateTabBuyouts();
     shop_.ExpireShopData();
     if (shop_.auto_update())
         shop_.SubmitShopToForum();

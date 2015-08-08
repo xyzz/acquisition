@@ -63,7 +63,6 @@ signals:
     void ItemsRefreshed();
     void StatusUpdate(const ItemsFetchStatus &status);
 private:
-    void PropagateTabBuyouts(const Items &items);
     void MigrateBuyouts();
 
     // should items be automatically refreshed
