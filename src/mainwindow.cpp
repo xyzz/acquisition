@@ -701,3 +701,6 @@ void MainWindow::on_actionAutomatically_refresh_online_status_triggered() {
 void MainWindow::on_actionList_currency_triggered() {
     app_->currency_manager().DisplayCurrency();
 }
+void MainWindow::on_actionExport_currency_triggered() {
+    app_->currency_manager().ExportCurrency();
+}

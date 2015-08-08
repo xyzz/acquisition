@@ -85,6 +85,8 @@ public:
     int TotalWisdomValue();
     void DisplayCurrency();
     void Update();
+    //CSV export
+    void ExportCurrency();
 
 private:
     Application &app_;
@@ -97,8 +99,6 @@ private:
     void InitCurrency();
     void LoadCurrency();
     void SaveCurrencyBase();
-    //CSV export
-    void ExportCurrency(std::string value);
 
 public slots:
     void UpdateExaltedValue();

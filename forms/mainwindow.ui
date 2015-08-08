@@ -149,6 +149,7 @@
      <string>Currency</string>
     </property>
     <addaction name="actionList_currency"/>
+    <addaction name="actionExport_currency"/>
    </widget>
    <addaction name="menuItems"/>
    <addaction name="menuShop"/>
@@ -224,6 +225,11 @@
   <action name="actionList_currency">
    <property name="text">
     <string>List currency</string>
+   </property>
+  </action>
+  <action name="actionExport_currency">
+   <property name="text">
+    <string>Export currency</string>
    </property>
   </action>
  </widget>

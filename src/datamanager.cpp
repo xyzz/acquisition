@@ -69,6 +69,22 @@ void DataManager::Set(const std::string &key, const std::string &value, const st
     sqlite3_finalize(stmt);
 }
 
+std::vector<std::string> DataManager::GetAllCurrency() {
+    std::string query = "SELECT key, value FROM currency";
+     sqlite3_stmt *stmt;
+     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
+     std::vector<std::string> result;
+     while (sqlite3_step(stmt) == SQLITE_ROW) {
+         //result = std::string(static_cast<const char*>(sqlite3_column_blob(stmt, 0)), sqlite3_column_bytes(stmt, 0));
+         std::string key = (char*)sqlite3_column_text(stmt, 0);
+         std::string value = (char*)sqlite3_column_blob(stmt,1);
+         result.push_back(value + ";" + key);
+
+     }
+     sqlite3_finalize(stmt);
+     return result;
+}
+
 void DataManager::SetBool(const std::string &key, bool value) {
     Set(key, std::to_string(static_cast<int>(value)));
 }

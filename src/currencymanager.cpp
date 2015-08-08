@@ -95,25 +95,12 @@ void CurrencyManager::ClearCurrency()
 void CurrencyManager::InitCurrency()
 {
     std::string value = "";
-    std::string header_csv = "";
     for (auto curr : CurrencyAsString) {
         value += "0;";
-        if (curr != "")
-            header_csv += curr + ";";
     }
     value.pop_back();//Remove the last ";"
-    header_csv += "Total value; Timestamp";
     data_.Set("currency_base", value, "data");
     data_.Set("currency_last_value",value, "data");
-    //Create header for .csv
-    QFile file("export_currency.csv");
-    if (file.open(QFile::WriteOnly | QFile::Truncate)){
-        QTextStream out(&file);
-        out  << header_csv.c_str();
-    }
-    else {
-        QLOG_WARN() << "CurrencyManager::ExportCurrency : couldn't open CSV export file ";
-    }
 }
 
 void CurrencyManager::LoadCurrency()
@@ -163,16 +150,29 @@ void CurrencyManager::SaveCurrencyValue()
         std::string timestamp = std::to_string(std::time(nullptr));
         data_.Set(timestamp, value, "currency");
         data_.Set("currency_last_value", value, "data");
-        ExportCurrency(value + ";" + timestamp);
     }
 }
 
-void CurrencyManager::ExportCurrency(std::string value)
+void CurrencyManager::ExportCurrency()
 {
-    QFile file("export_currency.csv");
-    if (file.open(QFile::Append | QFile::Text)){
+    std::string header_csv = "";
+    for (auto &name : CurrencyAsString) {
+        if (name != "")
+            header_csv += name + ";";
+    }
+    header_csv += "Total value;Timestamp";
+    std::vector<std::string> result = data_.GetAllCurrency();
+
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Select Directory"), QDir::homePath(),
+                                                    QFileDialog::ShowDirsOnly);
+    QString location = QDir::toNativeSeparators(dir + "/acquisition_export_currency.csv");
+    QFile file(location);
+    if (file.open(QFile::WriteOnly | QFile::Text)){
         QTextStream out(&file);
-        out << "\n" << value.c_str();
+        out << header_csv.c_str() << "\n";
+        for (auto row : result) {
+            out << row.c_str() << "\n";
+        }
     }
     else {
         QLOG_WARN() << "CurrencyManager::ExportCurrency : couldn't open CSV export file ";
