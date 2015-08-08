@@ -19,26 +19,13 @@
 
 #include "itemsmanager.h"
 
-#include <QNetworkReply>
-#include <QSignalMapper>
-#include <QTimer>
-#include <QUrlQuery>
-#include <QTimer>
 #include <QThread>
-#include <iostream>
 #include <stdexcept>
-#include "QsLog.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/en.h"
 
 #include "application.h"
 #include "buyoutmanager.h"
 #include "datamanager.h"
 #include "itemsmanagerworker.h"
-#include "porting.h"
-#include "rapidjson_util.h"
-#include "shop.h"
-#include "util.h"
 
 ItemsManager::ItemsManager(Application &app) :
     auto_update_timer_(std::make_unique<QTimer>()),
