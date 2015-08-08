@@ -37,7 +37,7 @@ const std::string POE_EDIT_THREAD = "https://www.pathofexile.com/forum/edit-thre
 const std::string POE_BUMP_THREAD = "https://www.pathofexile.com/forum/post-reply/";
 const std::string POE_BUMP_MESSAGE = "[url=https://github.com/Novynn/acquisitionplus/releases]Bumped with Acquisition Plus![/url]";
 const std::string kShopTemplateItems = "[items]";
-const int POE_BUMP_DELAY = 300;
+const int POE_BUMP_DELAY = 3600; // 1 hour per Path of Exile forum rules
 
 Shop::Shop(Application &app) :
     app_(app),

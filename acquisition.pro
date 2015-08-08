@@ -49,7 +49,8 @@ SOURCES += \
     src/updatechecker.cpp \
     src/autoonline.cpp \
     src/filesystem.cpp \
-    src/logchecker.cpp
+    src/logchecker.cpp \
+    src/shoptemplatemanager.cpp
 
 HEADERS += \
     src/item.h \
@@ -84,7 +85,8 @@ HEADERS += \
     src/updatechecker.h \
     src/autoonline.h \
     src/filesystem.h \
-    src/logchecker.h
+    src/logchecker.h \
+    src/shoptemplatemanager.h
 
 FORMS += \
     forms/mainwindow.ui \
