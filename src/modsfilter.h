@@ -51,7 +51,7 @@ public:
     }
 
     void Update();
-    void AddToLayout(QVBoxLayout *layout, int index);
+    void AddToLayout(QVBoxLayout *layout);
     void CreateSignalMappings(QSignalMapper *signal_mapper, int index);
     void RemoveSignalMappings(QSignalMapper *signal_mapper);
     const ModFilterData &data() const { return data_; }

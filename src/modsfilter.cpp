@@ -68,7 +68,7 @@ enum LayoutColumn {
     kColumnCount
 };
 
-void SelectedMod::AddToLayout(QVBoxLayout *layout, int index) {
+void SelectedMod::AddToLayout(QVBoxLayout *layout) {
     QWidget* widget = new QWidget;
     QHBoxLayout* grouping = new QHBoxLayout;
     grouping->setContentsMargins(0, 0, 0, 0);
@@ -202,7 +202,7 @@ void ModsFilter::Refill() {
 
     int i = 0;
     for (auto &mod : mods_) {
-        mod.AddToLayout(layout_.get(), i);
+        mod.AddToLayout(layout_.get());
         mod.CreateSignalMappings(&signal_mapper_, i);
 
         ++i;
