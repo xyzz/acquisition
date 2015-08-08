@@ -29,7 +29,7 @@
 #include "item.h"
 CurrencyManager::CurrencyManager(Application &app) : app_(app), data_(app.data_manager())
 {
-    if (data_.Get("base", "", "currency") == "")
+    if (data_.Get("currency_base", "", "data") == "")
         InitCurrency();
     LoadCurrency();
     connect(&app_.items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
@@ -103,8 +103,8 @@ void CurrencyManager::InitCurrency()
     }
     value.pop_back();//Remove the last ";"
     header_csv += "Total value; Timestamp";
-    data_.Set("base", value, "currency");
-    data_.Set("last_value",value, "currency");
+    data_.Set("currency_base", value, "data");
+    data_.Set("currency_last_value",value, "data");
     //Create header for .csv
     QFile file("export_currency.csv");
     if (file.open(QFile::WriteOnly | QFile::Truncate)){
@@ -119,7 +119,7 @@ void CurrencyManager::InitCurrency()
 void CurrencyManager::LoadCurrency()
 {
     //Way easier to use QT function instead of re-implementing a split() in C++
-    QStringList list = QString(data_.Get("base", "", "currency").c_str()).split(";");
+    QStringList list = QString(data_.Get("currency_base", "", "data").c_str()).split(";");
     for (int i=0; i < list.size(); i++) {
         CurrencyItem curr;
         curr.count = 0;
@@ -144,7 +144,7 @@ void CurrencyManager::SaveCurrencyBase()
         value += std::to_string(currency.base) + ";";
     }
     value.pop_back();//Remove the last ";"
-    data_.Set("base", value, "currency");
+    data_.Set("currency_base", value, "data");
 }
 void CurrencyManager::SaveCurrencyValue()
 {
@@ -158,11 +158,11 @@ void CurrencyManager::SaveCurrencyValue()
             empty = false;
     }
     value += std::to_string(TotalExaltedValue());
-    std::string old_value = data_.Get("last_value", "", "currency");
+    std::string old_value = data_.Get("currency_last_value", "", "data");
     if (value != old_value && !empty){
         std::string timestamp = std::to_string(std::time(nullptr));
         data_.Set(timestamp, value, "currency");
-        data_.Set("last_value", value, "currency");
+        data_.Set("currency_last_value", value, "data");
         ExportCurrency(value + ";" + timestamp);
     }
 }
