@@ -158,6 +158,9 @@ void MainWindow::InitializeUi() {
     connect(&update_button_, &QPushButton::clicked, [=](){
         UpdateChecker::AskUserToUpdate(this);
     });
+    // resize columns when a tab is expanded/collapsed
+    connect(ui->treeView, SIGNAL(collapsed(const QModelIndex&)), this, SLOT(ResizeTreeColumns()));
+    connect(ui->treeView, SIGNAL(expanded(const QModelIndex&)), this, SLOT(ResizeTreeColumns()));
 }
 
 void MainWindow::ExpandCollapse(TreeState state) {
