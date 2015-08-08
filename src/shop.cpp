@@ -48,8 +48,13 @@ Shop::Shop(Application &app) :
 }
 
 void Shop::SetThread(const std::string &thread) {
+    if (thread_ == thread)
+        return;
     thread_ = thread;
     app_.data_manager().Set("shop", thread);
+    ExpireShopData();
+    // and reset shop hash to ensure the shop is updated the next time Shop::Update is called
+    app_.data_manager().Set("shop_hash", "");
 }
 
 void Shop::SetAutoUpdate(bool update) {
