@@ -48,7 +48,8 @@ SOURCES += \
     src/verticalscrollarea.cpp \
     src/updatechecker.cpp \
     src/autoonline.cpp \
-    src/filesystem.cpp
+    src/filesystem.cpp \
+    src/logchecker.cpp
 
 HEADERS += \
     src/item.h \
@@ -82,7 +83,8 @@ HEADERS += \
     src/verticalscrollarea.h \
     src/updatechecker.h \
     src/autoonline.h \
-    src/filesystem.h
+    src/filesystem.h \
+    src/logchecker.h
 
 FORMS += \
     forms/mainwindow.ui \
