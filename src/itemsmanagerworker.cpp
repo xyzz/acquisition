@@ -41,7 +41,6 @@ const char *kMainPage = "https://www.pathofexile.com/";
 
 ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     data_manager_(app.data_manager()),
-    app_(app),
     signal_mapper_(nullptr),
     league_(app.league()),
     updating_(false),
@@ -104,7 +103,6 @@ void ItemsManagerWorker::Update() {
     queue_id_ = 0;
     replies_.clear();
     items_.clear();
-    app_.currency_manager().ClearCurrency();
     tabs_as_string_ = "";
     items_as_string_ = "[ "; // space here is important, see ParseItems and OnTabReceived when all requests are completed
     selected_character_ = "";
@@ -279,7 +277,6 @@ void ItemsManagerWorker::ParseItems(rapidjson::Value *value_ptr, const ItemLocat
         location.ToItemJson(&item, alloc);
         items_as_string_ += Util::RapidjsonSerialize(item) + ",";
         items_.push_back(std::make_shared<Item>(item));
-        app_.currency_manager().ParseSingleItem(items_.back());
         location.set_socketed(true);
         ParseItems(&item["socketedItems"], location, alloc);
     }

@@ -84,6 +84,7 @@ public:
     double TotalExaltedValue();
     int TotalWisdomValue();
     void DisplayCurrency();
+    void Update();
 
 private:
     Application &app_;

@@ -43,6 +43,14 @@ CurrencyManager::~CurrencyManager()
     SaveCurrencyBase();
 }
 
+void CurrencyManager::Update()
+{
+    ClearCurrency();
+    for (auto &item : app_.items()) {
+        ParseSingleItem(item);
+    }
+}
+
 void CurrencyManager::UpdateBaseValue(int ind, double value)
 {
     currencys_[ind].base = value;
