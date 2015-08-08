@@ -87,6 +87,7 @@ const std::vector<std::vector<std::string>> simple_sum = {
     { "Adds # Damage to Attacks", "Adds #-# Fire Damage", "Adds #-# Cold Damage", "Adds #-# Lightning Damage", "Adds #-# Physical Damage", "Adds #-# Chaos Damage", "Adds #-# Fire Damage to Attacks", "Adds #-# Cold Damage to Attacks", "Adds #-# Lightning Damage to Attacks", "Adds #-# Physical Damage to Attacks", "Adds #-# Chaos Damage to Attacks" },
     { "Adds # Elemental Damage to Spells", "Adds #-# Fire Damage to Spells", "Adds #-# Cold Damage to Spells", "Adds #-# Lightning Damage to Spells" },
     { "Adds # Damage to Spells", "Adds #-# Fire Damage to Spells", "Adds #-# Cold Damage to Spells", "Adds #-# Lightning Damage to Spells", "Adds #-# Chaos Damage to Spells" },
+    { "#% increased Attack Speed" },
     { "#% increased Cast Speed" },
     { "#% increased Movement Speed" },
 };
