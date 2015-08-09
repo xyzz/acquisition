@@ -29,14 +29,18 @@ class DataManager {
 public:
     DataManager(const std::string &filename_);
     ~DataManager();
-    void Set(const std::string &key, const std::string &value, const std::string &table = "data");
-    std::string Get(const std::string &key, const std::string &default_value = "", const std::string &table = "data");
+    void Set(const std::string &key, const std::string &value);
+    std::string Get(const std::string &key, const std::string &default_value = "");
+    void DataManager::InsertCurrencyUpdate(const std::string &update);
     //Return Curr1Value;Curr2Value...;TotalValue;timestamp
     std::vector<std::string> GetAllCurrency();
     void SetBool(const std::string &key, bool value);
     bool GetBool(const std::string &key, bool default_value = false);
     static std::string MakeFilename(const std::string &name, const std::string &league);
 private:
+    void CreateTable(const std::string &name);
+    void UpsertInternal(const std::string &table, const std::string &key, const std::string &value);
+
     std::string filename_;
     sqlite3 *db_;
 };

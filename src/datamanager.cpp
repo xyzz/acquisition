@@ -21,11 +21,8 @@
 
 #include <QCryptographicHash>
 #include <QDir>
-#include <QFile>
-#include <QString>
+#include <ctime>
 #include <stdexcept>
-
-#include "application.h"
 
 DataManager::DataManager(const std::string &filename) :
     filename_(filename)
@@ -36,19 +33,19 @@ DataManager::DataManager(const std::string &filename) :
     if (sqlite3_open(filename_.c_str(), &db_) != SQLITE_OK) {
         throw std::runtime_error("Failed to open sqlite3 database.");
     }
-    std::string query = "CREATE TABLE IF NOT EXISTS data(key TEXT PRIMARY KEY, value BLOB)";
+    CreateTable("data");
+    CreateTable("currency");
+}
+
+void DataManager::CreateTable(const std::string &name) {
+    std::string query = "CREATE TABLE IF NOT EXISTS " + name + "(key TEXT PRIMARY KEY, value BLOB)";
     if (sqlite3_exec(db_, query.c_str(), 0, 0, 0) != SQLITE_OK) {
-        throw std::runtime_error("Failed to execute creation statement.");
-    }
-    std::string query_currency = "CREATE TABLE IF NOT EXISTS currency(key TEXT PRIMARY KEY, value BLOB)";
-    if (sqlite3_exec(db_, query_currency.c_str(), 0, 0, 0) != SQLITE_OK) {
-        throw std::runtime_error("Failed to execute creation statement.");
+        throw std::runtime_error("Failed to execute creation statement for table " + name + ".");
     }
 }
 
-std::string DataManager::Get(const std::string &key, const std::string &default_value, const std::string &table) {
-    //Can't use SQLite bind parameters for the table name
-    std::string query = "SELECT value FROM " + table + " WHERE key = ?";
+std::string DataManager::Get(const std::string &key, const std::string &default_value) {
+    std::string query = "SELECT value FROM data WHERE key = ?";
     sqlite3_stmt *stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
     sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
@@ -59,8 +56,8 @@ std::string DataManager::Get(const std::string &key, const std::string &default_
     return result;
 }
 
-void DataManager::Set(const std::string &key, const std::string &value, const std::string &table) {
-    std::string query = "INSERT OR REPLACE INTO "+ table + " (key, value) VALUES (?, ?)";
+void DataManager::UpsertInternal(const std::string &table, const std::string &key, const std::string &value) {
+    std::string query = "INSERT OR REPLACE INTO " + table + " (key, value) VALUES (?, ?)";
     sqlite3_stmt *stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
     sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
@@ -69,20 +66,27 @@ void DataManager::Set(const std::string &key, const std::string &value, const st
     sqlite3_finalize(stmt);
 }
 
+void DataManager::Set(const std::string &key, const std::string &value) {
+    UpsertInternal("data", key, value);
+}
+
+void DataManager::InsertCurrencyUpdate(const std::string &value) {
+    std::string timestamp = std::to_string(std::time(nullptr));
+    UpsertInternal("currency", timestamp, value);
+}
+
 std::vector<std::string> DataManager::GetAllCurrency() {
     std::string query = "SELECT key, value FROM currency";
-     sqlite3_stmt *stmt;
-     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
-     std::vector<std::string> result;
-     while (sqlite3_step(stmt) == SQLITE_ROW) {
-         //result = std::string(static_cast<const char*>(sqlite3_column_blob(stmt, 0)), sqlite3_column_bytes(stmt, 0));
-         std::string key = (char*)sqlite3_column_text(stmt, 0);
-         std::string value = (char*)sqlite3_column_blob(stmt,1);
-         result.push_back(value + ";" + key);
-
-     }
-     sqlite3_finalize(stmt);
-     return result;
+    sqlite3_stmt* stmt;
+    sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
+    std::vector<std::string> result;
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        std::string key(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)), sqlite3_column_bytes(stmt, 0));
+        std::string value(static_cast<const char*>(sqlite3_column_blob(stmt, 1)), sqlite3_column_bytes(stmt, 1));
+        result.push_back(value + ";" + key);
+    }
+    sqlite3_finalize(stmt);
+    return result;
 }
 
 void DataManager::SetBool(const std::string &key, bool value) {

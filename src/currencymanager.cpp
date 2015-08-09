@@ -29,7 +29,7 @@
 #include "item.h"
 CurrencyManager::CurrencyManager(Application &app) : app_(app), data_(app.data_manager())
 {
-    if (data_.Get("currency_base", "", "data") == "")
+    if (data_.Get("currency_base", "").empty())
         InitCurrency();
     LoadCurrency();
     connect(&app_.items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
@@ -98,15 +98,15 @@ void CurrencyManager::InitCurrency()
     for (auto curr : CurrencyAsString) {
         value += "0;";
     }
-    value.pop_back();//Remove the last ";"
-    data_.Set("currency_base", value, "data");
-    data_.Set("currency_last_value",value, "data");
+    value.pop_back(); //Remove the last ";"
+    data_.Set("currency_base", value);
+    data_.Set("currency_last_value",value);
 }
 
 void CurrencyManager::LoadCurrency()
 {
     //Way easier to use QT function instead of re-implementing a split() in C++
-    QStringList list = QString(data_.Get("currency_base", "", "data").c_str()).split(";");
+    QStringList list = QString(data_.Get("currency_base", "").c_str()).split(";");
     for (int i=0; i < list.size(); i++) {
         CurrencyItem curr;
         curr.count = 0;
@@ -130,8 +130,8 @@ void CurrencyManager::SaveCurrencyBase()
     for (auto currency : currencys_) {
         value += std::to_string(currency.base) + ";";
     }
-    value.pop_back();//Remove the last ";"
-    data_.Set("currency_base", value, "data");
+    value.pop_back(); //Remove the last ";"
+    data_.Set("currency_base", value);
 }
 void CurrencyManager::SaveCurrencyValue()
 {
@@ -145,11 +145,10 @@ void CurrencyManager::SaveCurrencyValue()
             empty = false;
     }
     value += std::to_string(TotalExaltedValue());
-    std::string old_value = data_.Get("currency_last_value", "", "data");
+    std::string old_value = data_.Get("currency_last_value", "");
     if (value != old_value && !empty){
-        std::string timestamp = std::to_string(std::time(nullptr));
-        data_.Set(timestamp, value, "currency");
-        data_.Set("currency_last_value", value, "data");
+        data_.InsertCurrencyUpdate(value);
+        data_.Set("currency_last_value", value);
     }
 }
 
