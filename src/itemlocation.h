@@ -21,6 +21,7 @@ public:
     QRectF GetRect() const;
     std::string GetForumCode(const std::string &league) const;
     std::string GetUniqueHash() const;
+    std::string GetLabel() const { return tab_label_; }
     bool operator<(const ItemLocation &other) const;
     ItemLocationType type() const { return type_; }
     void set_type(const ItemLocationType type) { type_ = type; }
