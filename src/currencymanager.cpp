@@ -28,6 +28,7 @@
 #include "currencymanager.h"
 #include "itemsmanager.h"
 #include "item.h"
+#include "porting.h"
 
 CurrencyManager::CurrencyManager(Application &app):
     app_(app),

@@ -32,7 +32,7 @@ public:
     ~DataManager();
     void Set(const std::string &key, const std::string &value);
     std::string Get(const std::string &key, const std::string &default_value = "");
-    void DataManager::InsertCurrencyUpdate(const CurrencyUpdate &update);
+    void InsertCurrencyUpdate(const CurrencyUpdate &update);
     std::vector<CurrencyUpdate> GetAllCurrency();
     void SetBool(const std::string &key, bool value);
     bool GetBool(const std::string &key, bool default_value = false);
