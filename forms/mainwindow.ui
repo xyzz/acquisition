@@ -229,7 +229,7 @@
   </action>
   <action name="actionExport_currency">
    <property name="text">
-    <string>Export currency</string>
+    <string>Export to CSV</string>
    </property>
   </action>
  </widget>
