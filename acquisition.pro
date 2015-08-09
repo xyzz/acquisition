@@ -52,7 +52,8 @@ SOURCES += \
     test/testdata.cpp \
     test/testitem.cpp \
     test/testshop.cpp \
-    test/testutil.cpp
+    test/testutil.cpp \
+    src/currencymanager.cpp
 
 HEADERS += \
     src/item.h \
@@ -91,7 +92,8 @@ HEADERS += \
     test/testdata.h \
     test/testitem.h \
     test/testshop.h \
-    test/testutil.h
+    test/testutil.h \
+    src/currencymanager.h
 
 FORMS += \
     forms/mainwindow.ui \

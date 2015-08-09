@@ -19,10 +19,12 @@
 
 #pragma once
 
-#include "sqlite/sqlite3.h"
 #include <string>
+#include <vector>
 
 class Application;
+struct CurrencyUpdate;
+struct sqlite3;
 
 class DataManager {
 public:
@@ -30,10 +32,14 @@ public:
     ~DataManager();
     void Set(const std::string &key, const std::string &value);
     std::string Get(const std::string &key, const std::string &default_value = "");
+    void DataManager::InsertCurrencyUpdate(const CurrencyUpdate &update);
+    std::vector<CurrencyUpdate> GetAllCurrency();
     void SetBool(const std::string &key, bool value);
     bool GetBool(const std::string &key, bool default_value = false);
     static std::string MakeFilename(const std::string &name, const std::string &league);
 private:
+    void CreateTable(const std::string &name, const std::string &fields);
+
     std::string filename_;
     sqlite3 *db_;
 };
