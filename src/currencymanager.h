@@ -22,6 +22,7 @@
 #include <QtGui>
 #include <QtWidgets>
 
+#include "application.h"
 #include "item.h"
 
 struct CurrencyItem {
@@ -49,15 +50,15 @@ const std::vector<int> CurrencyWisdomValue({
 
 class CurrencyManager;
 
-class DialogCurrency : public QDialog
+class CurrencyDialog : public QDialog
 {
     Q_OBJECT
 public:
-    DialogCurrency(CurrencyManager &manager);
+    CurrencyDialog(CurrencyManager &manager);
 public slots:
     void Update();
 private:
-    CurrencyManager &m_;
+    CurrencyManager &currency_manager_;
     QGridLayout *layout_;
     QPushButton *button_close_;
     std::vector<QLabel *> names_;
@@ -76,13 +77,13 @@ class CurrencyManager : public QWidget
 {
     Q_OBJECT
 public:
-    CurrencyManager(Application &app);
+    explicit CurrencyManager(Application &app);
     ~CurrencyManager();
     void ClearCurrency();
     // Called in itemmanagerworker::ParseItem
-    void ParseSingleItem(std::shared_ptr<Item> item);
+    void ParseSingleItem(const Item &item);
     void UpdateBaseValue(int ind, double value);
-    std::vector<CurrencyItem> currencys() const { return currencys_;}
+    const std::vector<CurrencyItem> &currencies() const { return currencies_;}
     double TotalExaltedValue();
     int TotalWisdomValue();
     void DisplayCurrency();
@@ -93,10 +94,10 @@ public:
 private:
     Application &app_;
     DataManager &data_;
-    std::vector<CurrencyItem> currencys_;
+    std::vector<CurrencyItem> currencies_;
     // We only need the "count" of a CurrencyItem so int will be enough
     std::vector<int> wisdoms_;
-    DialogCurrency *dialog_;
+    std::unique_ptr<CurrencyDialog> dialog_;
     // database interaction
     void InitCurrency();
     void LoadCurrency();

@@ -35,10 +35,7 @@ CurrencyManager::CurrencyManager(Application &app):
     if (data_.Get("currency_base", "").empty())
         InitCurrency();
     LoadCurrency();
-    connect(&app_.items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
-        this, SLOT(UpdateExaltedValue()));
-    connect(&app_.items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
-        this, SLOT(SaveCurrencyValue()));
+    dialog_ = std::make_unique<CurrencyDialog>(*this);
 }
 
 CurrencyManager::~CurrencyManager() {
@@ -47,25 +44,32 @@ CurrencyManager::~CurrencyManager() {
 
 void CurrencyManager::Update() {
     ClearCurrency();
-    for (auto& item : app_.items()) {
-        ParseSingleItem(item);
+    for (auto &item : app_.items()) {
+        ParseSingleItem(*item);
     }
+    UpdateExaltedValue();
+    SaveCurrencyValue();
+    dialog_->Update();
 }
 
 void CurrencyManager::UpdateBaseValue(int ind, double value) {
-    currencys_[ind].base = value;
+    currencies_[ind].base = value;
 }
 
+const double EPS = 1e-6;
+
 void CurrencyManager::UpdateExaltedValue() {
-    for (auto& currency : currencys_) {
-        if (currency.base != 0)
+    for (auto &currency : currencies_) {
+        if (fabs(currency.base) > EPS)
             currency.exalt = currency.count / currency.base;
+        else
+            currency.exalt = 0;
     }
 }
 
 double CurrencyManager::TotalExaltedValue() {
     double out = 0;
-    for (auto currency : currencys_) {
+    for (const auto &currency : currencies_) {
         out += currency.exalt;
     }
     return out;
@@ -80,7 +84,7 @@ int CurrencyManager::TotalWisdomValue() {
 }
 
 void CurrencyManager::ClearCurrency() {
-    for (auto& currency : currencys_) {
+    for (auto& currency : currencies_) {
         currency.count = 0;
     }
     for (auto& wisdom : wisdoms_) {
@@ -109,7 +113,7 @@ void CurrencyManager::LoadCurrency() {
         // Might be related to localisation issue, but anyway it's safer this way
         curr.base = std::stod(list[i].toStdString());
         curr.exalt = 0;
-        currencys_.push_back(curr);
+        currencies_.push_back(curr);
     }
     for (unsigned int i = 0; i < CurrencyWisdomValue.size(); i++) {
         wisdoms_.push_back(0);
@@ -119,7 +123,7 @@ void CurrencyManager::LoadCurrency() {
 
 void CurrencyManager::SaveCurrencyBase() {
     std::string value = "";
-    for (auto currency : currencys_) {
+    for (auto currency : currencies_) {
         value += std::to_string(currency.base) + ";";
     }
     value.pop_back(); // Remove the last ";"
@@ -130,13 +134,13 @@ void CurrencyManager::SaveCurrencyValue() {
     std::string value = "";
     // Useless to save if every count is 0.
     bool empty = true;
-    for (auto currency : currencys_) {
+    value = std::to_string(TotalExaltedValue());
+    for (auto currency : currencies_) {
         if (currency.name != "")
-            value += std::to_string(currency.count) + ";";
+            value += ";" + std::to_string(currency.count);
         if (currency.count != 0)
             empty = false;
     }
-    value += std::to_string(TotalExaltedValue());
     std::string old_value = data_.Get("currency_last_value", "");
     if (value != old_value && !empty) {
         data_.InsertCurrencyUpdate(value);
@@ -145,12 +149,11 @@ void CurrencyManager::SaveCurrencyValue() {
 }
 
 void CurrencyManager::ExportCurrency() {
-    std::string header_csv = "";
+    std::string header_csv = "Total value; Timestamp";
     for (auto& name : CurrencyAsString) {
         if (name != "")
-            header_csv += name + ";";
+            header_csv += ";" + name;
     }
-    header_csv += "Total value;Timestamp";
     std::vector<std::string> result = data_.GetAllCurrency();
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save Export file"),
@@ -159,42 +162,35 @@ void CurrencyManager::ExportCurrency() {
     if (file.open(QFile::WriteOnly | QFile::Text)) {
         QTextStream out(&file);
         out << header_csv.c_str() << "\n";
-        for (auto row : result) {
+        for (auto &row : result)
             out << row.c_str() << "\n";
-        }
-    }
-    else {
+    } else {
         QLOG_WARN() << "CurrencyManager::ExportCurrency : couldn't open CSV export file ";
     }
 }
 
-void CurrencyManager::ParseSingleItem(std::shared_ptr<Item> item) {
-    for (unsigned int i = 0; i < currencys_.size(); i++) {
-        if (item->PrettyName() == currencys_[i].name) {
-            currencys_[i].count += item->count();
-        }
-    }
-    for (unsigned int i = 0; i < wisdoms_.size(); i++) {
-        if (item->PrettyName() == CurrencyForWisdom[i]) {
-            wisdoms_[i] += item->count();
-        }
-    }
+void CurrencyManager::ParseSingleItem(const Item &item) {
+    for (unsigned int i = 0; i < currencies_.size(); i++)
+        if (item.PrettyName() == currencies_[i].name)
+            currencies_[i].count += item.count();
+
+    for (unsigned int i = 0; i < wisdoms_.size(); i++)
+        if (item.PrettyName() == CurrencyForWisdom[i])
+            wisdoms_[i] += item.count();
 }
 
 void CurrencyManager::DisplayCurrency() {
-    dialog_ = new DialogCurrency(*this);
-    connect(&app_.items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
-            dialog_, SLOT(Update()));
+    dialog_->show();
 }
 
-DialogCurrency::DialogCurrency(CurrencyManager& manager) : m_(manager) {
+CurrencyDialog::CurrencyDialog(CurrencyManager& manager) : currency_manager_(manager) {
     mapper = new QSignalMapper;
     connect(mapper, SIGNAL(mapped(int)), this, SLOT(OnBaseValueChanged(int)));
     layout_ = new QGridLayout;
     layout_->addWidget(new QLabel("Name"), 0, 0);
-    layout_->addWidget(new QLabel("Exalted value"), 0, 1);
-    layout_->addWidget(new QLabel("Base exalted value"), 0, 2);
-    for (auto curr : m_.currencys()) {
+    layout_->addWidget(new QLabel("Value in Exalted Orbs"), 0, 1);
+    layout_->addWidget(new QLabel("Amount an Exalted Orb can buy"), 0, 2);
+    for (auto curr : currency_manager_.currencies()) {
         std::string text = curr.name + " (" + std::to_string(curr.count) + ")";
         QLabel* tmpName = new QLabel(text.c_str());
         QDoubleSpinBox* tmpValue = new QDoubleSpinBox;
@@ -218,7 +214,7 @@ DialogCurrency::DialogCurrency(CurrencyManager& manager) : m_(manager) {
         connect(base_values_.back(), SIGNAL(valueChanged(double)), mapper, SLOT(map()));
     }
     int curr_row = layout_->rowCount();
-    layout_->addWidget(new QLabel("Total exalted value"), curr_row, 0);
+    layout_->addWidget(new QLabel("Total Exalted Orbs"), curr_row, 0);
     total_value_ = new QDoubleSpinBox;
     total_value_->setMaximum(100000);
     total_value_->setEnabled(false);
@@ -228,25 +224,21 @@ DialogCurrency::DialogCurrency(CurrencyManager& manager) : m_(manager) {
     total_wisdom_value_->setMaximum(100000);
     total_wisdom_value_->setEnabled(false);
     UpdateTotalWisdomValue();
-    layout_->addWidget(new QLabel("Total wisdom scrolls"), curr_row + 1, 0);
+    layout_->addWidget(new QLabel("Total Scrolls of Wisdom"), curr_row + 1, 0);
     layout_->addWidget(total_wisdom_value_, curr_row + 1, 1);
-    button_close_ = new QPushButton("Close");
-    layout_->addWidget(button_close_, curr_row + 2, 0);
-    connect(button_close_, SIGNAL(clicked()), this, SLOT(close()));
     setLayout(layout_);
-    show();
 }
 
-void DialogCurrency::OnBaseValueChanged(int index) {
-    m_.UpdateBaseValue(index, base_values_[index]->value());
-    m_.UpdateExaltedValue();
-    values_[index]->setValue(m_.currencys()[index].exalt);
+void CurrencyDialog::OnBaseValueChanged(int index) {
+    currency_manager_.UpdateBaseValue(index, base_values_[index]->value());
+    currency_manager_.UpdateExaltedValue();
+    values_[index]->setValue(currency_manager_.currencies()[index].exalt);
     UpdateTotalExaltedValue();
 }
 
-void DialogCurrency::Update() {
+void CurrencyDialog::Update() {
     for (unsigned int i = 0; i < values_.size(); i++) {
-        CurrencyItem curr = m_.currencys()[i];
+        CurrencyItem curr = currency_manager_.currencies()[i];
         std::string text = curr.name + " (" + std::to_string(curr.count) + ")";
         names_[i]->setText(text.c_str());
         values_[i]->setValue(curr.exalt);
@@ -255,10 +247,10 @@ void DialogCurrency::Update() {
     UpdateTotalWisdomValue();
 }
 
-void DialogCurrency::UpdateTotalExaltedValue() {
-    total_value_->setValue(m_.TotalExaltedValue());
+void CurrencyDialog::UpdateTotalExaltedValue() {
+    total_value_->setValue(currency_manager_.TotalExaltedValue());
 }
 
-void DialogCurrency::UpdateTotalWisdomValue() {
-    total_wisdom_value_->setValue(m_.TotalWisdomValue());
+void CurrencyDialog::UpdateTotalWisdomValue() {
+    total_wisdom_value_->setValue(currency_manager_.TotalWisdomValue());
 }
