@@ -19,10 +19,13 @@
 
 #include "datamanager.h"
 
+#include "sqlite/sqlite3.h"
 #include <QCryptographicHash>
 #include <QDir>
 #include <ctime>
 #include <stdexcept>
+
+#include "currencymanager.h"
 
 DataManager::DataManager(const std::string &filename) :
     filename_(filename)
@@ -33,12 +36,12 @@ DataManager::DataManager(const std::string &filename) :
     if (sqlite3_open(filename_.c_str(), &db_) != SQLITE_OK) {
         throw std::runtime_error("Failed to open sqlite3 database.");
     }
-    CreateTable("data");
-    CreateTable("currency");
+    CreateTable("data", "key TEXT PRIMARY KEY, value BLOB");
+    CreateTable("currency", "timestamp INTEGER PRIMARY KEY, value TEXT");
 }
 
-void DataManager::CreateTable(const std::string &name) {
-    std::string query = "CREATE TABLE IF NOT EXISTS " + name + "(key TEXT PRIMARY KEY, value BLOB)";
+void DataManager::CreateTable(const std::string &name, const std::string &fields) {
+    std::string query = "CREATE TABLE IF NOT EXISTS " + name + "(" + fields + ")";
     if (sqlite3_exec(db_, query.c_str(), 0, 0, 0) != SQLITE_OK) {
         throw std::runtime_error("Failed to execute creation statement for table " + name + ".");
     }
@@ -56,8 +59,8 @@ std::string DataManager::Get(const std::string &key, const std::string &default_
     return result;
 }
 
-void DataManager::UpsertInternal(const std::string &table, const std::string &key, const std::string &value) {
-    std::string query = "INSERT OR REPLACE INTO " + table + " (key, value) VALUES (?, ?)";
+void DataManager::Set(const std::string &key, const std::string &value) {
+    std::string query = "INSERT OR REPLACE INTO data (key, value) VALUES (?, ?)";
     sqlite3_stmt *stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
     sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
@@ -66,24 +69,26 @@ void DataManager::UpsertInternal(const std::string &table, const std::string &ke
     sqlite3_finalize(stmt);
 }
 
-void DataManager::Set(const std::string &key, const std::string &value) {
-    UpsertInternal("data", key, value);
+void DataManager::InsertCurrencyUpdate(const CurrencyUpdate &update) {
+    std::string query = "INSERT INTO currency (timestamp, value) VALUES (?, ?)";
+    sqlite3_stmt *stmt;
+    sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
+    sqlite3_bind_int64(stmt, 1, update.timestamp);
+    sqlite3_bind_text(stmt, 2, update.value.c_str(), -1, SQLITE_STATIC);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
 }
 
-void DataManager::InsertCurrencyUpdate(const std::string &value) {
-    std::string timestamp = std::to_string(std::time(nullptr));
-    UpsertInternal("currency", timestamp, value);
-}
-
-std::vector<std::string> DataManager::GetAllCurrency() {
-    std::string query = "SELECT key, value FROM currency";
+std::vector<CurrencyUpdate> DataManager::GetAllCurrency() {
+    std::string query = "SELECT timestamp, value FROM currency ORDER BY timestamp ASC";
     sqlite3_stmt* stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
-    std::vector<std::string> result;
+    std::vector<CurrencyUpdate> result;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        std::string key(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)), sqlite3_column_bytes(stmt, 0));
-        std::string value(static_cast<const char*>(sqlite3_column_blob(stmt, 1)), sqlite3_column_bytes(stmt, 1));
-        result.push_back(value + ";" + key);
+        CurrencyUpdate update = { 0 };
+        update.timestamp = sqlite3_column_int64(stmt, 0);
+        update.value = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+        result.push_back(update);
     }
     sqlite3_finalize(stmt);
     return result;

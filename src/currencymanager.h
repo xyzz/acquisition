@@ -23,13 +23,19 @@
 #include <QtWidgets>
 
 #include "application.h"
-#include "item.h"
 
 struct CurrencyItem {
     int count;
     std::string name;
     double exalt;
     double base;
+};
+
+// For now we just serialize/deserialize 'value' inside CurrencyManager
+// Later we might need more logic if GGG adds more currency types and we want to be backwards compatible
+struct CurrencyUpdate {
+    long long timestamp;
+    std::string value;
 };
 
 const std::vector<std::string> CurrencyForWisdom({

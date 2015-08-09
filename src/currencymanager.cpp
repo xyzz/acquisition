@@ -17,6 +17,7 @@
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <ctime>
 #include <QWidget>
 #include <QtGui>
 #include "QsLog.h"
@@ -118,7 +119,6 @@ void CurrencyManager::LoadCurrency() {
     for (unsigned int i = 0; i < CurrencyWisdomValue.size(); i++) {
         wisdoms_.push_back(0);
     }
-
 }
 
 void CurrencyManager::SaveCurrencyBase() {
@@ -143,18 +143,21 @@ void CurrencyManager::SaveCurrencyValue() {
     }
     std::string old_value = data_.Get("currency_last_value", "");
     if (value != old_value && !empty) {
-        data_.InsertCurrencyUpdate(value);
+        CurrencyUpdate update = { 0 };
+        update.timestamp = std::time(nullptr);
+        update.value = value;
+        data_.InsertCurrencyUpdate(update);
         data_.Set("currency_last_value", value);
     }
 }
 
 void CurrencyManager::ExportCurrency() {
-    std::string header_csv = "Total value; Timestamp";
+    std::string header_csv = "Date; Total value";
     for (auto& name : CurrencyAsString) {
         if (name != "")
             header_csv += ";" + name;
     }
-    std::vector<std::string> result = data_.GetAllCurrency();
+    std::vector<CurrencyUpdate> result = data_.GetAllCurrency();
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save Export file"),
                                                     QDir::toNativeSeparators(QDir::homePath() + "/" + "acquisition_export_currency.csv"));
@@ -162,8 +165,12 @@ void CurrencyManager::ExportCurrency() {
     if (file.open(QFile::WriteOnly | QFile::Text)) {
         QTextStream out(&file);
         out << header_csv.c_str() << "\n";
-        for (auto &row : result)
-            out << row.c_str() << "\n";
+        for (auto &update : result) {
+            char buf[4096];
+            std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", std::localtime(&update.timestamp));
+            out << buf << ";";
+            out << update.value.c_str() << "\n";
+        }
     } else {
         QLOG_WARN() << "CurrencyManager::ExportCurrency : couldn't open CSV export file ";
     }
