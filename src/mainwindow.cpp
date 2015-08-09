@@ -84,6 +84,45 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     connect(&app_->items_manager(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnItemsManagerStatusUpdate(ItemsFetchStatus)));
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
     connect(&auto_online_, &AutoOnline::Update, this, &MainWindow::OnOnlineUpdate);
+
+    log_checker_.setPath("S:\\Path of Exile\\logs\\Client.txt");
+
+    tray_icon_.setIcon(QIcon(":/icon.ico"));
+    tray_icon_.setToolTip("Acquisition Plus");
+    tray_icon_.show();
+
+    connect(&log_checker_, &LogChecker::onCharacterMessage, [this](const QString &name, const QString &message) {
+       tray_icon_.showMessage("Acquisition Plus - Incoming Whisper", "From " + name + ": " + message, QSystemTrayIcon::NoIcon);
+    });
+
+    connect(&tray_icon_, &QSystemTrayIcon::activated, [this] (QSystemTrayIcon::ActivationReason reason) {
+        if (reason == QSystemTrayIcon::DoubleClick) {
+            if (isVisible()) hide();
+            else {
+                showNormal();
+                setWindowState(Qt::WindowActive);
+            }
+        }
+    });
+}
+
+void MainWindow::changeEvent(QEvent *event) {
+    if(event->type() == QEvent::WindowStateChange && isMinimized()){
+        // Allow events to run
+        QTimer::singleShot(0, this, SLOT(hide()));
+        event->ignore();
+        return;
+    }
+    QMainWindow::changeEvent(event);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+//    if (tray_icon_.isVisible()) {
+//        hide();
+//        event->ignore();
+//        return;
+//    }
+    QMainWindow::closeEvent(event);
 }
 
 void MainWindow::InitializeLogging() {
@@ -148,6 +187,7 @@ void MainWindow::InitializeActions() {
         ui->buyoutValueLineEdit->setFocus();
     });
     this->addAction(action);
+
 }
 
 void MainWindow::InitializeUi() {
@@ -692,11 +732,12 @@ void MainWindow::NewSearch() {
 void MainWindow::UpdateCurrentBucket() {
     ui->nameLabel->hide();
     ui->imageLabel->hide();
-    ui->minimapLabel->hide();
-    ui->locationLabel->hide();
-    ui->propertiesLabel->hide();
+    ui->locationLabel->setText("Location: N/A");
+    ui->propertiesLabel->setText("");
 
     ui->imageWidget->hide();
+
+    UpdateCurrentItemMinimap();
 
     ItemLocationType location = current_bucket_.location().type();
     QString pos = "Stash Tab";
@@ -704,6 +745,9 @@ void MainWindow::UpdateCurrentBucket() {
         pos = "Character";
     ui->typeLineLabel->setText(pos + ": " + QString::fromStdString(current_bucket_.location().GetHeader()));
     ui->typeLineLabel->show();
+
+    // QString notes = app_->items_manager().GetObjectNote(QString::fromStdString(current_bucket_.location().GetUniqueHash()));
+    // ui->selectionNotes->setPlainText(notes);
 }
 
 void MainWindow::UpdateCurrentItem() {
@@ -739,6 +783,9 @@ void MainWindow::UpdateCurrentItem() {
         UpdateCurrentItemIcon(image_cache_->Get(icon));
 
     ui->locationLabel->setText("Location: " + QString::fromStdString(current_item_->location().GetHeader()));
+
+    // QString notes = app_->items_manager().GetObjectNote(QString::fromStdString(current_item_->hash()));
+    // ui->selectionNotes->setPlainText(notes);
 }
 
 void MainWindow::GenerateCurrentItemHeader() {
@@ -963,10 +1010,12 @@ void MainWindow::UpdateCurrentItemMinimap() {
     QPainter painter(&pixmap);
     painter.setBrush(QBrush(QColor(0x0c, 0x0b, 0x0b)));
     painter.drawRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE);
-    const ItemLocation &location = current_item_->location();
-    painter.setBrush(QBrush(location.socketed() ? Qt::blue : Qt::red));
-    QRectF rect = current_item_->location().GetRect();
-    painter.drawRect(rect);
+    if (current_item_) {
+        const ItemLocation &location = current_item_->location();
+        painter.setBrush(QBrush(location.socketed() ? Qt::blue : Qt::red));
+        QRectF rect = current_item_->location().GetRect();
+        painter.drawRect(rect);
+    }
     ui->minimapLabel->setPixmap(pixmap);
 }
 
@@ -1264,4 +1313,16 @@ void MainWindow::on_copyClipboardButton_clicked() {
 
 void MainWindow::on_bumpShopBox_toggled(bool checked) {
     app_->data_manager().SetBool("shop_bump", checked);
+}
+
+void MainWindow::on_selectionNotes_textChanged(){
+    QString notes = ui->selectionNotes->toPlainText();
+    QString hash;
+    if (current_item_) {
+        hash = QString::fromStdString(current_item_->hash());
+    }
+    else {
+        hash = QString::fromStdString(current_bucket_.location().GetUniqueHash());
+    }
+    app_->items_manager().SetObjectNote(hash, notes);
 }

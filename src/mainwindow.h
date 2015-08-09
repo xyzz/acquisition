@@ -26,6 +26,7 @@
 #include <QPushButton>
 
 #ifdef Q_OS_WIN
+#include <QSystemTrayIcon>
 #include <QWinTaskbarButton>
 #include <QWinTaskbarProgress>
 #endif
@@ -38,6 +39,7 @@
 #include "imagecache.h"
 #include "itemsmanagerworker.h"
 #include "updatechecker.h"
+#include "logchecker.h"
 
 
 class QNetworkAccessManager;
@@ -85,6 +87,9 @@ public slots:
     void OnTabClose(int index);
     void ToggleBucketAtMenu();
     void ToggleShowHiddenBuckets(bool checked);
+protected:
+    void closeEvent(QCloseEvent *event);
+    void changeEvent(QEvent *event);
 private slots:
     void on_actionForum_shop_thread_triggered();
     void on_actionCopy_shop_data_to_clipboard_triggered();
@@ -121,6 +126,8 @@ private slots:
     void on_copyClipboardButton_clicked();
 
     void on_bumpShopBox_toggled(bool checked);
+
+    void on_selectionNotes_textChanged();
 
 private:
     void UpdateCurrentBucket();
@@ -168,4 +175,6 @@ private:
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif
+    QSystemTrayIcon tray_icon_;
+    LogChecker log_checker_;
 };
