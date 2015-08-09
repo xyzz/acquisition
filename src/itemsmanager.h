@@ -48,6 +48,8 @@ public:
     void SetAutoUpdate(bool update);
     int auto_update_interval() const { return auto_update_interval_; }
     bool auto_update() const { return auto_update_; }
+    QString GetObjectNote(const QString &hash);
+    void SetObjectNote(const QString &hash, const QString &notes);
 public slots:
     // called by auto_update_timer_
     void OnAutoRefreshTimer();

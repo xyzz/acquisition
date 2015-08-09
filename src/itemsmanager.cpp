@@ -83,6 +83,15 @@ void ItemsManager::Update() {
     emit UpdateSignal();
 }
 
+QString ItemsManager::GetObjectNote(const QString &hash) {
+    return data_manager_.Get(QString("note_" + hash).toStdString()).c_str();
+}
+
+void ItemsManager::SetObjectNote(const QString &hash, const QString &notes) {
+    if (hash.isEmpty()) return;
+    data_manager_.Set(QString("note_" + hash).toStdString(), notes.toStdString());
+}
+
 void ItemsManager::SetAutoUpdate(bool update) {
     data_manager_.SetBool("autoupdate", update);
     auto_update_ = update;
