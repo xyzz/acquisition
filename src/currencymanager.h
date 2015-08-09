@@ -18,19 +18,19 @@
 */
 
 #pragma once
-#include <QWidget>
-#include <QtGui>
 
+#include <QtGui>
 #include <QtWidgets>
+
 #include "item.h"
-#include "itemsmanagerworker.h"
-#include "buyoutmanager.h"
+
 struct CurrencyItem {
     int count;
     std::string name;
     double exalt;
     double base;
 };
+
 const std::vector<std::string> CurrencyForWisdom({
     "Scroll of Wisdom",
     "Portal Scroll",
@@ -38,6 +38,7 @@ const std::vector<std::string> CurrencyForWisdom({
     "Blacksmith's Whetstone",
     "Orb of Transmutation"
 });
+
 const std::vector<int> CurrencyWisdomValue({
     1,
     1,
@@ -45,6 +46,7 @@ const std::vector<int> CurrencyWisdomValue({
     4,
     4
 });
+
 class CurrencyManager;
 
 class DialogCurrency : public QDialog
@@ -77,7 +79,7 @@ public:
     CurrencyManager(Application &app);
     ~CurrencyManager();
     void ClearCurrency();
-    //Called in itemmanagerworker::ParseItem
+    // Called in itemmanagerworker::ParseItem
     void ParseSingleItem(std::shared_ptr<Item> item);
     void UpdateBaseValue(int ind, double value);
     std::vector<CurrencyItem> currencys() const { return currencys_;}
@@ -85,17 +87,17 @@ public:
     int TotalWisdomValue();
     void DisplayCurrency();
     void Update();
-    //CSV export
+    // CSV export
     void ExportCurrency();
 
 private:
     Application &app_;
     DataManager &data_;
     std::vector<CurrencyItem> currencys_;
-    //We only need the "count" of a CurrencyItem so int will be enough
+    // We only need the "count" of a CurrencyItem so int will be enough
     std::vector<int> wisdoms_;
     DialogCurrency *dialog_;
-    //database interaction
+    // database interaction
     void InitCurrency();
     void LoadCurrency();
     void SaveCurrencyBase();
@@ -103,5 +105,4 @@ private:
 public slots:
     void UpdateExaltedValue();
     void SaveCurrencyValue();
-
 };
