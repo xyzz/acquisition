@@ -224,12 +224,12 @@
   </action>
   <action name="actionList_currency">
    <property name="text">
-    <string>List currency</string>
+    <string>List currency...</string>
    </property>
   </action>
   <action name="actionExport_currency">
    <property name="text">
-    <string>Export to CSV</string>
+    <string>Export to CSV...</string>
    </property>
   </action>
  </widget>
