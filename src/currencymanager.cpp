@@ -168,7 +168,8 @@ void CurrencyManager::ExportCurrency() {
         out << header_csv.c_str() << "\n";
         for (auto &update : result) {
             char buf[4096];
-            std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", std::localtime(&update.timestamp));
+            std::time_t timestamp = update.timestamp;
+            std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", std::localtime(&timestamp));
             out << buf << ";";
             out << update.value.c_str() << "\n";
         }
