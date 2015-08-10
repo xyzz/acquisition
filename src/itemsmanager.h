@@ -53,10 +53,10 @@ public slots:
     void OnAutoRefreshTimer();
     // Used to glue Worker's signals to MainWindow
     void OnStatusUpdate(const ItemsFetchStatus &status);
-    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
+    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
 signals:
     void UpdateSignal();
-    void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
+    void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh = false);
     void StatusUpdate(const ItemsFetchStatus &status);
 private:
     // should items be automatically refreshed

@@ -72,7 +72,7 @@ public slots:
     void FetchItems(int limit = kThrottleRequests);
     void PreserveSelectedCharacter();
 signals:
-    void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
+    void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
     void StatusUpdate(const ItemsFetchStatus &status);
 private:
     QNetworkRequest MakeTabRequest(int tab_index, bool tabs = false);
