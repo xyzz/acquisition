@@ -237,6 +237,9 @@ CurrencyDialog::CurrencyDialog(CurrencyManager& manager) : currency_manager_(man
     UpdateTotalWisdomValue();
     layout_->addWidget(new QLabel("Total Scrolls of Wisdom"), curr_row + 1, 0);
     layout_->addWidget(total_wisdom_value_, curr_row + 1, 1);
+    button_close_ = new QPushButton("Close");
+    connect(button_close_, SIGNAL(clicked()), this, SLOT(close()));
+    layout_->addWidget(button_close_, curr_row + 2, 0);
     setLayout(layout_);
 }
 
