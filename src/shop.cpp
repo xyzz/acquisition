@@ -151,7 +151,7 @@ std::string Shop::ShopEditUrl(int idx) {
 }
 
 void Shop::SubmitSingleShop() {
-    CurrentStatusUpdate status = {ProgramState::ShopSubmitting, 0, 0};
+    CurrentStatusUpdate status = CurrentStatusUpdate();
     status.state = ProgramState::ShopSubmitting;
     status.progress = requests_completed_;
     status.total = threads_.size();

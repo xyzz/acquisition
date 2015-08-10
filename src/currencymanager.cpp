@@ -144,7 +144,7 @@ void CurrencyManager::SaveCurrencyValue() {
     }
     std::string old_value = data_.Get("currency_last_value", "");
     if (value != old_value && !empty) {
-        CurrencyUpdate update = { 0, "" };
+        CurrencyUpdate update = CurrencyUpdate();
         update.timestamp = std::time(nullptr);
         update.value = value;
         data_.InsertCurrencyUpdate(update);
