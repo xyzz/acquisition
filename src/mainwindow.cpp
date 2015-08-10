@@ -207,7 +207,7 @@ void MainWindow::OnBuyoutChange() {
     }
 
     // Don't assign a zero buyout if nothing is entered in the value textbox
-    if (ui->buyoutValueLineEdit->text().isEmpty())
+    if (ui->buyoutValueLineEdit->text().isEmpty() && (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED))
         return;
 
     if (current_item_) {
