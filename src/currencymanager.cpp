@@ -162,6 +162,8 @@ void CurrencyManager::ExportCurrency() {
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save Export file"),
                                                     QDir::toNativeSeparators(QDir::homePath() + "/" + "acquisition_export_currency.csv"));
+    if (fileName.isEmpty())
+        return;
     QFile file(QDir::toNativeSeparators(fileName));
     if (file.open(QFile::WriteOnly | QFile::Text)) {
         QTextStream out(&file);
