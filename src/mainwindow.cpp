@@ -266,7 +266,7 @@ void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
     progress->setValue(status.progress);
     progress->setPaused(status.state == ProgramState::ItemsPaused);
 #else
-    if (need_progress) {;}//Fix compilation warning
+    (void)need_progress;//Fix compilation warning(unused var on non-windows)
 #endif
 
 }
