@@ -110,6 +110,8 @@ void Shop::Update() {
         shop_data_[i] = Util::StringReplace(shop_template_, kShopTemplateItems, "[spoiler]" + shop_data_[i] + "[/spoiler]");
 
     shop_hash_ = Util::Md5(Util::StringJoin(shop_data_, ";"));
+    if (auto_update_)
+        SubmitShopToForum();
 }
 
 void Shop::ExpireShopData() {

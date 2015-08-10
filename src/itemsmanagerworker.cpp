@@ -83,7 +83,6 @@ void ItemsManagerWorker::Init() {
             tabs_.push_back(tab["n"].GetString());
         }
     }
-    emit ItemsRefreshed(items_, tabs_);
 }
 
 void ItemsManagerWorker::Update() {
