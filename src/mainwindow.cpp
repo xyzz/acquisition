@@ -206,6 +206,10 @@ void MainWindow::OnBuyoutChange() {
         ui->buyoutValueLineEdit->setEnabled(true);
     }
 
+    // Don't assign a zero buyout if nothing is entered in the value textbox
+    if (ui->buyoutValueLineEdit->text().isEmpty())
+        return;
+
     if (current_item_) {
         if (bo.type == BUYOUT_TYPE_NONE)
             app_->buyout_manager().Delete(*current_item_);
