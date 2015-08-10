@@ -67,7 +67,10 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     createWinId();
     taskbar_button_ = new QWinTaskbarButton(this);
     taskbar_button_->setWindow(this->windowHandle());
+#elif defined(Q_OS_LINUX)
+    setWindowIcon(QIcon(":/icons/assets/icon.svg"));
 #endif
+
     image_cache_ = new ImageCache(Filesystem::UserDir() + "/cache");
 
     InitializeUi();
