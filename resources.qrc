@@ -7,4 +7,7 @@
         <file alias="S.png">assets/Socket_S.png</file>
         <file alias="G.png">assets/Socket_G.png</file>
     </qresource>
+    <qresource prefix="/icons">
+        <file>assets/icon.svg</file>
+    </qresource>
 </RCC>

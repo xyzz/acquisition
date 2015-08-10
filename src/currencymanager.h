@@ -66,7 +66,6 @@ public slots:
 private:
     CurrencyManager &currency_manager_;
     QGridLayout *layout_;
-    QPushButton *button_close_;
     std::vector<QLabel *> names_;
     std::vector<QDoubleSpinBox *> values_;
     std::vector<QDoubleSpinBox *> base_values_;

@@ -85,7 +85,7 @@ std::vector<CurrencyUpdate> DataManager::GetAllCurrency() {
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
     std::vector<CurrencyUpdate> result;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        CurrencyUpdate update = { 0 };
+        CurrencyUpdate update = CurrencyUpdate();
         update.timestamp = sqlite3_column_int64(stmt, 0);
         update.value = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
         result.push_back(update);
