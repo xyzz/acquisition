@@ -33,7 +33,8 @@
 #include "application.h"
 #include "datamanager.h"
 #include "util.h"
-
+#include "currencymanager.h"
+#include "mainwindow.h"
 const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-stash-items";
 const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
 const char *kGetCharactersUrl = "https://www.pathofexile.com/character-window/get-characters";
@@ -83,7 +84,7 @@ void ItemsManagerWorker::Init() {
             tabs_.push_back(tab["n"].GetString());
         }
     }
-    emit ItemsRefreshed(items_, tabs_);
+    emit ItemsRefreshed(items_, tabs_, true);
 }
 
 void ItemsManagerWorker::Update() {
@@ -319,7 +320,12 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
         QLOG_INFO() << "Sleeping one minute to prevent throttling.";
         QTimer::singleShot(kThrottleSleep * 1000, this, SLOT(FetchItems()));
     }
-    ItemsFetchStatus status = { total_completed_, total_needed_, throttled };
+    CurrentStatusUpdate status = CurrentStatusUpdate();
+    status.state = throttled ? ProgramState::ItemsPaused : ProgramState::ItemsReceive;
+    status.progress = total_completed_;
+    status.total = total_needed_;
+    if (total_completed_ == total_needed_)
+        status.state = ProgramState::ItemsCompleted;
     emit StatusUpdate(status);
 
     if (error)
@@ -329,7 +335,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 
     if (total_completed_ == total_needed_) {
         // all requests completed
-        emit ItemsRefreshed(items_, tabs_);
+        emit ItemsRefreshed(items_, tabs_, false);
 
         // since we build items_as_string_ in a hackish way inside ParseItems last character will either be
         // ' ' when no items were parsed or ',' when at least one item is parsed, and the first character is '['

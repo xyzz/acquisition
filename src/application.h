@@ -30,8 +30,9 @@ class DataManager;
 class ItemsManager;
 class BuyoutManager;
 class Shop;
+class CurrencyManager;
 
-class Application : QObject {
+class Application : public QObject {
     Q_OBJECT
 public:
     Application();
@@ -48,8 +49,9 @@ public:
     BuyoutManager &buyout_manager() const { return *buyout_manager_; }
     QNetworkAccessManager &logged_in_nm() const { return *logged_in_nm_; }
     Shop &shop() const { return *shop_; }
+    CurrencyManager &currency_manager() const { return *currency_manager_; }
 public slots:
-    void OnItemsRefreshed();
+    void OnItemsRefreshed(bool initial_refresh);
 private:
     std::string league_;
     std::string email_;
@@ -60,4 +62,5 @@ private:
     std::unique_ptr<Shop> shop_;
     std::unique_ptr<QNetworkAccessManager> logged_in_nm_;
     std::unique_ptr<ItemsManager> items_manager_;
+    std::unique_ptr<CurrencyManager> currency_manager_;
 };

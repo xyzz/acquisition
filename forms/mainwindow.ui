@@ -65,12 +65,10 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="typeLineLabel">
-           </widget>
+           <widget class="QLabel" name="typeLineLabel"/>
           </item>
           <item>
-           <widget class="QLabel" name="imageLabel">
-           </widget>
+           <widget class="QLabel" name="imageLabel"/>
           </item>
           <item>
            <widget class="QLabel" name="propertiesLabel">
@@ -99,12 +97,10 @@
            </spacer>
           </item>
           <item>
-           <widget class="QLabel" name="locationLabel">
-           </widget>
+           <widget class="QLabel" name="locationLabel"/>
           </item>
           <item>
-           <widget class="QLabel" name="minimapLabel">
-           </widget>
+           <widget class="QLabel" name="minimapLabel"/>
           </item>
          </layout>
         </item>
@@ -120,7 +116,7 @@
      <x>0</x>
      <y>0</y>
      <width>867</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuShop">
@@ -148,9 +144,17 @@
     <addaction name="actionControl_poe_xyz_is_URL"/>
     <addaction name="actionAutomatically_refresh_online_status"/>
    </widget>
+   <widget class="QMenu" name="menuCurrency">
+    <property name="title">
+     <string>Currency</string>
+    </property>
+    <addaction name="actionList_currency"/>
+    <addaction name="actionExport_currency"/>
+   </widget>
    <addaction name="menuItems"/>
    <addaction name="menuShop"/>
    <addaction name="menuAuto_online"/>
+   <addaction name="menuCurrency"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionForum_shop_thread">
@@ -216,6 +220,16 @@
    </property>
    <property name="text">
     <string>Automatically refresh online status</string>
+   </property>
+  </action>
+  <action name="actionList_currency">
+   <property name="text">
+    <string>List currency...</string>
+   </property>
+  </action>
+  <action name="actionExport_currency">
+   <property name="text">
+    <string>Export to CSV...</string>
    </property>
   </action>
  </widget>

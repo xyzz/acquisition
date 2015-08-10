@@ -21,7 +21,9 @@
 
 #include <QObject>
 #include <string>
+#include <vector>
 
+struct CurrentStatusUpdate;
 extern const std::string kShopTemplateItems;
 
 class Application;
@@ -30,27 +32,33 @@ class Shop : public QObject {
     Q_OBJECT
 public:
     explicit Shop(Application &app);
-    void SetThread(const std::string &thread);
+    void SetThread(const std::vector<std::string> &threads);
     void SetAutoUpdate(bool update);
     void SetShopTemplate(const std::string &shop_template);
     void Update();
     void CopyToClipboard();
     void ExpireShopData();
-    void SubmitShopToForum();
+    void SubmitShopToForum(bool force = false);
     bool auto_update() const { return auto_update_; }
-    const std::string &thread() const { return thread_; }
-    const std::string &shop_data() const { return shop_data_; }
+    const std::vector<std::string> &threads() const { return threads_; }
+    const std::vector<std::string> &shop_data() const { return shop_data_; }
     const std::string &shop_template() const { return shop_template_; }
 public slots:
     void OnEditPageFinished();
     void OnShopSubmitted();
+signals:
+    void StatusUpdate(const CurrentStatusUpdate &status);
 private:
-    std::string ShopEditUrl();
+    void SubmitSingleShop();
+    std::string ShopEditUrl(int idx);
+
     Application &app_;
-    std::string thread_;
-    std::string shop_data_;
+    std::vector<std::string> threads_;
+    std::vector<std::string> shop_data_;
     std::string shop_hash_;
     std::string shop_template_;
     bool shop_data_outdated_;
     bool auto_update_;
+    bool submitting_;
+    size_t requests_completed_;
 };

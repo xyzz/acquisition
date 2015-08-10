@@ -31,12 +31,9 @@
 #endif
 
 #include "autoonline.h"
-#include "column.h"
+#include "bucket.h"
 #include "items_model.h"
 #include "porting.h"
-#include "search.h"
-#include "imagecache.h"
-#include "itemsmanagerworker.h"
 #include "updatechecker.h"
 
 
@@ -45,8 +42,11 @@ class QNetworkReply;
 class QVBoxLayout;
 
 class Application;
+class Column;
 class Filter;
 class FlowLayout;
+class ImageCache;
+class Search;
 
 struct Buyout;
 
@@ -57,6 +57,19 @@ class MainWindow;
 enum class TreeState {
     kExpand,
     kCollapse
+};
+
+enum class ProgramState {
+    ItemsReceive,
+    ItemsPaused,
+    ItemsCompleted,
+    ShopSubmitting,
+    ShopCompleted
+};
+
+struct CurrentStatusUpdate {
+    ProgramState state;
+    int progress, total;
 };
 
 class MainWindow : public QMainWindow {
@@ -71,7 +84,7 @@ public slots:
     void OnTabChange(int index);
     void OnImageFetched(QNetworkReply *reply);
     void OnItemsRefreshed();
-    void OnItemsManagerStatusUpdate(const ItemsFetchStatus &status);
+    void OnStatusUpdate(const CurrentStatusUpdate &status);
     void OnBuyoutChange();
     void ResizeTreeColumns();
     void OnExpandAll();
@@ -89,6 +102,8 @@ private slots:
     void on_actionAutomatically_update_shop_triggered();
     void on_actionControl_poe_xyz_is_URL_triggered();
     void on_actionAutomatically_refresh_online_status_triggered();
+    void on_actionList_currency_triggered();
+    void on_actionExport_currency_triggered();
 
 private:
     void UpdateCurrentBucket();

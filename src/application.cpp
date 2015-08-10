@@ -25,6 +25,7 @@
 #include "datamanager.h"
 #include "filesystem.h"
 #include "itemsmanager.h"
+#include "currencymanager.h"
 #include "porting.h"
 #include "shop.h"
 
@@ -46,16 +47,14 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
     buyout_manager_ = std::make_unique<BuyoutManager>(*data_manager_);
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);
-
-    connect(items_manager_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
-        this, SLOT(OnItemsRefreshed()));
-
+    currency_manager_ = std::make_unique<CurrencyManager>(*this);
+    connect(items_manager_.get(), &ItemsManager::ItemsRefreshed, this, &Application::OnItemsRefreshed);
     items_manager_->Start();
     items_manager_->Update();
 }
 
-void Application::OnItemsRefreshed() {
-    shop_->ExpireShopData();
-    if (shop_->auto_update())
-        shop_->SubmitShopToForum();
+void Application::OnItemsRefreshed(bool initial_refresh) {
+    currency_manager_->Update();
+    if (!initial_refresh)
+        shop_->Update();
 }

@@ -39,16 +39,17 @@
 
 #include "application.h"
 #include "buyoutmanager.h"
-#include "column.h"
+#include "currencymanager.h"
 #include "filesystem.h"
 #include "filters.h"
-#include "modsfilter.h"
 #include "flowlayout.h"
+#include "imagecache.h"
 #include "item.h"
 #include "itemlocation.h"
 #include "itemsmanager.h"
-#include "itemsmanagerworker.h"
 #include "logpanel.h"
+#include "modsfilter.h"
+#include "search.h"
 #include "shop.h"
 #include "util.h"
 #include "verticalscrollarea.h"
@@ -66,7 +67,10 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     createWinId();
     taskbar_button_ = new QWinTaskbarButton(this);
     taskbar_button_->setWindow(this->windowHandle());
+#elif defined(Q_OS_LINUX)
+    setWindowIcon(QIcon(":/icons/assets/icon.svg"));
 #endif
+
     image_cache_ = new ImageCache(Filesystem::UserDir() + "/cache");
 
     InitializeUi();
@@ -79,7 +83,8 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
             this, SLOT(OnImageFetched(QNetworkReply*)));
 
     connect(&app_->items_manager(), &ItemsManager::ItemsRefreshed, this, &MainWindow::OnItemsRefreshed);
-    connect(&app_->items_manager(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnItemsManagerStatusUpdate(ItemsFetchStatus)));
+    connect(&app_->items_manager(), &ItemsManager::StatusUpdate, this, &MainWindow::OnStatusUpdate);
+    connect(&app_->shop(), &Shop::StatusUpdate, this, &MainWindow::OnStatusUpdate);
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
     connect(&auto_online_, &AutoOnline::Update, this, &MainWindow::OnOnlineUpdate);
 }
@@ -204,6 +209,10 @@ void MainWindow::OnBuyoutChange() {
         ui->buyoutValueLineEdit->setEnabled(true);
     }
 
+    // Don't assign a zero buyout if nothing is entered in the value textbox
+    if (ui->buyoutValueLineEdit->text().isEmpty() && (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED))
+        return;
+
     if (current_item_) {
         if (bo.type == BUYOUT_TYPE_NONE)
             app_->buyout_manager().Delete(*current_item_);
@@ -222,22 +231,44 @@ void MainWindow::OnBuyoutChange() {
     ResizeTreeColumns();
 }
 
-void MainWindow::OnItemsManagerStatusUpdate(const ItemsFetchStatus &status) {
-    QString str = QString("Receiving stash data, %1/%2").arg(status.fetched).arg(status.total);
-    if (status.throttled)
-        str += " (throttled, sleeping 60 seconds)";
-    if (status.fetched == status.total)
-        str = "Received all tabs";
-    status_bar_label_->setText(str);
+void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
+    QString title;
+    bool need_progress = false;
+    switch (status.state) {
+    case ProgramState::ItemsReceive:
+    case ProgramState::ItemsPaused:
+        title = QString("Receiving stash data, %1/%2").arg(status.progress).arg(status.total);
+        if (status.state == ProgramState::ItemsPaused)
+            title += " (throttled, sleeping 60 seconds)";
+        need_progress = true;
+        break;
+    case ProgramState::ItemsCompleted:
+        title = "Received all tabs";
+        break;
+    case ProgramState::ShopSubmitting:
+        title = QString("Sending your shops to the forum, %1/%2").arg(status.progress).arg(status.total);
+        need_progress = true;
+        break;
+    case ProgramState::ShopCompleted:
+        title = QString("Shop threads updated");
+        break;
+    default:
+        title = "Unknown";
+    }
+
+    status_bar_label_->setText(title);
 
 #ifdef Q_OS_WIN32
     QWinTaskbarProgress *progress = taskbar_button_->progress();
-    progress->setVisible(status.fetched != status.total);
+    progress->setVisible(need_progress);
     progress->setMinimum(0);
     progress->setMaximum(status.total);
-    progress->setValue(status.fetched);
-    progress->setPaused(status.throttled);
+    progress->setValue(status.progress);
+    progress->setPaused(status.state == ProgramState::ItemsPaused);
+#else
+    (void)need_progress;//Fix compilation warning(unused var on non-windows)
 #endif
+
 }
 
 bool MainWindow::eventFilter(QObject *o, QEvent *e) {
@@ -612,16 +643,19 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_actionForum_shop_thread_triggered() {
-    QString thread = QInputDialog::getText(this, "Shop thread", "Enter thread number", QLineEdit::Normal,
-        app_->shop().thread().c_str());
-    app_->shop().SetThread(thread.toStdString());
+    bool ok;
+    QString thread = QInputDialog::getText(this, "Shop thread",
+        "Enter thread number. You can enter multiple shops by separating them with a comma. More than one shop may be needed if you have a lot of items.",
+        QLineEdit::Normal, Util::StringJoin(app_->shop().threads(), ",").c_str(), &ok);
+    if (ok && !thread.isEmpty())
+        app_->shop().SetThread(Util::StringSplit(thread.toStdString(), ','));
     UpdateShopMenu();
 }
 
 void MainWindow::UpdateShopMenu() {
     std::string title = "Forum shop thread...";
-    if (!app_->shop().thread().empty())
-        title += " [" + app_->shop().thread() + "]";
+    if (!app_->shop().threads().empty())
+        title += " [" + Util::StringJoin(app_->shop().threads(), ",") + "]";
     ui->actionForum_shop_thread->setText(title.c_str());
     ui->actionAutomatically_update_shop->setChecked(app_->shop().auto_update());
 }
@@ -670,7 +704,7 @@ void MainWindow::on_actionAutomatically_refresh_items_triggered() {
 }
 
 void MainWindow::on_actionUpdate_shop_triggered() {
-    app_->shop().SubmitShopToForum();
+    app_->shop().SubmitShopToForum(true);
 }
 
 void MainWindow::on_actionShop_template_triggered() {
@@ -698,4 +732,11 @@ void MainWindow::on_actionControl_poe_xyz_is_URL_triggered() {
 void MainWindow::on_actionAutomatically_refresh_online_status_triggered() {
     auto_online_.SetEnabled(ui->actionAutomatically_refresh_online_status->isChecked());
     UpdateOnlineGui();
+}
+
+void MainWindow::on_actionList_currency_triggered() {
+    app_->currency_manager().DisplayCurrency();
+}
+void MainWindow::on_actionExport_currency_triggered() {
+    app_->currency_manager().ExportCurrency();
 }

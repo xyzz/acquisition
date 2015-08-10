@@ -25,6 +25,7 @@
 #include <QObject>
 
 #include "item.h"
+#include "mainwindow.h"
 
 class Application;
 class DataManager;
@@ -44,11 +45,6 @@ struct ItemsRequest {
 struct ItemsReply {
     QNetworkReply *network_reply;
     ItemsRequest request;
-};
-
-struct ItemsFetchStatus {
-    int fetched, total;
-    bool throttled;
 };
 
 class ItemsManagerWorker : public QObject {
@@ -72,8 +68,8 @@ public slots:
     void FetchItems(int limit = kThrottleRequests);
     void PreserveSelectedCharacter();
 signals:
-    void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
-    void StatusUpdate(const ItemsFetchStatus &status);
+    void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
+    void StatusUpdate(const CurrentStatusUpdate &status);
 private:
     QNetworkRequest MakeTabRequest(int tab_index, bool tabs = false);
     QNetworkRequest MakeCharacterRequest(const std::string &name);

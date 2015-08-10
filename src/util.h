@@ -59,6 +59,8 @@ std::string RapidjsonSerialize(const rapidjson::Value &val);
 void RapidjsonAddConstString(rapidjson::Value *object, const char *const name, const std::string &value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &alloc);
 
 std::string StringReplace(const std::string &haystack, const std::string &needle, const std::string &replace);
+std::string StringJoin(const std::vector<std::string> &array, const std::string &separator);
+std::vector<std::string> StringSplit(const std::string &str, char delim);
 
 /*
     Example usage:

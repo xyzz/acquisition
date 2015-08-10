@@ -9,6 +9,7 @@ win32 {
 
 unix {
     LIBS += -ldl
+    QMAKE_CXXFLAGS += -Wno-inconsistent-missing-override
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -52,7 +53,8 @@ SOURCES += \
     test/testdata.cpp \
     test/testitem.cpp \
     test/testshop.cpp \
-    test/testutil.cpp
+    test/testutil.cpp \
+    src/currencymanager.cpp
 
 HEADERS += \
     src/item.h \
@@ -91,7 +93,8 @@ HEADERS += \
     test/testdata.h \
     test/testitem.h \
     test/testshop.h \
-    test/testutil.h
+    test/testutil.h \
+    src/currencymanager.h
 
 FORMS += \
     forms/mainwindow.ui \

@@ -25,12 +25,12 @@
 #include "item.h"
 #include "itemsmanagerworker.h"
 
+struct CurrentStatusUpdate;
 class QThread;
 class Application;
 class BuyoutManager;
 class DataManager;
 class ItemsManagerWorker;
-struct ItemsFetchStatus;
 class Shop;
 
 /*
@@ -56,12 +56,12 @@ public slots:
     // called by auto_update_timer_
     void OnAutoRefreshTimer();
     // Used to glue Worker's signals to MainWindow
-    void OnStatusUpdate(const ItemsFetchStatus &status);
-    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
+    void OnStatusUpdate(const CurrentStatusUpdate &status);
+    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
 signals:
     void UpdateSignal();
-    void ItemsRefreshed();
-    void StatusUpdate(const ItemsFetchStatus &status);
+    void ItemsRefreshed(bool initial_refresh);
+    void StatusUpdate(const CurrentStatusUpdate &status);
 private:
     void MigrateBuyouts();
 
