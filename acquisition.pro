@@ -9,6 +9,7 @@ win32 {
 
 unix {
     LIBS += -ldl
+    QMAKE_CXXFLAGS += -Wno-inconsistent-missing-override
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
