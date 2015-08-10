@@ -34,6 +34,7 @@
 #include "datamanager.h"
 #include "util.h"
 #include "currencymanager.h"
+#include "mainwindow.h"
 const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-stash-items";
 const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
 const char *kGetCharactersUrl = "https://www.pathofexile.com/character-window/get-characters";
@@ -319,7 +320,12 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
         QLOG_INFO() << "Sleeping one minute to prevent throttling.";
         QTimer::singleShot(kThrottleSleep * 1000, this, SLOT(FetchItems()));
     }
-    ItemsFetchStatus status = { total_completed_, total_needed_, throttled };
+    CurrentStatusUpdate status = {};
+    status.state = throttled ? ProgramState::ItemsPaused : ProgramState::ItemsReceive;
+    status.progress = total_completed_;
+    status.total = total_needed_;
+    if (total_completed_ == total_needed_)
+        status.state = ProgramState::ItemsCompleted;
     emit StatusUpdate(status);
 
     if (error)

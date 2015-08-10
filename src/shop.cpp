@@ -32,6 +32,7 @@
 #include "buyoutmanager.h"
 #include "porting.h"
 #include "util.h"
+#include "mainwindow.h"
 
 const std::string kPoeEditThread = "https://www.pathofexile.com/forum/edit-thread/";
 const std::string kShopTemplateItems = "[items]";
@@ -150,7 +151,12 @@ std::string Shop::ShopEditUrl(int idx) {
 }
 
 void Shop::SubmitSingleShop() {
+    CurrentStatusUpdate status = {};
+    status.state = ProgramState::ShopSubmitting;
+    status.progress = requests_completed_;
+    status.total = threads_.size();
     if (requests_completed_ == threads_.size()) {
+        status.state = ProgramState::ShopCompleted;
         submitting_ = false;
         app_.data_manager().Set("shop_hash", shop_hash_);
     } else {
@@ -158,6 +164,7 @@ void Shop::SubmitSingleShop() {
         QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopEditUrl(requests_completed_).c_str())));
         connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
     }
+    emit StatusUpdate(status);
 }
 
 void Shop::OnEditPageFinished() {

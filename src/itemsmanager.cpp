@@ -38,6 +38,7 @@
 #include "rapidjson_util.h"
 #include "shop.h"
 #include "util.h"
+#include "mainwindow.h"
 
 ItemsManager::ItemsManager(Application &app) :
     auto_update_timer_(std::make_unique<QTimer>()),
@@ -61,13 +62,13 @@ void ItemsManager::Start() {
     worker_ = std::make_unique<ItemsManagerWorker>(app_, thread_.get());
     connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
     connect(this, SIGNAL(UpdateSignal()), worker_.get(), SLOT(Update()));
-    connect(worker_.get(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnStatusUpdate(ItemsFetchStatus)));
+    connect(worker_.get(), &ItemsManagerWorker::StatusUpdate, this, &ItemsManager::OnStatusUpdate);
     connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>, bool)));
     worker_->moveToThread(thread_.get());
     thread_->start();
 }
 
-void ItemsManager::OnStatusUpdate(const ItemsFetchStatus &status) {
+void ItemsManager::OnStatusUpdate(const CurrentStatusUpdate &status) {
     emit StatusUpdate(status);
 }
 

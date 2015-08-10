@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+struct CurrentStatusUpdate;
 extern const std::string kShopTemplateItems;
 
 class Application;
@@ -45,6 +46,8 @@ public:
 public slots:
     void OnEditPageFinished();
     void OnShopSubmitted();
+signals:
+    void StatusUpdate(const CurrentStatusUpdate &status);
 private:
     void SubmitSingleShop();
     std::string ShopEditUrl(int idx);

@@ -39,20 +39,20 @@
 
 #include "application.h"
 #include "buyoutmanager.h"
-#include "column.h"
+#include "currencymanager.h"
 #include "filesystem.h"
 #include "filters.h"
-#include "modsfilter.h"
 #include "flowlayout.h"
+#include "imagecache.h"
 #include "item.h"
 #include "itemlocation.h"
 #include "itemsmanager.h"
-#include "itemsmanagerworker.h"
 #include "logpanel.h"
+#include "modsfilter.h"
+#include "search.h"
 #include "shop.h"
 #include "util.h"
 #include "verticalscrollarea.h"
-#include "currencymanager.h"
 
 const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
 
@@ -81,7 +81,8 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
 
     connect(&app_->items_manager(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
         this, SLOT(OnItemsRefreshed()));
-    connect(&app_->items_manager(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnItemsManagerStatusUpdate(ItemsFetchStatus)));
+    connect(&app_->items_manager(), &ItemsManager::StatusUpdate, this, &MainWindow::OnStatusUpdate);
+    connect(&app_->shop(), &Shop::StatusUpdate, this, &MainWindow::OnStatusUpdate);
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
     connect(&auto_online_, &AutoOnline::Update, this, &MainWindow::OnOnlineUpdate);
 }
@@ -227,21 +228,40 @@ void MainWindow::OnBuyoutChange() {
     ResizeTreeColumns();
 }
 
-void MainWindow::OnItemsManagerStatusUpdate(const ItemsFetchStatus &status) {
-    QString str = QString("Receiving stash data, %1/%2").arg(status.fetched).arg(status.total);
-    if (status.throttled)
-        str += " (throttled, sleeping 60 seconds)";
-    if (status.fetched == status.total)
-        str = "Received all tabs";
-    status_bar_label_->setText(str);
+void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
+    QString title;
+    bool need_progress = false;
+    switch (status.state) {
+    case ProgramState::ItemsReceive:
+    case ProgramState::ItemsPaused:
+        title = QString("Receiving stash data, %1/%2").arg(status.progress).arg(status.total);
+        if (status.state == ProgramState::ItemsPaused)
+            title += " (throttled, sleeping 60 seconds)";
+        need_progress = true;
+        break;
+    case ProgramState::ItemsCompleted:
+        title = "Received all tabs";
+        break;
+    case ProgramState::ShopSubmitting:
+        title = QString("Sending your shops to the forum, %1/%2").arg(status.progress).arg(status.total);
+        need_progress = true;
+        break;
+    case ProgramState::ShopCompleted:
+        title = QString("Shop threads updated");
+        break;
+    default:
+        title = "Unknown";
+    }
+
+    status_bar_label_->setText(title);
 
 #ifdef Q_OS_WIN32
     QWinTaskbarProgress *progress = taskbar_button_->progress();
-    progress->setVisible(status.fetched != status.total);
+    progress->setVisible(need_progress);
     progress->setMinimum(0);
     progress->setMaximum(status.total);
-    progress->setValue(status.fetched);
-    progress->setPaused(status.throttled);
+    progress->setValue(status.progress);
+    progress->setPaused(status.state == ProgramState::ItemsPaused);
 #endif
 }
 

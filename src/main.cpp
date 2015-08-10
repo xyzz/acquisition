@@ -42,7 +42,7 @@
 
 int main(int argc, char *argv[])
 {
-    qRegisterMetaType<ItemsFetchStatus>("ItemsFetchStatus");
+    qRegisterMetaType<CurrentStatusUpdate>("CurrentStatusUpdate");
     qRegisterMetaType<Items>("Items");
     qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
     qRegisterMetaType<QsLogging::Level>("QsLogging::Level");
