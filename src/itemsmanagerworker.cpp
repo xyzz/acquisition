@@ -320,7 +320,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
         QLOG_INFO() << "Sleeping one minute to prevent throttling.";
         QTimer::singleShot(kThrottleSleep * 1000, this, SLOT(FetchItems()));
     }
-    CurrentStatusUpdate status = {};
+    CurrentStatusUpdate status = {ProgramState::ItemsReceive, 0, 0};
     status.state = throttled ? ProgramState::ItemsPaused : ProgramState::ItemsReceive;
     status.progress = total_completed_;
     status.total = total_needed_;

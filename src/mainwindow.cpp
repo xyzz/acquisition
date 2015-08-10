@@ -262,7 +262,10 @@ void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
     progress->setMaximum(status.total);
     progress->setValue(status.progress);
     progress->setPaused(status.state == ProgramState::ItemsPaused);
+#else
+    if (need_progress) {;}//Fix compilation warning
 #endif
+
 }
 
 bool MainWindow::eventFilter(QObject *o, QEvent *e) {
