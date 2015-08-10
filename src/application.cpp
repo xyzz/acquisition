@@ -48,15 +48,16 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);
     currency_manager_ = std::make_unique<CurrencyManager>(*this);
-    connect(items_manager_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)),
-        this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>)));
+    connect(items_manager_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)),
+        this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>, bool)));
     items_manager_->Start();
     items_manager_->Update();
 }
 
-void Application::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {
+void Application::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh) {
     items_ = items;
     tabs_ = tabs;
-    shop_->Update();
     currency_manager_->Update();
+    if (!initial_refresh)
+        shop_->Update();
 }

@@ -53,7 +53,7 @@ public:
     const std::vector<std::string> &tabs() const { return tabs_; }
     Shop &shop() const { return *shop_; }
 public slots:
-    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
+    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh = false);
 private:
     Items items_;
     std::vector<std::string> tabs_;

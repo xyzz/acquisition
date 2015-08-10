@@ -62,7 +62,7 @@ void ItemsManager::Start() {
     connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
     connect(this, SIGNAL(UpdateSignal()), worker_.get(), SLOT(Update()));
     connect(worker_.get(), SIGNAL(StatusUpdate(ItemsFetchStatus)), this, SLOT(OnStatusUpdate(ItemsFetchStatus)));
-    connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>)));
+    connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>, bool)));
     worker_->moveToThread(thread_.get());
     thread_->start();
 }
@@ -71,8 +71,8 @@ void ItemsManager::OnStatusUpdate(const ItemsFetchStatus &status) {
     emit StatusUpdate(status);
 }
 
-void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs) {
-    emit ItemsRefreshed(items, tabs);
+void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh) {
+    emit ItemsRefreshed(items, tabs, initial_refresh);
 }
 
 void ItemsManager::Update() {

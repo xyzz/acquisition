@@ -83,6 +83,7 @@ void ItemsManagerWorker::Init() {
             tabs_.push_back(tab["n"].GetString());
         }
     }
+    emit ItemsRefreshed(items_, tabs_, true);
 }
 
 void ItemsManagerWorker::Update() {
@@ -328,7 +329,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 
     if (total_completed_ == total_needed_) {
         // all requests completed
-        emit ItemsRefreshed(items_, tabs_);
+        emit ItemsRefreshed(items_, tabs_, false);
 
         // since we build items_as_string_ in a hackish way inside ParseItems last character will either be
         // ' ' when no items were parsed or ',' when at least one item is parsed, and the first character is '['
