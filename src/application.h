@@ -30,6 +30,7 @@ class DataManager;
 class ItemsManager;
 class BuyoutManager;
 class Shop;
+class CurrencyManager;
 
 class Application : QObject {
     Q_OBJECT
@@ -48,10 +49,11 @@ public:
     DataManager &sensitive_data_manager() const { return *sensitive_data_manager_; }
     BuyoutManager &buyout_manager() const { return *buyout_manager_; }
     QNetworkAccessManager &logged_in_nm() const { return *logged_in_nm_; }
+    CurrencyManager &currency_manager() const { return *currency_manager_;}
     const std::vector<std::string> &tabs() const { return tabs_; }
     Shop &shop() const { return *shop_; }
 public slots:
-    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs);
+    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh = false);
 private:
     Items items_;
     std::vector<std::string> tabs_;
@@ -64,4 +66,5 @@ private:
     std::unique_ptr<Shop> shop_;
     std::unique_ptr<QNetworkAccessManager> logged_in_nm_;
     std::unique_ptr<ItemsManager> items_manager_;
+    std::unique_ptr<CurrencyManager> currency_manager_;
 };

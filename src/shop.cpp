@@ -32,27 +32,36 @@
 #include "buyoutmanager.h"
 #include "porting.h"
 #include "util.h"
+#include "mainwindow.h"
 
+<<<<<<< HEAD
 const std::string POE_EDIT_THREAD = "https://www.pathofexile.com/forum/edit-thread/";
 const std::string POE_BUMP_THREAD = "https://www.pathofexile.com/forum/post-reply/";
 const std::string POE_BUMP_MESSAGE = "[url=https://github.com/Novynn/acquisitionplus/releases]Bumped with Acquisition Plus![/url]";
 const std::string kShopTemplateItems = "[items]";
 const int POE_BUMP_DELAY = 3600; // 1 hour per Path of Exile forum rules
+const int kMaxCharactersInPost = 50000;
+const int kSpoilerOverhead = 19; // "[spoiler][/spoiler]" length
 
 Shop::Shop(Application &app) :
     app_(app),
-    shop_data_outdated_(true)
+    shop_data_outdated_(true),
+    submitting_(false)
 {
-    thread_ = app_.data_manager().Get("shop");
+    threads_ = Util::StringSplit(app_.data_manager().Get("shop"), ';');
     auto_update_ = app_.data_manager().GetBool("shop_update", true);
     shop_template_ = app_.data_manager().Get("shop_template");
     if (shop_template_.empty())
         shop_template_ = kShopTemplateItems;
 }
 
-void Shop::SetThread(const std::string &thread) {
-    thread_ = thread;
-    app_.data_manager().Set("shop", thread);
+void Shop::SetThread(const std::vector<std::string> &threads) {
+    if (submitting_)
+        return;
+    threads_ = threads;
+    app_.data_manager().Set("shop", Util::StringJoin(threads, ";"));
+    ExpireShopData();
+    app_.data_manager().Set("shop_hash", "");
 }
 
 void Shop::SetAutoUpdate(bool update) {
@@ -67,8 +76,13 @@ void Shop::SetShopTemplate(const std::string &shop_template) {
 }
 
 void Shop::Update() {
+    if (submitting_) {
+        QLOG_WARN() << "Submitting shop right now, the request to update shop data will be ignored";
+        return;
+    }
     shop_data_outdated_ = false;
-    std::string data = "[spoiler]";
+    shop_data_.clear();
+    std::string data = "";
     for (auto &item : app_.items()) {
         if (item->location().socketed())
             continue;
@@ -83,19 +97,26 @@ void Shop::Update() {
         if (bo.type == BUYOUT_TYPE_NONE)
             continue;
 
-        data += item->location().GetForumCode(app_.league());
+        std::string item_string = item->location().GetForumCode(app_.league()) + BuyoutTypeAsPrefix[bo.type];
+        if (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED)
+            item_string += QString::number(bo.value).toStdString() + " " + CurrencyAsTag[bo.currency];
 
-        data += BuyoutTypeAsPrefix[bo.type];
-
-        if (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED) {
-            data += QString::number(bo.value).toUtf8().constData();
-            data += " " + CurrencyAsTag[bo.currency];
+        if (data.size() + item_string.size() + shop_template_.size()+ kSpoilerOverhead > kMaxCharactersInPost) {
+            shop_data_.push_back(data);
+            data = item_string;
+        } else {
+            data += item_string;
         }
     }
-    data += "[/spoiler]";
+    if (!data.empty())
+        shop_data_.push_back(data);
 
-    shop_data_ = Util::StringReplace(shop_template_, kShopTemplateItems, data);
-    shop_hash_ = Util::Md5(shop_data_);
+    for (size_t i = 0; i < shop_data_.size(); ++i)
+        shop_data_[i] = Util::StringReplace(shop_template_, kShopTemplateItems, "[spoiler]" + shop_data_[i] + "[/spoiler]");
+
+    shop_hash_ = Util::Md5(Util::StringJoin(shop_data_, ";"));
+    if (auto_update_)
+        SubmitShopToForum();
 }
 
 void Shop::ExpireShopData() {
@@ -110,9 +131,13 @@ std::string Shop::ShopBumpUrl() {
     return POE_BUMP_THREAD + thread_;
 }
 
-void Shop::SubmitShopToForum() {
-    if (thread_.empty()) {
-        QLOG_WARN() << "Asked to update a shop with empty thread ID.";
+void Shop::SubmitShopToForum(bool force) {
+    if (submitting_) {
+        QLOG_WARN() << "Already submitting your shop.";
+        return;
+    }
+    if (threads_.empty()) {
+        QLOG_ERROR() << "Asked to update a shop with no shop ID defined.";
         return;
     }
 
@@ -121,14 +146,37 @@ void Shop::SubmitShopToForum() {
 
     std::string previous_hash = app_.data_manager().Get("shop_hash");
     // Don't update the shop if it hasn't changed
-    if (previous_hash == shop_hash_)
+    if (previous_hash == shop_hash_ && !force)
         return;
-    // first, get to the edit-thread page
-    QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopEditUrl().c_str())));
-    connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
 
-    emit ShopUpdateBegin();
-    QLOG_INFO() << "Updating shop...";
+    if (threads_.size() < shop_data_.size()) {
+        QLOG_WARN() << "Need" << shop_data_.size() - threads_.size() << "more shops defined to fit all your items.";
+    }
+
+    requests_completed_ = 0;
+    submitting_ = true;
+    SubmitSingleShop();
+}
+
+std::string Shop::ShopEditUrl(int idx) {
+    return kPoeEditThread + threads_[idx];
+}
+
+void Shop::SubmitSingleShop() {
+    CurrentStatusUpdate status = CurrentStatusUpdate();
+    status.state = ProgramState::ShopSubmitting;
+    status.progress = requests_completed_;
+    status.total = threads_.size();
+    if (requests_completed_ == threads_.size()) {
+        status.state = ProgramState::ShopCompleted;
+        submitting_ = false;
+        app_.data_manager().Set("shop_hash", shop_hash_);
+    } else {
+        // first, get to the edit-thread page to grab CSRF token
+        QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopEditUrl(requests_completed_).c_str())));
+        connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
+    }
+    emit StatusUpdate(status);
 }
 
 void Shop::SubmitShopBumpToForum() {
@@ -157,6 +205,7 @@ void Shop::OnEditPageFinished() {
     if (hash.empty()) {
         QLOG_ERROR() << "Can't update shop -- cannot extract CSRF token from the page. Check if thread ID is valid.";
         emit ShopUpdateFinished();
+        submitting_ = false;
         return;
     }
 
@@ -167,17 +216,18 @@ void Shop::OnEditPageFinished() {
     if (title.empty()) {
         QLOG_ERROR() << "Can't update shop -- title is empty. Check if thread ID is valid.";
         emit ShopUpdateFinished();
+        submitting_ = false;
         return;
     }
 
     QUrlQuery query;
     query.addQueryItem("forum_thread", hash.c_str());
     query.addQueryItem("title", title.c_str());
-    query.addQueryItem("content", shop_data_.c_str());
+    query.addQueryItem("content", requests_completed_ < shop_data_.size() ? shop_data_[requests_completed_].c_str() : "Empty");
     query.addQueryItem("submit", "Submit");
 
     QByteArray data(query.query().toUtf8());
-    QNetworkRequest request((QUrl(ShopEditUrl().c_str())));
+    QNetworkRequest request((QUrl(ShopEditUrl(requests_completed_).c_str())));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *submitted = app_.logged_in_nm().post(request, data);
     connect(submitted, SIGNAL(finished()), this, SLOT(OnShopSubmitted()));
@@ -229,14 +279,13 @@ void Shop::OnShopSubmitted() {
     if (!error.empty()) {
         QLOG_ERROR() << "Error while submitting shop to forums:" << error.c_str();
         emit ShopUpdateFinished();
+        submitting_ = false;
         return;
     }
 
-    // now let's hope that shop was submitted successfully and notify poe.xyz.is
-    QNetworkRequest request(QUrl(("http://verify.xyz.is/" + thread_ + "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").c_str()));
+    // now let's hope that shop was submitted successfully and notify poe.trade
+    QNetworkRequest request(QUrl(("http://verify.xyz.is/" + threads_[requests_completed_] + "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").c_str()));
     app_.logged_in_nm().get(request);
-
-    app_.data_manager().Set("shop_hash", shop_hash_);
 
     QLOG_INFO() << "Shop updated successfully!";
 
@@ -244,12 +293,21 @@ void Shop::OnShopSubmitted() {
         SubmitShopBumpToForum();
     }
     emit ShopUpdateFinished();
+    ++requests_completed_;
+    SubmitSingleShop();
 }
 
 void Shop::CopyToClipboard() {
     if (shop_data_outdated_)
         Update();
 
+    if (shop_data_.empty())
+        return;
+
+    if (shop_data_.size() > 1) {
+        QLOG_WARN() << "You have more than one shop, only the first one will be copied.";
+    }
+
     QClipboard *clipboard = QApplication::clipboard();
-    clipboard->setText(QString(shop_data_.c_str()));
+    clipboard->setText(QString(shop_data_[0].c_str()));
 }

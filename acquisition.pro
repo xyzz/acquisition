@@ -10,6 +10,7 @@ win32 {
 
 unix {
     LIBS += -ldl
+    QMAKE_CXXFLAGS += -Wno-inconsistent-missing-override
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -50,7 +51,8 @@ SOURCES += \
     src/autoonline.cpp \
     src/filesystem.cpp \
     src/logchecker.cpp \
-    src/shoptemplatemanager.cpp
+    src/shoptemplatemanager.cpp \
+    src/currencymanager.cpp
 
 HEADERS += \
     src/item.h \
@@ -87,6 +89,7 @@ HEADERS += \
     src/filesystem.h \
     src/logchecker.h \
     src/shoptemplatemanager.h
+    src/currencymanager.h
 
 FORMS += \
     forms/mainwindow.ui \

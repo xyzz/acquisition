@@ -30,4 +30,7 @@
     <qresource prefix="/">
         <file alias="icon.ico">assets/icon.ico</file>
     </qresource>
+    <qresource prefix="/icons">
+        <file>assets/icon.svg</file>
+    </qresource>
 </RCC>

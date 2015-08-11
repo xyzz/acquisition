@@ -32,12 +32,9 @@
 #endif
 
 #include "autoonline.h"
-#include "column.h"
+#include "bucket.h"
 #include "items_model.h"
 #include "porting.h"
-#include "search.h"
-#include "imagecache.h"
-#include "itemsmanagerworker.h"
 #include "updatechecker.h"
 #include "logchecker.h"
 
@@ -47,8 +44,11 @@ class QNetworkReply;
 class QVBoxLayout;
 
 class Application;
+class Column;
 class Filter;
 class FlowLayout;
+class ImageCache;
+class Search;
 
 struct Buyout;
 
@@ -59,6 +59,19 @@ class MainWindow;
 enum class TreeState {
     kExpand,
     kCollapse
+};
+
+enum class ProgramState {
+    ItemsReceive,
+    ItemsPaused,
+    ItemsCompleted,
+    ShopSubmitting,
+    ShopCompleted
+};
+
+struct CurrentStatusUpdate {
+    ProgramState state;
+    int progress, total;
 };
 
 class MainWindow : public QMainWindow {
@@ -77,7 +90,7 @@ public slots:
     void OnTabChange(int index);
     void OnImageFetched(QNetworkReply *reply);
     void OnItemsRefreshed();
-    void OnItemsManagerStatusUpdate(const ItemsFetchStatus &status);
+    void OnStatusUpdate(const CurrentStatusUpdate &status);
     void OnBuyoutChange(bool doParse=true);
     void ResizeTreeColumns();
     void OnExpandAll();
@@ -110,24 +123,17 @@ private slots:
     void on_refreshItemsButton_clicked();
     void on_showTradeURL_toggled(bool checked);
     void on_refreshTradeBox_toggled(bool checked);
-
     void on_tradeURLLineEdit_editingFinished();
-
     void on_refreshItemsIntervalBox_editingFinished();
-
     void on_refreshItemsBox_toggled(bool checked);
-
     void on_shopThreadIdBox_editingFinished();
-
     void on_editShopTemplateButton_clicked();
-
     void on_updateShopBox_toggled(bool checked);
-
     void on_copyClipboardButton_clicked();
-
     void on_bumpShopBox_toggled(bool checked);
-
     void on_selectionNotes_textChanged();
+    void on_actionList_currency_triggered();
+    void on_actionExport_currency_triggered();
 
 private:
     void UpdateCurrentBucket();

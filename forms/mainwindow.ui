@@ -1147,9 +1147,17 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionControl_poe_xyz_is_URL"/>
     <addaction name="actionAutomatically_refresh_online_status"/>
    </widget>
+   <widget class="QMenu" name="menuCurrency">
+    <property name="title">
+     <string>Currency</string>
+    </property>
+    <addaction name="actionList_currency"/>
+    <addaction name="actionExport_currency"/>
+   </widget>
    <addaction name="menuItems"/>
    <addaction name="menuShop"/>
    <addaction name="menuAuto_online"/>
+   <addaction name="menuCurrency"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionForum_shop_thread">
@@ -1215,6 +1223,16 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Automatically refresh online status</string>
+   </property>
+  </action>
+  <action name="actionList_currency">
+   <property name="text">
+    <string>List currency...</string>
+   </property>
+  </action>
+  <action name="actionExport_currency">
+   <property name="text">
+    <string>Export to CSV...</string>
    </property>
   </action>
  </widget>
