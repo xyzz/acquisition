@@ -198,12 +198,12 @@ void ShopTemplateManager::LoadTemplateMatchers() {
 
     templateMatchers.insert("vaalfragments", [](const std::shared_ptr<Item> &item) {
         QStringList fragments = {"Sacrifice at Dusk", "Sacrifice at Midnight", "Sacrifice at Noon", "Sacrifice at Dawn"};
-        return fragments.contains(QString::fromStdString(item->typeLine());
+        return fragments.contains(QString::fromStdString(item->typeLine()));
     });
 
     templateMatchers.insert("vaaluberfragments", [](const std::shared_ptr<Item> &item) {
         QStringList fragments = {"Mortal Grief", "Mortal Rage", "Mortal Hope", "Mortal Ignorance"};
-        return fragments.contains(QString::fromStdString(item->typeLine());
+        return fragments.contains(QString::fromStdString(item->typeLine()));
     });
 
     //    {LvlMaps} - The keyword currently accepts a value for Lvl between 66 - 100. Some examples would be: {66Maps}, {67Maps}, {68Maps}
@@ -249,6 +249,14 @@ void ShopTemplateManager::LoadTemplateMatchers() {
     templateMatchers.insert("uniques", [](const std::shared_ptr<Item> &item) {
         return item->frameType() == FRAME_TYPE_UNIQUE;
     });
+
+    QMap<QString, QStringList> typeMap;
+    typeMap.insert("ring", {"Iron Ring", "Coral Ring", "Paua Ring", "Gold Ring",
+                            "Ruby Ring", "Sapphire Ring", "Topaz Ring", "Diamond Ring",
+                            "Moonstone Ring", "Prismatic Ring", "Amethyst Ring",
+                            "Two-Stone Ring", "Unset Ring"});
+
+    // todo(novynn): use some sort of external definitions system that we can just load in?
 
     // Ring, Amulet, Helmet, Chest, Belt, Gloves, Boots, Axe, Claw, Bow, Dagger, Mace, Quiver, Sceptre, Staff, Sword, Shield, Wand, Flask
 
