@@ -487,7 +487,7 @@ void MainWindow::OnBuyoutChange(bool doParse) {
     // refresh treeView to immediately reflect price changes
     if (isUpdated) {
         ui->treeView->model()->layoutChanged();
-        //ResizeTreeColumns();
+        ResizeTreeColumns();
         app_->shop().ExpireShopData();
     }
 }
@@ -602,8 +602,8 @@ void MainWindow::OnSearchFormChange() {
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
     ui->treeView->reset();
 
-    if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
-        ExpandCollapse(TreeState::kCollapse);
+//    if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
+//        ExpandCollapse(TreeState::kCollapse);
 
     if (!expandedHashes.isEmpty()) {
         for (int i = 0; i < ui->treeView->model()->rowCount(); i++) {
@@ -1257,8 +1257,10 @@ void MainWindow::UpdateSettingsBox() {
     ui->refreshItemsIntervalBox->setValue(app_->items_manager().auto_update_interval());
 
     // Shop
-    if (!app_->shop().thread().empty())
-        ui->shopThreadIdBox->setValue(QString::fromStdString(app_->shop().thread()).toUInt());
+    std::vector<std::string> threads = app_->shop().threads();
+
+    if (!threads.empty())
+        ui->shopThreadIdBox->setValue(QString::fromStdString(threads.front()).toUInt());
     ui->updateShopBox->setChecked(app_->shop().auto_update());
 
     // Trade
@@ -1334,8 +1336,9 @@ void MainWindow::on_refreshItemsBox_toggled(bool checked) {
 
 void MainWindow::on_shopThreadIdBox_editingFinished() {
     QString thread = QString::number(ui->shopThreadIdBox->value());
-    app_->shop().SetThread(thread.toStdString());
+    app_->shop().SetThread(QList<std::string>({thread.toStdString()}).toVector().toStdVector());
     UpdateShopMenu();
+    UpdateSettingsBox();
 }
 
 void MainWindow::on_editShopTemplateButton_clicked() {

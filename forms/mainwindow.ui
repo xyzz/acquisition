@@ -90,7 +90,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>401</width>
+                 <width>343</width>
                  <height>134</height>
                 </rect>
                </property>
@@ -212,6 +212,12 @@
          </property>
          <item>
           <widget class="QSplitter" name="splitter_3">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>1</verstretch>
+            </sizepolicy>
+           </property>
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -563,7 +569,7 @@
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
+                 <verstretch>1</verstretch>
                 </sizepolicy>
                </property>
                <property name="autoFillBackground">
@@ -590,7 +596,7 @@
            </widget>
            <widget class="QWidget" name="notesPanel" native="true">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
@@ -712,7 +718,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>440</width>
+              <width>498</width>
               <height>448</height>
              </rect>
             </property>

@@ -40,11 +40,14 @@ public:
     void CopyToClipboard();
     void ExpireShopData();
     void SubmitShopToForum(bool force = false);
-    void SubmitShopBumpToForum();
+    void SubmitShopBumpToForum(int index);
     bool auto_update() const { return auto_update_; }
     const std::vector<std::string> &threads() const { return threads_; }
     const std::vector<std::string> &shop_data() const { return shop_data_; }
     const std::string &shop_template() const { return shop_template_; }
+    std::string ShopEditUrl(int index);
+    std::string ShopBumpUrl(int index);
+    void SubmitSingleShop();
 signals:
     void ShopUpdateBegin();
     void ShopUpdateFinished();
@@ -53,11 +56,6 @@ public slots:
     void OnShopSubmitted();
     void OnBumpPageFinished();
     void OnBumpSubmitted();
-private:
-    std::string ShopEditUrl();
-    std::string ShopBumpUrl();
-    void SubmitSingleShop();
-    std::string ShopEditUrl(int idx);
 signals:
     void StatusUpdate(const CurrentStatusUpdate &status);
 private:

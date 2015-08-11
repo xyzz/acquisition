@@ -88,7 +88,8 @@ HEADERS += \
     src/autoonline.h \
     src/filesystem.h \
     src/logchecker.h \
-    src/shoptemplatemanager.h
+    src/shoptemplatemanager.h \
+    src/currencymanager.h
     src/currencymanager.h
 
 FORMS += \

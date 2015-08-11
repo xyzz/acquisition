@@ -34,7 +34,6 @@
 #include "util.h"
 #include "mainwindow.h"
 
-<<<<<<< HEAD
 const std::string POE_EDIT_THREAD = "https://www.pathofexile.com/forum/edit-thread/";
 const std::string POE_BUMP_THREAD = "https://www.pathofexile.com/forum/post-reply/";
 const std::string POE_BUMP_MESSAGE = "[url=https://github.com/Novynn/acquisitionplus/releases]Bumped with Acquisition Plus![/url]";
@@ -123,14 +122,6 @@ void Shop::ExpireShopData() {
     shop_data_outdated_ = true;
 }
 
-std::string Shop::ShopEditUrl() {
-    return POE_EDIT_THREAD + thread_;
-}
-
-std::string Shop::ShopBumpUrl() {
-    return POE_BUMP_THREAD + thread_;
-}
-
 void Shop::SubmitShopToForum(bool force) {
     if (submitting_) {
         QLOG_WARN() << "Already submitting your shop.";
@@ -159,7 +150,11 @@ void Shop::SubmitShopToForum(bool force) {
 }
 
 std::string Shop::ShopEditUrl(int idx) {
-    return kPoeEditThread + threads_[idx];
+    return POE_EDIT_THREAD + threads_[idx];
+}
+
+std::string Shop::ShopBumpUrl(int idx) {
+    return POE_BUMP_THREAD + threads_[idx];
 }
 
 void Shop::SubmitSingleShop() {
@@ -175,12 +170,13 @@ void Shop::SubmitSingleShop() {
         // first, get to the edit-thread page to grab CSRF token
         QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopEditUrl(requests_completed_).c_str())));
         connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
+        emit ShopUpdateBegin();
     }
     emit StatusUpdate(status);
 }
 
-void Shop::SubmitShopBumpToForum() {
-    if (thread_.empty()) {
+void Shop::SubmitShopBumpToForum(int index) {
+    if (threads_.empty()) {
         QLOG_WARN() << "Asked to bump a shop with empty thread ID.";
         return;
     }
@@ -191,7 +187,7 @@ void Shop::SubmitShopBumpToForum() {
     }
 
     // first, get to the post-reply page
-    QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopBumpUrl().c_str())));
+    QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopBumpUrl(index).c_str())));
     connect(fetched, SIGNAL(finished()), this, SLOT(OnBumpPageFinished()));
 }
 
@@ -251,7 +247,7 @@ void Shop::OnBumpPageFinished() {
     query.addQueryItem("post_submit", "Submit");
 
     QByteArray data(query.query().toUtf8());
-    QNetworkRequest request((QUrl(ShopBumpUrl().c_str())));
+    QNetworkRequest request((QUrl(ShopBumpUrl(requests_completed_ - 1).c_str())));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *submitted = app_.logged_in_nm().post(request, data);
     connect(submitted, SIGNAL(finished()), this, SLOT(OnBumpSubmitted()));
@@ -290,7 +286,7 @@ void Shop::OnShopSubmitted() {
     QLOG_INFO() << "Shop updated successfully!";
 
     if (app_.data_manager().GetBool("shop_bump")) {
-        SubmitShopBumpToForum();
+        SubmitShopBumpToForum(requests_completed_);
     }
     emit ShopUpdateFinished();
     ++requests_completed_;
