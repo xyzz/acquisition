@@ -271,7 +271,11 @@ std::string PriceColumn::value(const Item &item) {
     if (!bo_manager_.Exists(item))
         return "";
     const Buyout &bo = bo_manager_.Get(item);
-    return Util::BuyoutAsText(bo);
+    QString extra = "";
+    if (!bo_manager_.IsItemManuallySet(item)) {
+        extra = " (set from " + bo.set_by + ")";
+    }
+    return Util::BuyoutAsText(bo) + extra.toStdString();
 }
 
 QColor PriceColumn::color(const Item &item) {

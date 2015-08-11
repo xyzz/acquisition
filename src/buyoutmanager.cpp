@@ -168,6 +168,8 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
         bo.currency = static_cast<Currency>(Util::TagAsCurrency(object["currency"].GetString()));
         bo.type = static_cast<BuyoutType>(Util::TagAsBuyoutType(object["type"].GetString()));
         bo.value = object["value"].GetDouble();
+        bo.last_update = QDateTime();
+        bo.set_by = "";
         if (object.HasMember("last_update")) {
             bo.last_update = QDateTime::fromTime_t(object["last_update"].GetInt());
         }
