@@ -135,6 +135,7 @@ public:
     std::string name();
     QVariant sortValue(const Item &item);
     std::string value(const Item &item);
+    QColor color(const Item &item);
 private:
     const BuyoutManager &bo_manager_;
 };

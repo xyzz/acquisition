@@ -39,8 +39,9 @@ BuyoutManager::BuyoutManager(DataManager &data_manager) :
     Load();
 }
 
-void BuyoutManager::Set(const Item &item, const Buyout &buyout) {
+void BuyoutManager::Set(const Item &item, Buyout &buyout, QString setter) {
     save_needed_ = true;
+    buyout.set_by = setter;
     buyouts_[ItemHash(item)] = buyout;
 }
 
@@ -59,6 +60,10 @@ bool BuyoutManager::Exists(const Item &item) const {
     return buyouts_.count(ItemHash(item)) > 0;
 }
 
+bool BuyoutManager::IsItemManuallySet(const Item &item) const {
+    return Exists(item) ? buyouts_.at(ItemHash(item)).set_by == "" : false;
+}
+
 std::string BuyoutManager::ItemHash(const Item &item) const {
     return item.hash();
 }
@@ -67,18 +72,40 @@ Buyout BuyoutManager::GetTab(const std::string &tab) const {
     return tab_buyouts_.at(tab);
 }
 
-void BuyoutManager::SetTab(const std::string &tab, const Buyout &buyout) {
+void BuyoutManager::SetTab(const Bucket &tab, const Buyout &buyout) {
+    std::string hash = tab.location().GetUniqueHash();
     save_needed_ = true;
-    tab_buyouts_[tab] = buyout;
+    tab_buyouts_[hash] = buyout;
+
+    UpdateTabItems(tab);
 }
 
 bool BuyoutManager::ExistsTab(const std::string &tab) const {
     return tab_buyouts_.count(tab) > 0;
 }
 
-void BuyoutManager::DeleteTab(const std::string &tab) {
+void BuyoutManager::DeleteTab(const Bucket &tab) {
+    std::string hash = tab.location().GetUniqueHash();
     save_needed_ = true;
-    tab_buyouts_.erase(tab);
+    tab_buyouts_.erase(hash);
+
+    UpdateTabItems(tab);
+}
+
+void BuyoutManager::UpdateTabItems(const Bucket &tab) {
+    std::string hash = tab.location().GetUniqueHash();
+    bool set = ExistsTab(hash);
+    Buyout buyout;
+    if (set) buyout = GetTab(hash);
+    // Set buyouts on items with the "set_by" flag set to the tab
+    for (auto &item : tab.items()) {
+        if (set && (!Exists(*item) || (Exists(*item) && !IsItemManuallySet(*item)))) {
+            Set(*item, buyout, QString::fromStdString(hash));
+        }
+        else if (!set && Exists(*item) && !IsItemManuallySet(*item)) {
+            Delete(*item);
+        }
+    }
 }
 
 std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyouts) {
@@ -97,6 +124,9 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
         }
         rapidjson::Value item(rapidjson::kObjectType);
         item.AddMember("value", buyout.value, alloc);
+
+        // Save set_by
+        Util::RapidjsonAddConstString(&item, "set_by", buyout.set_by.toStdString(), alloc);
 
         if (!buyout.last_update.isNull()){
             item.AddMember("last_update", buyout.last_update.toTime_t(), alloc);
@@ -138,8 +168,11 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
         bo.currency = static_cast<Currency>(Util::TagAsCurrency(object["currency"].GetString()));
         bo.type = static_cast<BuyoutType>(Util::TagAsBuyoutType(object["type"].GetString()));
         bo.value = object["value"].GetDouble();
-        if (object.HasMember("last_update")){
+        if (object.HasMember("last_update")) {
             bo.last_update = QDateTime::fromTime_t(object["last_update"].GetInt());
+        }
+        if (object.HasMember("set_by")) {
+            bo.set_by = QString::fromStdString(object["set_by"].GetString());
         }
         (*buyouts)[name] = bo;
     }

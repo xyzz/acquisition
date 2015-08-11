@@ -20,6 +20,7 @@
 #pragma once
 
 #include "item.h"
+#include "bucket.h"
 #include <QDateTime>
 
 enum Currency {
@@ -104,6 +105,7 @@ struct Buyout {
     double value;
     BuyoutType type;
     Currency currency;
+    QString set_by;
     QDateTime last_update;
 };
 
@@ -112,18 +114,20 @@ class DataManager;
 class BuyoutManager {
 public:
     explicit BuyoutManager(DataManager &data_manager);
-    void Set(const Item &item, const Buyout &buyout);
+    void Set(const Item &item, Buyout &buyout, QString setter = "");
     Buyout Get(const Item &item) const;
     void Delete(const Item &item);
     bool Exists(const Item &item) const;
 
-    void SetTab(const std::string &tab, const Buyout &buyout);
+    void SetTab(const Bucket &tab, const Buyout &buyout);
     Buyout GetTab(const std::string &tab) const;
-    void DeleteTab(const std::string &tab);
+    void DeleteTab(const Bucket &tab);
     bool ExistsTab(const std::string &tab) const;
 
     void Save();
     void Load();
+    bool IsItemManuallySet(const Item &item) const;
+    void UpdateTabItems(const Bucket &tab);
 private:
     std::string ItemHash(const Item &item) const;
     std::string Serialize(const std::map<std::string, Buyout> &buyouts);

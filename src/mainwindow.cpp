@@ -465,9 +465,9 @@ void MainWindow::OnBuyoutChange(bool doParse) {
 
         if (isUpdated) {
             if (bo.type == BUYOUT_TYPE_NONE)
-                app_->buyout_manager().DeleteTab(tab);
+                app_->buyout_manager().DeleteTab(current_bucket_);
             else
-                app_->buyout_manager().SetTab(tab, bo);
+                app_->buyout_manager().SetTab(current_bucket_, bo);
         }
     }
     // refresh treeView to immediately reflect price changes

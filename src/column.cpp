@@ -233,7 +233,7 @@ QColor ElementalDamageColumn::color(const Item &item) {
     case ED_LIGHTNING:
         return QColor(0xb9, 0x9c, 0x00);
     }
-    return QColor();
+    return Column::color(item);
 }
 
 int ElementalDamageColumn::GetIndex(const Item &item)
@@ -272,6 +272,13 @@ std::string PriceColumn::value(const Item &item) {
         return "";
     const Buyout &bo = bo_manager_.Get(item);
     return Util::BuyoutAsText(bo);
+}
+
+QColor PriceColumn::color(const Item &item) {
+    if (bo_manager_.Exists(item) && !bo_manager_.IsItemManuallySet(item)) {
+        return Qt::blue;
+    }
+    return Column::color(item);
 }
 
 DateColumn::DateColumn(const BuyoutManager &bo_manager):
