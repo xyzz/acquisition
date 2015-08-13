@@ -6,30 +6,24 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>484</width>
-    <height>235</height>
+    <width>384</width>
+    <height>256</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>466</width>
-    <height>235</height>
+    <width>384</width>
+    <height>256</height>
    </size>
   </property>
-  <property name="maximumSize">
-   <size>
-    <width>484</width>
-    <height>235</height>
-   </size>
-  </property>
-  <property name="windowTitle">
-   <string>Log in</string>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="loginTabs">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -78,20 +72,6 @@
           </widget>
          </item>
         </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>Steam</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Click &quot;Login&quot; button below to initiate login process.</string>
-         </property>
-        </widget>
        </item>
       </layout>
      </widget>

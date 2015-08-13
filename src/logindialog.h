@@ -50,8 +50,6 @@ public slots:
     void OnLoggedIn();
     void OnMainPageFinished();
     void OnProxyCheckBoxClicked(bool);
-    void OnSteamCookieReceived(const QString &cookie);
-    void OnSteamDialogClosed();
 protected:
     bool event(QEvent *e);
 private:
@@ -59,7 +57,6 @@ private:
     void LoadSettings();
     void DisplayError(const QString &error);
     void LoginWithCookie(const QString &cookie);
-    void InitSteamDialog();
     std::unique_ptr<Application> app_;
     Ui::LoginDialog *ui;
     MainWindow *mw;
@@ -68,7 +65,6 @@ private:
     QString session_id_;
     std::unique_ptr<QNetworkAccessManager> login_manager_;
     std::vector<std::string> leagues_;
-    std::unique_ptr<SteamLoginDialog> steam_login_dialog_;
     UpdateChecker update_checker_;
     bool asked_to_update_;
 };

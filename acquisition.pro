@@ -1,8 +1,7 @@
 TARGET = acquisitionplus
 TEMPLATE = app
 
-QT += core gui network webkitwidgets
-QT -= testlib
+QT += core gui network
 
 win32 {
     QT += winextras
@@ -41,7 +40,6 @@ SOURCES += \
     src/itemlocation.cpp \
     src/version.cpp \
     src/application.cpp \
-    src/steamlogindialog.cpp \
     src/modsfilter.cpp \
     src/modlist.cpp \
     src/logpanel.cpp \
@@ -77,7 +75,6 @@ HEADERS += \
     src/itemconstants.h \
     src/version_defines.h \
     src/application.h \
-    src/steamlogindialog.h \
     src/rapidjson_util.h \
     src/modsfilter.h \
     src/modlist.h \
@@ -94,8 +91,7 @@ HEADERS += \
 
 FORMS += \
     forms/mainwindow.ui \
-    forms/logindialog.ui \
-    forms/steamlogindialog.ui
+    forms/logindialog.ui
 
 CONFIG += c++11
 
