@@ -91,7 +91,7 @@ std::string ItemLocation::GetForumCode(const std::string &league) const {
 
 std::string ItemLocation::GetUniqueHash() const {
     if (type_ == ItemLocationType::STASH)
-        return "stash:" + tab_label_;
+        return "stash:" + QString::number(tab_id_ + 1).toStdString() + ":" + tab_label_;
     else
         return "character:" + character_;
 }
