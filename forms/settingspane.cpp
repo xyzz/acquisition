@@ -9,6 +9,8 @@
 #include "shop.h"
 #include "datamanager.h"
 
+#include <QDebug>
+
 SettingsPane::SettingsPane(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SettingsPane)
@@ -19,6 +21,47 @@ SettingsPane::SettingsPane(QWidget *parent) :
 void SettingsPane::initialize(MainWindow* parent) {
     parent_ = parent;
     app_ = parent->application();
+
+    for (auto shop : app_->shop().threads()) {
+        bool ok = false;
+        int id = QString::fromStdString(shop).toInt(&ok);
+        if (ok && id) addShop(id);
+    }
+}
+
+void SettingsPane::addShop(int id) {
+    int row = ui->shopsWidget->rowCount();
+    ui->shopsWidget->insertRow(row);
+
+    // Setup Thread ID
+    QTableWidgetItem* thread = new QTableWidgetItem(QString::number(id));
+    ui->shopsWidget->setItem(row, 0, thread);
+
+    QPushButton* button = new QPushButton("Edit Template...");
+    ui->shopsWidget->setCellWidget(row, 1, button);
+    connect(button, &QPushButton::clicked, [this] {
+        parent_->on_actionShop_template_triggered();
+    });
+
+    if (id == 0) {
+        ui->shopsWidget->editItem(thread);
+    }
+}
+
+void SettingsPane::updateShops() {
+    QStringList threads = {};
+    for (int i = 0; i < ui->shopsWidget->rowCount(); i++) {
+        QTableWidgetItem* item = ui->shopsWidget->item(i, 0);
+        bool ok = false;
+        int shop = item->text().toInt(&ok);
+        if (ok && shop > 0) threads.append(QString::number(shop));
+    }
+    threads.removeDuplicates();
+    std::vector<std::string> formatted;
+    while (!threads.isEmpty()) formatted.push_back(threads.takeFirst().toStdString());
+    app_->shop().SetThread(formatted);
+    parent_->UpdateShopMenu();
+    parent_->UpdateSettingsBox();
 }
 
 void SettingsPane::updateFromStorage() {
@@ -29,8 +72,8 @@ void SettingsPane::updateFromStorage() {
     // Shop
     std::vector<std::string> threads = app_->shop().threads();
 
-    if (!threads.empty())
-        ui->shopThreadIdBox->setValue(QString::fromStdString(threads.front()).toUInt());
+//    if (!threads.empty())
+//        ui->shopThreadIdBox->setValue(QString::fromStdString(threads.front()).toUInt());
     ui->updateShopBox->setChecked(app_->shop().auto_update());
 
     // Trade
@@ -103,17 +146,6 @@ void SettingsPane::on_refreshItemsBox_toggled(bool checked) {
     app_->items_manager().SetAutoUpdate(checked);
 }
 
-void SettingsPane::on_shopThreadIdBox_editingFinished() {
-    QString thread = QString::number(ui->shopThreadIdBox->value());
-    app_->shop().SetThread(QList<std::string>({thread.toStdString()}).toVector().toStdVector());
-    parent_->UpdateShopMenu();
-    parent_->UpdateSettingsBox();
-}
-
-void SettingsPane::on_editShopTemplateButton_clicked() {
-    parent_->on_actionShop_template_triggered();
-}
-
 void SettingsPane::on_updateShopBox_toggled(bool checked) {
     app_->shop().SetAutoUpdate(checked);
 }
@@ -173,4 +205,48 @@ void SettingsPane::on_lightThemeRadioButton_clicked() {
 SettingsPane::~SettingsPane()
 {
     delete ui;
+}
+
+void SettingsPane::on_addShopButton_clicked()
+{
+    addShop(0);
+}
+
+void SettingsPane::on_shopsWidget_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous)
+{
+    if (current == 0) {
+        ui->removeShopButton->setEnabled(false);
+        ui->copyShopButton->setEnabled(false);
+    }
+    else {
+        ui->removeShopButton->setEnabled(true);
+        ui->copyShopButton->setEnabled(true);
+    }
+}
+
+void SettingsPane::on_removeShopButton_clicked()
+{
+    auto items = ui->shopsWidget->selectedItems();
+    for (auto item : items) {
+        int row = item->row();
+        ui->shopsWidget->removeRow(row);
+    }
+}
+
+void SettingsPane::on_shopsWidget_itemChanged(QTableWidgetItem *item)
+{
+    Q_ASSERT(item->column() == 0);
+    int row = item->row();
+
+    bool ok = false;
+    int shop = item->text().toUInt(&ok);
+    if (ok && shop > 0) {
+        item->setBackgroundColor(qApp->palette(ui->shopsWidget).background().color());
+
+        updateShops();
+    }
+    else {
+        ui->shopsWidget->editItem(item);
+        item->setBackgroundColor(Qt::red);
+    }
 }

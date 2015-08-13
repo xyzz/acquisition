@@ -688,7 +688,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="recipesTab">
+       <widget class="RecipePane" name="recipesTab">
         <attribute name="title">
          <string>Recipes</string>
         </attribute>
@@ -773,23 +773,6 @@
         <attribute name="title">
          <string>Settings</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_8">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>9</number>
-         </property>
-         <property name="topMargin">
-          <number>9</number>
-         </property>
-         <property name="rightMargin">
-          <number>9</number>
-         </property>
-         <property name="bottomMargin">
-          <number>9</number>
-         </property>
-        </layout>
        </widget>
       </widget>
      </widget>
@@ -957,6 +940,12 @@
    <class>SettingsPane</class>
    <extends>QWidget</extends>
    <header>forms\settingspane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RecipePane</class>
+   <extends>QWidget</extends>
+   <header>forms\recipepane.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

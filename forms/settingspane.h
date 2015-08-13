@@ -2,6 +2,7 @@
 #define SETTINGSPANE_H
 
 #include <QWidget>
+#include <qtablewidget.h>
 
 class MainWindow;
 class Application;
@@ -19,6 +20,7 @@ public:
     ~SettingsPane();
     void updateFromStorage();
     void initialize(MainWindow* parent);
+    void updateShops();
 public slots:
     void on_darkThemeRadioButton_clicked();
     void on_lightThemeRadioButton_clicked();
@@ -31,11 +33,18 @@ public slots:
     void on_tradeURLLineEdit_editingFinished();
     void on_refreshItemsIntervalBox_editingFinished();
     void on_refreshItemsBox_toggled(bool checked);
-    void on_shopThreadIdBox_editingFinished();
-    void on_editShopTemplateButton_clicked();
     void on_updateShopBox_toggled(bool checked);
     void on_copyClipboardButton_clicked();
     void on_bumpShopBox_toggled(bool checked);
+private slots:
+    void on_addShopButton_clicked();
+
+    void on_shopsWidget_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
+
+    void on_removeShopButton_clicked();
+
+    void on_shopsWidget_itemChanged(QTableWidgetItem *item);
+
 private:
     Ui::SettingsPane *ui;
 
@@ -44,6 +53,7 @@ private:
 
     QPalette light_palette_;
     QString light_style_;
+    void addShop(int id);
 };
 
 #endif // SETTINGSPANE_H
