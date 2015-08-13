@@ -47,7 +47,6 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
     buyout_manager_ = std::make_unique<BuyoutManager>(*data_manager_);
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);
-    currency_manager_ = std::make_unique<CurrencyManager>(*this);
     connect(items_manager_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)),
         this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>, bool)));
     items_manager_->Start();
@@ -57,7 +56,6 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
 void Application::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh) {
     items_ = items;
     tabs_ = tabs;
-    currency_manager_->Update();
     if (!initial_refresh)
         shop_->Update();
 }

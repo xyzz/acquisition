@@ -42,7 +42,6 @@
 #include "buyoutmanager.h"
 #include "column.h"
 #include "datamanager.h"
-#include "currencymanager.h"
 #include "filesystem.h"
 #include "filters.h"
 #include "flowlayout.h"
