@@ -54,6 +54,11 @@ public:
     bool ShowingHiddenBuckets() { return showHiddenBuckets_; }
     void Activate(const Items &items, QTreeView *tree);
     QModelIndex GetIndex(const QModelIndex &index) const;
+    void AddExpanded(const QString &hash) { expandedHashs_.append(hash); }
+    void RemoveExpanded(const QString &hash) { expandedHashs_.removeAll(hash); }
+    void AddHiddenColumn(int logicalIndex) { hiddenColumns_.append(logicalIndex); }
+    bool IsColumnHidden(int logicalIndex) { return hiddenColumns_.contains(logicalIndex); }
+    void RemoveHiddenColumn(int logicalIndex)  { hiddenColumns_.removeAll(logicalIndex); }
 private:
     std::vector<std::unique_ptr<FilterData>> filters_;
     std::vector<std::unique_ptr<Column>> columns_;
@@ -61,7 +66,12 @@ private:
     Items items_;
     std::unique_ptr<ItemsModel> model_;
     std::vector<std::unique_ptr<Bucket>> buckets_;
-    std::unique_ptr<QSortFilterProxyModel> sortFilter_;
+
+    static std::unique_ptr<QSortFilterProxyModel> sortFilter_;
+
     QStringList hiddenBuckets_;
     bool showHiddenBuckets_;
+
+    QStringList expandedHashs_;
+    QList<int> hiddenColumns_;
 };

@@ -20,6 +20,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "version.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -79,6 +80,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     InitializeLogging();
     InitializeSearchForm();
     NewSearch();
+    InitializeActions();
 
     image_network_manager_ = new QNetworkAccessManager;
     connect(image_network_manager_, SIGNAL(finished(QNetworkReply*)),
@@ -110,6 +112,11 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
             }
         }
     });
+    // Load state
+    QByteArray geo = QByteArray::fromStdString(app_->data_manager().Get("mainwindow_geometry"));
+    if (!geo.isEmpty()) restoreGeometry(geo);
+    QByteArray state = QByteArray::fromStdString(app_->data_manager().Get("mainwindow_state"));
+    if (!state.isEmpty()) restoreState(state, VERSION_CODE);
 }
 
 void MainWindow::changeEvent(QEvent *event) {
@@ -194,6 +201,20 @@ void MainWindow::InitializeActions() {
     });
     this->addAction(action);
 
+    for (int i = 0; i < ui->treeView->header()->count(); i++) {
+        QString header = ui->treeView->model()->headerData(i, Qt::Horizontal).toString();
+        action = view_header_menu_.addAction("Display " + header);
+        action->setCheckable(true);
+        action->setChecked(!ui->treeView->header()->isSectionHidden(i));
+        view_header_actions_.insert(i, action);
+        connect(action, &QAction::toggled, [this, i] (bool checked){
+            ui->treeView->header()->setSectionHidden(i, !checked);
+
+            if (current_search_ == 0) return;
+            if (checked) current_search_->RemoveHiddenColumn(i);
+            else current_search_->AddHiddenColumn(i);
+        });
+    }
 }
 
 void MainWindow::InitializeUi() {
@@ -221,7 +242,7 @@ void MainWindow::InitializeUi() {
             bool ok;
             QString caption = QInputDialog::getText(this, "Tab Caption", "Enter tab caption:", QLineEdit::Normal,
                 search->GetCaption(false), &ok);
-            if (ok && !caption.isEmpty()) {
+            if (ok && !caption.isEmpty() && caption != search->GetCaption(false)) {
                 search->SetCaption(caption);
                 tab_bar_->setTabText(index, search->GetCaption());
             }
@@ -250,8 +271,6 @@ void MainWindow::InitializeUi() {
         }
     });
 
-    InitializeActions();
-
     Util::PopulateBuyoutTypeComboBox(ui->buyoutTypeComboBox);
     Util::PopulateBuyoutCurrencyComboBox(ui->buyoutCurrencyComboBox);
 
@@ -278,6 +297,17 @@ void MainWindow::InitializeUi() {
     ui->splitter_2->setStretchFactor(1, 0);
 
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->treeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->treeView->header()->setSectionsMovable(true);
+    ui->treeView->header()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->treeView->header(), &QHeaderView::sectionMoved, [this] {
+        UpdateCurrentHeaderState();
+    });
+
+    connect(ui->treeView->header(), &QHeaderView::customContextMenuRequested, [&](const QPoint &pos) {
+        view_header_menu_.popup(ui->treeView->header()->mapToGlobal(pos));
+    });
+
     default_context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
     default_context_menu_.addAction("Collapse All", this, SLOT(OnCollapseAll()));
     default_context_menu_.addSeparator();
@@ -302,6 +332,16 @@ void MainWindow::InitializeUi() {
         else {
             default_context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
         }
+    });
+
+    connect(ui->treeView, &QTreeView::expanded, [this] (const QModelIndex &index) {
+        QString hash = ui->treeView->model()->data(index, ItemsModel::HashRole).toString();
+        current_search_->AddExpanded(hash);
+    });
+
+    connect(ui->treeView, &QTreeView::collapsed, [this] (const QModelIndex &index) {
+        QString hash = ui->treeView->model()->data(index, ItemsModel::HashRole).toString();
+        current_search_->RemoveExpanded(hash);
     });
 
     ui->propertiesLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
@@ -358,12 +398,14 @@ void MainWindow::ToggleBucketAtMenu() {
             current_search_->HideBucket(hash);
         }
         current_search_->Activate(app_->items(), ui->treeView);
+        UpdateCurrentHeaderState();
     }
 }
 
 void MainWindow::ToggleShowHiddenBuckets(bool checked) {
     current_search_->ShowHiddenBuckets(checked);
     current_search_->Activate(app_->items(), ui->treeView);
+    UpdateCurrentHeaderState();
 }
 
 void MainWindow::OnExpandAll() {
@@ -586,34 +628,13 @@ void MainWindow::OnSearchFormChange() {
     // Save buyouts
     app_->buyout_manager().Save();
 
-    QStringList expandedHashes;
-    if (ui->treeView->model()) {
-        for (int i = 0; i < ui->treeView->model()->rowCount(); i++) {
-            QModelIndex index = ui->treeView->model()->index(i, 0);
-            if (ui->treeView->isExpanded(index)) {
-                QString hash = ui->treeView->model()->data(index, ItemsModel::HashRole).toString();
-                expandedHashes.append(hash);
-            }
-        }
-    }
-
     current_search_->Activate(app_->items(), ui->treeView);
+    UpdateCurrentHeaderState();
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
-    ui->treeView->reset();
 
 //    if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
 //        ExpandCollapse(TreeState::kCollapse);
-
-    if (!expandedHashes.isEmpty()) {
-        for (int i = 0; i < ui->treeView->model()->rowCount(); i++) {
-            QModelIndex index = ui->treeView->model()->index(i, 0);
-            QString hash = ui->treeView->model()->data(index, ItemsModel::HashRole).toString();
-            if (expandedHashes.contains(hash)) {
-                ui->treeView->expand(index);
-            }
-        }
-    }
 
     ResizeTreeColumns();
 
@@ -1098,10 +1119,17 @@ void MainWindow::OnItemsRefreshed() {
         search->FilterItems(app_->items());
         tab_bar_->setTabText(tab++, search->GetCaption());
     }
+    for (auto &bucket : current_search_->buckets()) {
+        app_->buyout_manager().UpdateTabItems(*bucket);
+    }
     OnSearchFormChange();
 }
 
 MainWindow::~MainWindow() {
+    QByteArray geo = saveGeometry();
+    app_->data_manager().Set("mainwindow_geometry", geo.toStdString());
+    QByteArray state = saveState(VERSION_CODE);
+    app_->data_manager().Set("mainwindow_state", state.toStdString());
     delete ui;
 #ifdef Q_OS_WIN32
     delete taskbar_button_;
@@ -1374,4 +1402,13 @@ void MainWindow::on_actionList_currency_triggered() {
 }
 void MainWindow::on_actionExport_currency_triggered() {
     app_->currency_manager().ExportCurrency();
+}
+
+void MainWindow::UpdateCurrentHeaderState()
+{
+    if (view_header_actions_.isEmpty() || current_search_ == 0) return;
+    for (int i = 0; i < ui->treeView->header()->count(); i++) {
+        QAction* action = view_header_actions_.value(i, 0);
+        if (action) action->setChecked(!current_search_->IsColumnHidden(i));
+    }
 }

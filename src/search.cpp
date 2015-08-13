@@ -29,12 +29,18 @@
 #include "filters.h"
 #include "porting.h"
 
+std::unique_ptr<QSortFilterProxyModel> Search::sortFilter_ = 0;
+
 Search::Search(const BuyoutManager &bo_manager, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters) :
     caption_(caption),
     model_(std::make_unique<ItemsModel>(bo_manager, *this)),
-    sortFilter_(std::make_unique<QSortFilterProxyModel>()),
     showHiddenBuckets_(false)
 {
+    if (sortFilter_ == 0) {
+        sortFilter_ = std::make_unique<QSortFilterProxyModel>();
+        sortFilter_->setSortRole(ItemsModel::SortRole);
+    }
+
     using move_only = std::unique_ptr<Column>;
     move_only init[] = {
         std::make_unique<NameColumn>(),
@@ -138,10 +144,28 @@ void Search::Activate(const Items &items, QTreeView *tree) {
     FromForm();
     FilterItems(items);
 
-    QSortFilterProxyModel* mod = sortFilter_.get();
-    mod->setSourceModel(model_.get());
-    mod->setSortRole(ItemsModel::SortRole);
-    tree->setModel(mod);
+    sortFilter_->setSourceModel(model_.get());
+    if (tree->model() == 0) {
+        tree->setModel(sortFilter_.get());
+    }
+
+    // Set headers
+    for (int i = 0; i < tree->header()->count(); i++) {
+        tree->header()->setSectionHidden(i, hiddenColumns_.contains(i));
+    }
+
+    // Set expanded
+    if (!expandedHashs_.isEmpty()) {
+        tree->setUpdatesEnabled(false);
+        for (int i = 0; i < sortFilter_->rowCount(); i++) {
+            QModelIndex index = sortFilter_->index(i, 0);
+            QString hash = sortFilter_->data(index, ItemsModel::HashRole).toString();
+            if (expandedHashs_.contains(hash)) {
+                tree->setExpanded(index, true);
+            }
+        }
+        tree->setUpdatesEnabled(true);
+    }
 }
 
 QModelIndex Search::GetIndex(const QModelIndex &index) const

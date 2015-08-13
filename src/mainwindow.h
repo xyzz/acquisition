@@ -136,6 +136,7 @@ private slots:
     void on_actionExport_currency_triggered();
 
 private:
+    void UpdateCurrentHeaderState();
     void UpdateCurrentBucket();
     void UpdateCurrentItem();
     void UpdateCurrentItemMinimap();
@@ -172,6 +173,7 @@ private:
     QAction* default_context_menu_showhidden_;
     QMenu bucket_context_menu_;
     QAction* bucket_context_menu_toggle_;
+    QMenu view_header_menu_;
     UpdateChecker update_checker_;
     QPushButton update_button_;
     AutoOnline auto_online_;
@@ -183,4 +185,6 @@ private:
 #endif
     QSystemTrayIcon tray_icon_;
     LogChecker log_checker_;
+
+    QMap<int, QAction*> view_header_actions_;
 };
