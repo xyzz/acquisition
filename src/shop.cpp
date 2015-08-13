@@ -101,6 +101,8 @@ void Shop::Update() {
             tmp.bo = app_.buyout_manager().Get(*item);
         if (tmp.bo.type == BUYOUT_TYPE_NONE)
             continue;
+        if (item->location().socketed())
+            continue;
         aug_items.push_back(tmp);
     }
     if (aug_items.size() == 0)
@@ -110,8 +112,6 @@ void Shop::Update() {
     Buyout current_bo = aug_items[0].bo;
     data += SpoilerBuyout(current_bo);
     for (auto &aug : aug_items) {
-        if (aug.item->location().socketed())
-            continue;
         if (aug.bo.type != current_bo.type || aug.bo.currency != current_bo.currency || aug.bo.value != current_bo.value) {
             current_bo = aug.bo;
             data += "[/spoiler]";
