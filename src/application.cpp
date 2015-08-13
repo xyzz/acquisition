@@ -25,7 +25,6 @@
 #include "datamanager.h"
 #include "filesystem.h"
 #include "itemsmanager.h"
-#include "currencymanager.h"
 #include "porting.h"
 #include "shop.h"
 

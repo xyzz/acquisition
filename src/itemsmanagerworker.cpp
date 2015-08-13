@@ -33,7 +33,6 @@
 #include "application.h"
 #include "datamanager.h"
 #include "util.h"
-#include "currencymanager.h"
 #include "mainwindow.h"
 const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-stash-items";
 const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
