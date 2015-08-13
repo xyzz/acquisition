@@ -132,8 +132,6 @@ private slots:
     void on_copyClipboardButton_clicked();
     void on_bumpShopBox_toggled(bool checked);
     void on_selectionNotes_textChanged();
-    void on_actionList_currency_triggered();
-    void on_actionExport_currency_triggered();
 
 private:
     void UpdateCurrentHeaderState();

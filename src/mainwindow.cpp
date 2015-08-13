@@ -1397,13 +1397,6 @@ void MainWindow::on_selectionNotes_textChanged(){
     app_->items_manager().SetObjectNote(hash, notes);
 }
 
-void MainWindow::on_actionList_currency_triggered() {
-    app_->currency_manager().DisplayCurrency();
-}
-void MainWindow::on_actionExport_currency_triggered() {
-    app_->currency_manager().ExportCurrency();
-}
-
 void MainWindow::UpdateCurrentHeaderState()
 {
     if (view_header_actions_.isEmpty() || current_search_ == 0) return;

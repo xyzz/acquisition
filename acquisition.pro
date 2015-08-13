@@ -49,8 +49,7 @@ SOURCES += \
     src/autoonline.cpp \
     src/filesystem.cpp \
     src/logchecker.cpp \
-    src/shoptemplatemanager.cpp \
-    src/currencymanager.cpp
+    src/shoptemplatemanager.cpp
 
 HEADERS += \
     src/item.h \
@@ -85,9 +84,7 @@ HEADERS += \
     src/autoonline.h \
     src/filesystem.h \
     src/logchecker.h \
-    src/shoptemplatemanager.h \
-    src/currencymanager.h
-    src/currencymanager.h
+    src/shoptemplatemanager.h
 
 FORMS += \
     forms/mainwindow.ui \
