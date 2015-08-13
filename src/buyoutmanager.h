@@ -125,7 +125,6 @@ public:
     void Save();
     void Load();
 private:
-    std::string ItemHash(const Item &item) const;
     std::string Serialize(const std::map<std::string, Buyout> &buyouts);
     void Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts);
 
