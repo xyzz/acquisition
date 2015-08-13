@@ -41,26 +41,22 @@ BuyoutManager::BuyoutManager(DataManager &data_manager) :
 
 void BuyoutManager::Set(const Item &item, const Buyout &buyout) {
     save_needed_ = true;
-    buyouts_[ItemHash(item)] = buyout;
+    buyouts_[item.hash()] = buyout;
 }
 
 Buyout BuyoutManager::Get(const Item &item) const {
     if (!Exists(item))
         throw std::runtime_error("Asked to get inexistant buyout.");
-    return buyouts_.at(ItemHash(item));
+    return buyouts_.at(item.hash());
 }
 
 void BuyoutManager::Delete(const Item &item) {
     save_needed_ = true;
-    buyouts_.erase(ItemHash(item));
+    buyouts_.erase(item.hash());
 }
 
 bool BuyoutManager::Exists(const Item &item) const {
-    return buyouts_.count(ItemHash(item)) > 0;
-}
-
-std::string BuyoutManager::ItemHash(const Item &item) const {
-    return item.hash();
+    return buyouts_.count(item.hash()) > 0;
 }
 
 Buyout BuyoutManager::GetTab(const std::string &tab) const {
