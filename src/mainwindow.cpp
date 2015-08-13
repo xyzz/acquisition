@@ -54,7 +54,6 @@
 #include "search.h"
 #include "shop.h"
 #include "util.h"
-#include "verticalscrollarea.h"
 
 const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
 

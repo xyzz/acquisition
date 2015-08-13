@@ -44,7 +44,6 @@ SOURCES += \
     src/modlist.cpp \
     src/logpanel.cpp \
     src/itemsmanagerworker.cpp \
-    src/verticalscrollarea.cpp \
     src/updatechecker.cpp \
     src/autoonline.cpp \
     src/filesystem.cpp \
@@ -81,7 +80,6 @@ HEADERS += \
     src/modlist.h \
     src/logpanel.h \
     src/itemsmanagerworker.h \
-    src/verticalscrollarea.h \
     src/updatechecker.h \
     src/autoonline.h \
     src/filesystem.h \
