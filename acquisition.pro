@@ -50,7 +50,8 @@ SOURCES += \
     src/filesystem.cpp \
     src/logchecker.cpp \
     src/shoptemplatemanager.cpp \
-    forms/settingspane.cpp
+    forms/settingspane.cpp \
+    forms/recipepane.cpp
 
 HEADERS += \
     src/item.h \
@@ -86,12 +87,14 @@ HEADERS += \
     src/filesystem.h \
     src/logchecker.h \
     src/shoptemplatemanager.h \
-    forms/settingspane.h
+    forms/settingspane.h \
+    forms/recipepane.h
 
 FORMS += \
     forms/mainwindow.ui \
     forms/logindialog.ui \
-    forms/settingspane.ui
+    forms/settingspane.ui \
+    forms/recipepane.ui
 
 CONFIG += c++11
 
