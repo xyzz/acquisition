@@ -84,6 +84,7 @@ public:
     void GenerateCurrentItemHeader();
     void UpdateSettingsBox();
     void InitializeActions();
+    Application* application() { return app_.get(); }
 public slots:
     void OnTreeChange(const QModelIndex &index, const QModelIndex &prev);
     void OnSearchFormChange();
@@ -115,22 +116,6 @@ private slots:
     void on_actionControl_poe_xyz_is_URL_triggered();
     void on_actionAutomatically_refresh_online_status_triggered();
     void on_advancedSearchButton_toggled(bool checked);
-    void on_darkThemeRadioButton_clicked();
-    void on_lightThemeRadioButton_clicked();
-    void on_buyoutStyleBox_toggled(bool checked);
-    void on_showMenuBarBox_toggled(bool checked);
-    void on_updateShopButton_clicked();
-    void on_refreshItemsButton_clicked();
-    void on_showTradeURL_toggled(bool checked);
-    void on_refreshTradeBox_toggled(bool checked);
-    void on_tradeURLLineEdit_editingFinished();
-    void on_refreshItemsIntervalBox_editingFinished();
-    void on_refreshItemsBox_toggled(bool checked);
-    void on_shopThreadIdBox_editingFinished();
-    void on_editShopTemplateButton_clicked();
-    void on_updateShopBox_toggled(bool checked);
-    void on_copyClipboardButton_clicked();
-    void on_bumpShopBox_toggled(bool checked);
     void on_selectionNotes_textChanged();
 
 private:
@@ -176,8 +161,6 @@ private:
     QPushButton update_button_;
     AutoOnline auto_online_;
     QLabel online_label_;
-    QPalette light_palette_;
-    QString light_style_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif
@@ -185,4 +168,7 @@ private:
     LogChecker log_checker_;
 
     QMap<int, QAction*> view_header_actions_;
+
+    // Maybe not a good thing?
+    friend class SettingsPane;
 };

@@ -49,7 +49,8 @@ SOURCES += \
     src/autoonline.cpp \
     src/filesystem.cpp \
     src/logchecker.cpp \
-    src/shoptemplatemanager.cpp
+    src/shoptemplatemanager.cpp \
+    forms/settingspane.cpp
 
 HEADERS += \
     src/item.h \
@@ -84,11 +85,13 @@ HEADERS += \
     src/autoonline.h \
     src/filesystem.h \
     src/logchecker.h \
-    src/shoptemplatemanager.h
+    src/shoptemplatemanager.h \
+    forms/settingspane.h
 
 FORMS += \
     forms/mainwindow.ui \
-    forms/logindialog.ui
+    forms/logindialog.ui \
+    forms/settingspane.ui
 
 CONFIG += c++11
 
