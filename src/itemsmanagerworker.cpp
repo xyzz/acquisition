@@ -25,6 +25,7 @@
 #include <QNetworkReply>
 #include <QSignalMapper>
 #include "QsLog.h"
+#include <QRegularExpression>
 #include <QTimer>
 #include <QUrlQuery>
 #include "rapidjson/document.h"
@@ -239,17 +240,39 @@ void ItemsManagerWorker::OnFirstTabReceived() {
     tabs_as_string_ = Util::RapidjsonSerialize(doc["tabs"]);
 
     QLOG_INFO() << "Received tabs list, there are" << doc["tabs"].Size() << "tabs";
+
+    // Setup tab exclusions
+    std::string exclusions = data_manager_.Get("tab_exclusions");
+    QList<QRegularExpression> expressions;
+    rapidjson::Document exclusionDoc;
+    exclusionDoc.Parse(exclusions.c_str());
+
+    if (exclusionDoc.IsArray()) {
+        for (auto &excl  : exclusionDoc) {
+            expressions.append(QRegularExpression(excl.GetString()));
+        }
+    }
+
     tabs_.clear();
     for (auto &tab : doc["tabs"]) {
         std::string label = tab["n"].GetString();
+        bool skip = false;
+        for (QRegularExpression expr : expressions) {
+            QRegularExpressionMatch match = expr.match(QString::fromStdString(label));
+            if (match.isValid() && match.hasMatch()) {
+                skip = true;
+                break;
+            }
+        }
+
         tabs_.push_back(label);
-        if (index > 0) {
+        if (index > 0 || skip) {
             ItemLocation location;
             location.set_type(ItemLocationType::STASH);
             location.set_tab_id(index);
             location.set_tab_label(label);
             if (!tab.HasMember("hidden") || !tab["hidden"].GetBool())
-                QueueRequest(MakeTabRequest(index), location);
+                QueueRequest(MakeTabRequest(skip ? 0 : index), location);
         }
         ++index;
     }

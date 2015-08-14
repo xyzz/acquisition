@@ -1,6 +1,7 @@
 #ifndef SETTINGSPANE_H
 #define SETTINGSPANE_H
 
+#include <QListWidget>
 #include <QWidget>
 #include <qtablewidget.h>
 
@@ -21,6 +22,7 @@ public:
     void updateFromStorage();
     void initialize(MainWindow* parent);
     void updateShops();
+    void updateTabExclusions();
 public slots:
     void on_darkThemeRadioButton_clicked();
     void on_lightThemeRadioButton_clicked();
@@ -38,14 +40,13 @@ public slots:
     void on_bumpShopBox_toggled(bool checked);
 private slots:
     void on_addShopButton_clicked();
-
     void on_shopsWidget_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
-
     void on_removeShopButton_clicked();
-
     void on_shopsWidget_itemChanged(QTableWidgetItem *item);
-
     void on_minimizeBox_toggled(bool checked);
+    void on_addTabExclusion_clicked();
+    void on_removeTabExclusion_clicked();
+    void on_tabExclusionListWidget_itemChanged(QListWidgetItem *item);
 
 private:
     Ui::SettingsPane *ui;

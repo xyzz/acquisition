@@ -9,6 +9,8 @@
 #include "shop.h"
 #include "datamanager.h"
 
+#include "util.h"
+
 #include <QDebug>
 
 SettingsPane::SettingsPane(QWidget *parent) :
@@ -17,6 +19,8 @@ SettingsPane::SettingsPane(QWidget *parent) :
 {
     ui->setupUi(this);
     light_theme_ = true;
+
+    ui->shopsWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
 }
 
 void SettingsPane::initialize(MainWindow* parent) {
@@ -27,6 +31,19 @@ void SettingsPane::initialize(MainWindow* parent) {
         bool ok = false;
         int id = QString::fromStdString(shop).toInt(&ok);
         if (ok && id) addShop(id);
+    }
+
+    std::string exclusions = app_->data_manager().Get("tab_exclusions");
+    QList<QRegularExpression> expressions;
+    rapidjson::Document exclusionDoc;
+    exclusionDoc.Parse(exclusions.c_str());
+
+    if (exclusionDoc.IsArray()) {
+        for (auto &excl  : exclusionDoc) {
+            QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(excl.GetString()));
+            item->setFlags(item->flags () | Qt::ItemIsEditable);
+            ui->tabExclusionListWidget->addItem(item);
+        }
     }
 }
 
@@ -63,6 +80,21 @@ void SettingsPane::updateShops() {
     app_->shop().SetThread(formatted);
     parent_->UpdateShopMenu();
     parent_->UpdateSettingsBox();
+}
+
+void SettingsPane::updateTabExclusions() {
+    rapidjson::Document doc;
+    doc.SetArray();
+    auto &alloc = doc.GetAllocator();
+
+    for (int i = 0; i < ui->tabExclusionListWidget->count(); i++) {
+        QString expr = ui->tabExclusionListWidget->item(i)->text();
+        rapidjson::Value val;
+        val.SetString(expr.toLatin1().data(), expr.toLatin1().length());
+        doc.PushBack(val, alloc);
+    }
+
+    app_->data_manager().Set("tab_exclusions", Util::RapidjsonSerialize(doc));
 }
 
 void SettingsPane::updateFromStorage() {
@@ -260,4 +292,40 @@ void SettingsPane::on_shopsWidget_itemChanged(QTableWidgetItem *item)
 void SettingsPane::on_minimizeBox_toggled(bool checked)
 {
     app_->data_manager().SetBool("MinimizeToTray", checked);
+}
+
+void SettingsPane::on_addTabExclusion_clicked()
+{
+    QListWidgetItem* item = new QListWidgetItem("");
+    item->setFlags(item->flags () | Qt::ItemIsEditable);
+    item->setBackgroundColor(Qt::red);
+    ui->tabExclusionListWidget->addItem(item);
+    ui->tabExclusionListWidget->editItem(item);
+    updateTabExclusions();
+}
+
+
+void SettingsPane::on_removeTabExclusion_clicked()
+{
+    auto items = ui->tabExclusionListWidget->selectedItems();
+    while (!items.isEmpty()) {
+        QListWidgetItem* item = items.takeFirst();
+        int row = ui->tabExclusionListWidget->row(item);
+        ui->tabExclusionListWidget->takeItem(row);
+        delete item;
+    }
+    updateTabExclusions();
+}
+
+void SettingsPane::on_tabExclusionListWidget_itemChanged(QListWidgetItem *item)
+{
+    QRegularExpression expr(item->text());
+    if (!item->text().isEmpty() && expr.isValid()) {
+        item->setBackgroundColor(Qt::green);
+    }
+    else {
+        ui->tabExclusionListWidget->editItem(item);
+        item->setBackgroundColor(Qt::red);
+    }
+    updateTabExclusions();
 }
