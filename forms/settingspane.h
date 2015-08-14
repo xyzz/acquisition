@@ -53,6 +53,7 @@ private:
     Application* app_;
     MainWindow* parent_;
 
+    bool light_theme_;
     QPalette light_palette_;
     QString light_style_;
     void addShop(int id);

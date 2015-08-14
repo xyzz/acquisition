@@ -16,6 +16,7 @@ SettingsPane::SettingsPane(QWidget *parent) :
     ui(new Ui::SettingsPane)
 {
     ui->setupUi(this);
+    light_theme_ = true;
 }
 
 void SettingsPane::initialize(MainWindow* parent) {
@@ -163,6 +164,7 @@ void SettingsPane::on_bumpShopBox_toggled(bool checked) {
 }
 
 void SettingsPane::on_darkThemeRadioButton_clicked() {
+    if (!light_theme_) return;
     light_palette_ = qApp->palette();
     light_style_ = qApp->styleSheet();
 
@@ -192,9 +194,11 @@ void SettingsPane::on_darkThemeRadioButton_clicked() {
 
     qApp->setPalette(palette);
     app_->data_manager().SetBool("DarkTheme", true);
+    light_theme_ = false;
 }
 
 void SettingsPane::on_lightThemeRadioButton_clicked() {
+    if (light_theme_) return;
     qApp->setStyleSheet(light_style_);
 
     parent_->setPalette(light_palette_);
@@ -204,6 +208,7 @@ void SettingsPane::on_lightThemeRadioButton_clicked() {
 
     qApp->setPalette(light_palette_);
     app_->data_manager().SetBool("DarkTheme", false);
+    light_theme_ = true;
 }
 
 SettingsPane::~SettingsPane()
