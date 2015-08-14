@@ -241,12 +241,9 @@ void SettingsPane::on_shopsWidget_itemChanged(QTableWidgetItem *item)
     bool ok = false;
     int shop = item->text().toUInt(&ok);
     if (ok && shop > 0) {
-        item->setBackgroundColor(qApp->palette(ui->shopsWidget).background().color());
-
         updateShops();
     }
     else {
         ui->shopsWidget->editItem(item);
-        item->setBackgroundColor(Qt::red);
     }
 }
