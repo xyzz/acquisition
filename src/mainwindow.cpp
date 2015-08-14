@@ -1119,7 +1119,7 @@ void MainWindow::UpdateBuyoutWidgets(const Buyout &bo) {
         }
         else {
             QString curr = QString::fromStdString(CurrencyAsTag.at(bo.currency));
-            ui->buyoutValueLineEdit->setText(ui->buyoutValueLineEdit->text() + " " + curr);
+            ui->buyoutValueLineEdit->setText(QString::number(bo.value) + " " + curr);
         }
     }
 }
