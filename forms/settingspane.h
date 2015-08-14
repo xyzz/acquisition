@@ -45,6 +45,8 @@ private slots:
 
     void on_shopsWidget_itemChanged(QTableWidgetItem *item);
 
+    void on_minimizeBox_toggled(bool checked);
+
 private:
     Ui::SettingsPane *ui;
 

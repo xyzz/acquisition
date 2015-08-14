@@ -110,6 +110,11 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
             }
         }
     });
+
+    QMenu *context = new QMenu(this);
+    context->addAction("Quit", this, SLOT(close()));
+    tray_icon_.setContextMenu(context);
+
     // Load state
     QByteArray geo = QByteArray::fromStdString(app_->data_manager().Get("mainwindow_geometry"));
     if (!geo.isEmpty()) restoreGeometry(geo);
@@ -120,6 +125,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
 void MainWindow::changeEvent(QEvent *event) {
     if(event->type() == QEvent::WindowStateChange && isMinimized()){
         // Allow events to run
+        if (!app_->data_manager().GetBool("MinimizeToTray")) return;
         QTimer::singleShot(0, this, SLOT(hide()));
         event->ignore();
         return;

@@ -96,6 +96,10 @@ void SettingsPane::updateFromStorage() {
     ui->showMenuBarBox->setChecked(flag);
     // Force update
     on_showMenuBarBox_toggled(flag);
+
+    // Visual
+    flag = app_->data_manager().GetBool("MinimizeToTray");
+    ui->minimizeBox->setChecked(flag);
 }
 
 void SettingsPane::on_buyoutStyleBox_toggled(bool checked) {
@@ -246,4 +250,9 @@ void SettingsPane::on_shopsWidget_itemChanged(QTableWidgetItem *item)
     else {
         ui->shopsWidget->editItem(item);
     }
+}
+
+void SettingsPane::on_minimizeBox_toggled(bool checked)
+{
+    app_->data_manager().SetBool("MinimizeToTray", checked);
 }
