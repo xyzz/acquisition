@@ -318,17 +318,36 @@ void MainWindow::InitializeUi() {
     default_context_menu_showhidden_->setCheckable(true);
     connect(default_context_menu_showhidden_, SIGNAL(toggled(bool)), this, SLOT(ToggleShowHiddenBuckets(bool)));
 
-    bucket_context_menu_toggle_ = bucket_context_menu_.addAction("Hide Bucket", this, SLOT(ToggleBucketAtMenu()));
+    bucket_context_menu_toggle_ = bucket_context_menu_.addAction("Hide Tab", this, SLOT(ToggleBucketAtMenu()));
+    action = bucket_context_menu_.addAction("Clear Buyouts");
+    connect(action, &QAction::triggered, [this] {
+        QPoint pos = ui->treeView->viewport()->mapFromGlobal(bucket_context_menu_.pos());
+        QModelIndex index = ui->treeView->indexAt(pos);
+        if (index.isValid()) {
+            Bucket bucket = *current_search_->buckets()[current_search_->GetIndex(index).row()];
+            app_->buyout_manager().DeleteTab(bucket);
+            app_->shop().ExpireShopData();
+            if (bucket.location().GetUniqueHash() == current_bucket_.location().GetUniqueHash()) {
+                // Update UI
+                Buyout b;
+                b.currency = CURRENCY_NONE;
+                b.value = 0;
+                b.set_by = "";
+                b.type = BUYOUT_TYPE_NONE;
+                UpdateBuyoutWidgets(b);
+            }
+        }
+    });
 
     connect(ui->treeView, &QTreeView::customContextMenuRequested, [&](const QPoint &pos) {
         QModelIndex index = ui->treeView->indexAt(pos);
         if (index.isValid() && !index.parent().isValid()) {
             QString hash = ui->treeView->model()->data(index, ItemsModel::HashRole).toString();
             if (current_search_->IsBucketHidden(hash)) {
-                bucket_context_menu_toggle_->setText("Show Bucket");
+                bucket_context_menu_toggle_->setText("Show Tab");
             }
             else {
-                bucket_context_menu_toggle_->setText("Hide Bucket");
+                bucket_context_menu_toggle_->setText("Hide Tab");
             }
             bucket_context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
         }
@@ -1090,14 +1109,18 @@ void MainWindow::UpdateBuyoutWidgets(const Buyout &bo) {
     ui->buyoutCurrencyComboBox->setEnabled(true);
     ui->buyoutValueLineEdit->setEnabled(true);
     ui->buyoutTypeComboBox->setCurrentIndex(bo.type);
-    ui->buyoutValueLineEdit->setText(QString::number(bo.value));
 
-    if (ui->buyoutCurrencyComboBox->isVisible()) {
-        ui->buyoutCurrencyComboBox->setCurrentIndex(bo.currency);
-    }
+    if (bo.type == BUYOUT_TYPE_NONE && bo.type == BUYOUT_TYPE_NO_PRICE)
+        ui->buyoutValueLineEdit->setText("");
     else {
-        QString curr = QString::fromStdString(CurrencyAsTag.at(bo.currency));
-        ui->buyoutValueLineEdit->setText(ui->buyoutValueLineEdit->text() + " " + curr);
+        if (ui->buyoutCurrencyComboBox->isVisible()) {
+            ui->buyoutValueLineEdit->setText(QString::number(bo.value));
+            ui->buyoutCurrencyComboBox->setCurrentIndex(bo.currency);
+        }
+        else {
+            QString curr = QString::fromStdString(CurrencyAsTag.at(bo.currency));
+            ui->buyoutValueLineEdit->setText(ui->buyoutValueLineEdit->text() + " " + curr);
+        }
     }
 }
 
