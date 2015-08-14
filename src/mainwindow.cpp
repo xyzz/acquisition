@@ -295,6 +295,10 @@ void MainWindow::InitializeUi() {
     ui->splitter_2->setStretchFactor(0, 1);
     ui->splitter_2->setStretchFactor(1, 0);
 
+    ui->splitter_3->setSizes({(int)(ui->splitter_3->height() * 0.75), (int)(ui->splitter_3->height() * 0.25)});
+    ui->splitter_3->setStretchFactor(0, 1);
+    ui->splitter_3->setStretchFactor(1, 0);
+
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->treeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->treeView->header()->setSectionsMovable(true);
