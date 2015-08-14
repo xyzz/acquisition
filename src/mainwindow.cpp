@@ -200,7 +200,7 @@ void MainWindow::InitializeActions() {
     this->addAction(action);
 
     for (int i = 0; i < ui->treeView->header()->count(); i++) {
-        QString header = ui->treeView->model()->headerData(i, Qt::Horizontal).toString();
+        QString header = ui->treeView->model()->headerData(i, Qt::Horizontal, Qt::ToolTipRole).toString();
         action = view_header_menu_.addAction("Display " + header);
         action->setCheckable(true);
         action->setChecked(!ui->treeView->header()->isSectionHidden(i));
