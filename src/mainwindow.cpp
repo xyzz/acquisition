@@ -325,13 +325,35 @@ void MainWindow::InitializeUi() {
     connect(default_context_menu_showhidden_, SIGNAL(toggled(bool)), this, SLOT(ToggleShowHiddenBuckets(bool)));
 
     bucket_context_menu_toggle_ = bucket_context_menu_.addAction("Hide Tab", this, SLOT(ToggleBucketAtMenu()));
-    action = bucket_context_menu_.addAction("Clear Buyouts");
+    action = bucket_context_menu_.addAction("Clear Tab Buyout");
     connect(action, &QAction::triggered, [this] {
         QPoint pos = ui->treeView->viewport()->mapFromGlobal(bucket_context_menu_.pos());
         QModelIndex index = ui->treeView->indexAt(pos);
         if (index.isValid()) {
             Bucket bucket = *current_search_->buckets()[current_search_->GetIndex(index).row()];
             app_->buyout_manager().DeleteTab(bucket);
+            app_->shop().ExpireShopData();
+            if (bucket.location().GetUniqueHash() == current_bucket_.location().GetUniqueHash()) {
+                // Update UI
+                Buyout b;
+                b.currency = CURRENCY_NONE;
+                b.value = 0;
+                b.set_by = "";
+                b.type = BUYOUT_TYPE_NONE;
+                UpdateBuyoutWidgets(b);
+            }
+        }
+    });
+    action = bucket_context_menu_.addAction("Clear All Buyouts");
+    connect(action, &QAction::triggered, [this] {
+        QPoint pos = ui->treeView->viewport()->mapFromGlobal(bucket_context_menu_.pos());
+        QModelIndex index = ui->treeView->indexAt(pos);
+        if (index.isValid()) {
+            Bucket bucket = *current_search_->buckets()[current_search_->GetIndex(index).row()];
+            app_->buyout_manager().DeleteTab(bucket);
+            for (auto &item : bucket.items()) {
+                app_->buyout_manager().Delete(*item);
+            }
             app_->shop().ExpireShopData();
             if (bucket.location().GetUniqueHash() == current_bucket_.location().GetUniqueHash()) {
                 // Update UI
@@ -384,16 +406,6 @@ void MainWindow::InitializeUi() {
     statusBar()->addPermanentWidget(&update_button_);
     connect(&update_button_, &QPushButton::clicked, [=](){
         UpdateChecker::AskUserToUpdate(this);
-    });
-
-    connect(&app_->shop(), &Shop::ShopUpdateBegin, [this] () {
-       ui->updateShopButton->setEnabled(false);
-       ui->updateShopButton->setText("Updating Shop...");
-    });
-
-    connect(&app_->shop(), &Shop::ShopUpdateFinished, [this] () {
-       ui->updateShopButton->setEnabled(true);
-       ui->updateShopButton->setText("Update Shop");
     });
 
     UpdateSettingsBox();
@@ -520,6 +532,10 @@ void MainWindow::OnBuyoutChange(bool doParse) {
     if (ui->buyoutValueLineEdit->text().isEmpty() && (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED))
         return;
 
+    // Also, if we have no currency, then let's not continue...
+    if ((bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED) && bo.currency == CURRENCY_NONE)
+        return;
+
     if (current_item_) {
         if (app_->buyout_manager().Exists(*current_item_)) {
             Buyout currBo = app_->buyout_manager().Get(*current_item_);
@@ -566,6 +582,12 @@ void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
     QString title;
     bool need_progress = false;
     switch (status.state) {
+    case ProgramState::ItemsUpdating:
+        ui->refreshItemsButton->setEnabled(false);
+        ui->refreshItemsButton->setText("Refreshing Items...");
+        title = "Requesting stash data...";
+        need_progress = false;
+        break;
     case ProgramState::ItemsReceive:
     case ProgramState::ItemsPaused:
         title = QString("Receiving stash data, %1/%2").arg(status.progress).arg(status.total);
@@ -574,13 +596,19 @@ void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
         need_progress = true;
         break;
     case ProgramState::ItemsCompleted:
+        ui->refreshItemsButton->setEnabled(true);
+        ui->refreshItemsButton->setText("Refresh Items");
         title = "Received all tabs";
         break;
     case ProgramState::ShopSubmitting:
+        ui->updateShopButton->setEnabled(false);
+        ui->updateShopButton->setText("Updating Shop...");
         title = QString("Sending your shops to the forum, %1/%2").arg(status.progress).arg(status.total);
         need_progress = true;
         break;
     case ProgramState::ShopCompleted:
+        ui->updateShopButton->setEnabled(true);
+        ui->updateShopButton->setText("Update Shop");
         title = QString("Shop threads updated");
         break;
     default:
@@ -1116,7 +1144,7 @@ void MainWindow::UpdateBuyoutWidgets(const Buyout &bo) {
     ui->buyoutValueLineEdit->setEnabled(true);
     ui->buyoutTypeComboBox->setCurrentIndex(bo.type);
 
-    if (bo.type == BUYOUT_TYPE_NONE && bo.type == BUYOUT_TYPE_NO_PRICE)
+    if (bo.type == BUYOUT_TYPE_NONE || bo.type == BUYOUT_TYPE_NO_PRICE)
         ui->buyoutValueLineEdit->setText("");
     else {
         if (ui->buyoutCurrencyComboBox->isVisible()) {
@@ -1155,6 +1183,8 @@ void MainWindow::OnItemsRefreshed() {
         app_->buyout_manager().UpdateTabItems(*bucket);
     }
     OnSearchFormChange();
+
+    ui->currencyTab->UpdateItemCounts(app_->items());
 }
 
 MainWindow::~MainWindow() {
@@ -1290,4 +1320,12 @@ void MainWindow::UpdateCurrentHeaderState()
         QAction* action = view_header_actions_.value(i, 0);
         if (action) action->setChecked(!current_search_->IsColumnHidden(i));
     }
+}
+
+void MainWindow::on_refreshItemsButton_clicked() {
+    app_->items_manager().Update();
+}
+
+void MainWindow::on_updateShopButton_clicked() {
+    app_->shop().SubmitShopToForum(true);
 }

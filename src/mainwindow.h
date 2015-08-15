@@ -62,6 +62,7 @@ enum class TreeState {
 };
 
 enum class ProgramState {
+    ItemsUpdating,
     ItemsReceive,
     ItemsPaused,
     ItemsCompleted,
@@ -117,6 +118,9 @@ private slots:
     void on_actionAutomatically_refresh_online_status_triggered();
     void on_advancedSearchButton_toggled(bool checked);
     void on_selectionNotes_textChanged();
+    void on_refreshItemsButton_clicked();
+
+    void on_updateShopButton_clicked();
 
 private:
     void UpdateCurrentHeaderState();

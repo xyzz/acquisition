@@ -108,6 +108,12 @@ void ItemsManagerWorker::Update() {
     items_as_string_ = "[ "; // space here is important, see ParseItems and OnTabReceived when all requests are completed
     selected_character_ = "";
 
+    CurrentStatusUpdate status = CurrentStatusUpdate();
+    status.state = ProgramState::ItemsUpdating;
+    status.progress = 0;
+    status.total = 100;
+    emit StatusUpdate(status);
+
     // first, download the main page because it's the only way to know which character is selected
     QNetworkReply *main_page = network_manager_.get(QNetworkRequest(QUrl(kMainPage)));
     connect(main_page, &QNetworkReply::finished, this, &ItemsManagerWorker::OnMainPageReceived);
