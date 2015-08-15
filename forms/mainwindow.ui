@@ -176,7 +176,7 @@
         <enum>QTabWidget::Rounded</enum>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <property name="documentMode">
         <bool>false</bool>
@@ -693,81 +693,13 @@
          <string>Recipes</string>
         </attribute>
        </widget>
-       <widget class="QWidget" name="currencyTab">
+       <widget class="CurrencyPane" name="currencyTab">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <attribute name="title">
          <string>Currency</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_13">
-         <item>
-          <widget class="QTableWidget" name="currencyTable">
-           <property name="alternatingRowColors">
-            <bool>true</bool>
-           </property>
-           <property name="sortingEnabled">
-            <bool>true</bool>
-           </property>
-           <property name="cornerButtonEnabled">
-            <bool>false</bool>
-           </property>
-           <property name="rowCount">
-            <number>0</number>
-           </property>
-           <attribute name="horizontalHeaderDefaultSectionSize">
-            <number>100</number>
-           </attribute>
-           <attribute name="horizontalHeaderStretchLastSection">
-            <bool>true</bool>
-           </attribute>
-           <attribute name="verticalHeaderVisible">
-            <bool>false</bool>
-           </attribute>
-           <column>
-            <property name="text">
-             <string>Total</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>Total in Chaos</string>
-            </property>
-           </column>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_8">
-           <item>
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>Total Worth in Chaos:</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_3">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton">
-             <property name="text">
-              <string>Export...</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
        </widget>
        <widget class="SettingsPane" name="settingsPane">
         <attribute name="title">
@@ -946,6 +878,12 @@
    <class>RecipePane</class>
    <extends>QWidget</extends>
    <header>forms\recipepane.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CurrencyPane</class>
+   <extends>QWidget</extends>
+   <header>forms\currencypane.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

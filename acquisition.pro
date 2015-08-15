@@ -12,7 +12,7 @@ unix {
     QMAKE_CXXFLAGS += -Wno-inconsistent-missing-override
 }
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 include(deps/QsLog/QsLog.pri)
 
@@ -50,7 +50,9 @@ SOURCES += \
     src/logchecker.cpp \
     src/shoptemplatemanager.cpp \
     forms/settingspane.cpp \
-    forms/recipepane.cpp
+    forms/recipepane.cpp \
+    forms/currencypane.cpp \
+    src/external/qcustomplot.cpp
 
 HEADERS += \
     src/item.h \
@@ -86,13 +88,17 @@ HEADERS += \
     src/logchecker.h \
     src/shoptemplatemanager.h \
     forms/settingspane.h \
-    forms/recipepane.h
+    forms/recipepane.h \
+    forms/currencypane.h \
+    src/external/boolinq.h \
+    src/external/qcustomplot.h
 
 FORMS += \
     forms/mainwindow.ui \
     forms/logindialog.ui \
     forms/settingspane.ui \
-    forms/recipepane.ui
+    forms/recipepane.ui \
+    forms/currencypane.ui
 
 CONFIG += c++11
 
