@@ -469,6 +469,7 @@ void MainWindow::OnBuyoutChange(bool doParse) {
     if (bo.type == BUYOUT_TYPE_NONE && ui->buyoutValueLineEdit->isEnabled()) {
         ui->buyoutCurrencyComboBox->setEnabled(false);
         ui->buyoutValueLineEdit->setEnabled(false);
+        ui->buyoutValueLineEdit->setText("");
     } else if (!ui->buyoutValueLineEdit->isEnabled()){
         ui->buyoutCurrencyComboBox->setEnabled(true);
         ui->buyoutValueLineEdit->setEnabled(true);
@@ -543,6 +544,12 @@ void MainWindow::OnBuyoutChange(bool doParse) {
             if (currBo.currency == bo.currency &&
                 currBo.type == bo.type &&
                 currBo.value == bo.value) {
+                isUpdated = false;
+            }
+
+            if (currBo.set_by.toStdString() == current_item_->location().GetUniqueHash() &&
+               (bo.type == BUYOUT_TYPE_NONE || bo.currency == CURRENCY_NONE)) {
+                // Set by the tab, changing to "ignore" or not using a currency won't work
                 isUpdated = false;
             }
         }
