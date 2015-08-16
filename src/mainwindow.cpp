@@ -1302,18 +1302,6 @@ void MainWindow::UpdateSettingsBox() {
     ui->settingsPane->updateFromStorage();
 }
 
-void MainWindow::on_selectionNotes_textChanged(){
-    QString notes = ui->selectionNotes->toPlainText();
-    QString hash;
-    if (current_item_) {
-        hash = QString::fromStdString(current_item_->hash());
-    }
-    else {
-        hash = QString::fromStdString(current_bucket_.location().GetUniqueHash());
-    }
-    app_->items_manager().SetObjectNote(hash, notes);
-}
-
 void MainWindow::UpdateCurrentHeaderState()
 {
     if (view_header_actions_.isEmpty() || current_search_ == 0) return;

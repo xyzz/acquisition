@@ -117,9 +117,7 @@ private slots:
     void on_actionControl_poe_xyz_is_URL_triggered();
     void on_actionAutomatically_refresh_online_status_triggered();
     void on_advancedSearchButton_toggled(bool checked);
-    void on_selectionNotes_textChanged();
     void on_refreshItemsButton_clicked();
-
     void on_updateShopButton_clicked();
 
 private:

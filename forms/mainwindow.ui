@@ -624,20 +624,17 @@
               <number>0</number>
              </property>
              <item>
-              <widget class="QPlainTextEdit" name="selectionNotes">
-               <property name="enabled">
-                <bool>false</bool>
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
                </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
                </property>
-               <property name="placeholderText">
-                <string>Enter any item notes here...</string>
-               </property>
-              </widget>
+              </spacer>
              </item>
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_7">

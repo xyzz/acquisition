@@ -145,15 +145,6 @@ void SettingsPane::on_showMenuBarBox_toggled(bool checked) {
     app_->data_manager().SetBool("ShowOldMenu", checked);
 }
 
-void SettingsPane::on_updateShopButton_clicked() {
-    app_->shop().SubmitShopToForum();
-}
-
-void SettingsPane::on_refreshItemsButton_clicked() {
-    app_->items_manager().Update();
-
-}
-
 void SettingsPane::on_showTradeURL_toggled(bool checked) {
     if (checked)
         ui->tradeURLLineEdit->setEchoMode(QLineEdit::Normal);

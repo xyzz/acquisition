@@ -50,7 +50,7 @@ QColor NameColumn::color(const Item &item) {
     case FRAME_TYPE_NORMAL:
         break;
     case FRAME_TYPE_MAGIC:
-        return QColor(Qt::blue);
+        return QColor(0x00, 0x66, 0x99);
     case FRAME_TYPE_RARE:
         return QColor(Qt::darkYellow);
     case FRAME_TYPE_UNIQUE:
@@ -280,7 +280,7 @@ std::string PriceColumn::value(const Item &item) {
 
 QColor PriceColumn::color(const Item &item) {
     if (bo_manager_.Exists(item) && !bo_manager_.IsItemManuallySet(item)) {
-        return Qt::blue;
+        return QColor(0x00, 0x66, 0x99);
     }
     return Column::color(item);
 }

@@ -28,8 +28,6 @@ public slots:
     void on_lightThemeRadioButton_clicked();
     void on_buyoutStyleBox_toggled(bool checked);
     void on_showMenuBarBox_toggled(bool checked);
-    void on_updateShopButton_clicked();
-    void on_refreshItemsButton_clicked();
     void on_showTradeURL_toggled(bool checked);
     void on_refreshTradeBox_toggled(bool checked);
     void on_tradeURLLineEdit_editingFinished();
