@@ -51,7 +51,7 @@
        <bool>true</bool>
       </attribute>
       <attribute name="horizontalHeaderDefaultSectionSize">
-       <number>100</number>
+       <number>60</number>
       </attribute>
       <attribute name="horizontalHeaderStretchLastSection">
        <bool>true</bool>
@@ -119,6 +119,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Export...</string>
        </property>

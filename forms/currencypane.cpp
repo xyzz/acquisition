@@ -2,7 +2,12 @@
 #include "ui_currencypane.h"
 #include "external/boolinq.h"
 
+#include "QsLog.h"
+
 #include <QSpinBox>
+#include <mainwindow.h>
+#include <application.h>
+#include <datamanager.h>
 
 using namespace boolinq;
 
@@ -38,6 +43,9 @@ CurrencyPane::CurrencyPane(QWidget *parent) :
                             "Vaal Orb",
                             "Eternal Orb"});
 
+
+    ui->currencyTable->setTabKeyNavigation(true);
+
     ui->currencyTable->verticalHeader()->show();
     ui->currencyTable->blockSignals(true);
     for (QString currencyItem : currency) {
@@ -51,27 +59,9 @@ CurrencyPane::CurrencyPane(QWidget *parent) :
         ui->currencyTable->setItem(row, 1, new QTableWidgetItem("0"));
 
         // Generate cell widget!
-        QWidget* widget = new QWidget(ui->currencyTable);
-        widget->setLayout(new QHBoxLayout());
-        widget->layout()->setMargin(0);
-        QSpinBox* box = new QSpinBox();
-        box->setObjectName("CurrencyCount");
-        box->setValue(0);
-        box->setMaximum(100000);
-        box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        widget->layout()->addWidget(box);
-
-        widget->layout()->addWidget(new QLabel(":"));
-
-        box = new QSpinBox();
-        box->setObjectName("ChaosCount");
-        box->setSuffix("c");
-        box->setValue(1);
-        box->setMaximum(100000);
-        box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        widget->layout()->addWidget(box);
-
-        ui->currencyTable->setCellWidget (row, 1, widget);
+        RatioCell* cell = new RatioCell(ui->currencyTable);
+        ui->currencyTable->setCellWidget(row, 1, cell);
+        connect(cell, &RatioCell::editingFinished, this, &CurrencyPane::UpdateItemChaosValues);
 
         item = new QTableWidgetItem("0");
         item->setFlags(item->flags() & ~Qt::ItemIsEditable);
@@ -79,14 +69,43 @@ CurrencyPane::CurrencyPane(QWidget *parent) :
     }
     ui->currencyTable->blockSignals(false);
     ui->currencyTable->update();
+}
 
+void CurrencyPane::initialize(MainWindow* parent) {
+    parent_ = parent;
+    app_ = parent->application();
+
+    QString data = QString::fromStdString(app_->data_manager().Get("currency_rates"));
+    LoadCurrencyRates(data);
+
+    data = QString::fromStdString(app_->data_manager().Get("currency_history"));
+    LoadCurrencyHistory(data);
+}
+
+void CurrencyPane::UpdateGraph(const QMap<double, double> map) {
     QCustomPlot* customPlot = ui->plotWidget;
-    // set locale to english, so we get english month names:
-    customPlot->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom));
-    // seconds of current time, we'll use it as starting point in time for data:
-    double now = QDateTime::currentDateTime().toTime_t();
-    srand(8); // set the random seed, so we always get the same random data
 
+    if (map.size() < 2) {
+        customPlot->hide();
+        return;
+    }
+    if (customPlot->isHidden()) {
+        customPlot->show();
+    }
+
+    customPlot->setBackground(Qt::transparent);
+
+    double lastDate = map.lastKey();
+    double weekAgo = QDateTime(QDate::currentDate()).addDays(-7).toTime_t();
+
+    double highestVal = 0;
+    if (!map.isEmpty()) {
+        highestVal = from(map.values().toVector().toStdVector()).max();
+    }
+
+    if (customPlot->graphCount() > 0) {
+        customPlot->removeGraph(0);
+    }
     customPlot->addGraph();
     customPlot->graph()->setName("Net Worth");
     QPen pen;
@@ -94,31 +113,17 @@ CurrencyPane::CurrencyPane(QWidget *parent) :
     customPlot->graph()->setLineStyle(QCPGraph::lsLine);
     customPlot->graph()->setPen(pen);
     customPlot->graph()->setBrush(QBrush(QColor(255/4.0,160,50,150)));
-    // generate random walk data:
-    QVector<double> time(250), value(250);
-    for (int i=0; i<250; ++i)
-    {
-    time[i] = now + 24*3600*i;
-    if (i == 0)
-      value[i] = (i/50.0+1)*(rand()/(double)RAND_MAX-0.5);
-    else
-      value[i] = fabs(value[i-1])*(1+0.02/4.0*(4)) + (i/50.0+1)*(rand()/(double)RAND_MAX-0.5);
-    }
-    customPlot->graph()->setData(time, value);
+    customPlot->graph()->setData(map.keys().toVector(), map.values().toVector());
 
     // configure bottom axis to show date and time instead of number:
     customPlot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
-    customPlot->xAxis->setDateTimeFormat("MMMM\nyyyy");
+    customPlot->xAxis->setDateTimeFormat("ddd");
     // set a more compact font size for bottom and left axis tick labels:
     customPlot->xAxis->setTickLabelFont(QFont(QFont().family(), 8));
     customPlot->yAxis->setTickLabelFont(QFont(QFont().family(), 8));
-    // set a fixed tick-step to one tick per month:
-    customPlot->xAxis->setAutoTickStep(false);
-    customPlot->xAxis->setTickStep(2628000); // one month in seconds
-    customPlot->xAxis->setSubTickCount(3);
     // set axis labels:
     customPlot->xAxis->setLabel("Date");
-    customPlot->yAxis->setLabel("Value");
+    customPlot->yAxis->setLabel("Total Worth in Chaos");
     // make top and right axes visible but without ticks and labels:
     customPlot->xAxis2->setVisible(true);
     customPlot->yAxis2->setVisible(true);
@@ -127,8 +132,8 @@ CurrencyPane::CurrencyPane(QWidget *parent) :
     customPlot->xAxis2->setTickLabels(false);
     customPlot->yAxis2->setTickLabels(false);
     // set axis ranges to show all data:
-    customPlot->xAxis->setRange(now, now+24*3600*249);
-    customPlot->yAxis->setRange(0, 60);
+    customPlot->xAxis->setRange(weekAgo, lastDate);
+    customPlot->yAxis->setRange(0, highestVal);
     // show legend:
     customPlot->legend->setVisible(true);
 }
@@ -145,6 +150,8 @@ void CurrencyPane::UpdateItemCounts(const Items &items) {
         item->setText(QString::number(count));
     }
     UpdateItemChaosValues();
+
+    SaveCurrencyHistoryPoint();
 }
 
 void CurrencyPane::UpdateItemChaosValues() {
@@ -166,16 +173,156 @@ void CurrencyPane::UpdateItemChaosValues() {
         item->setText(QString::number(result));
         total += result;
     }
-
+    totalValue = total;
     ui->totalWorthLabel->setText(QString::number(total));
+
+    QString rates = SaveCurrencyRates();
+    app_->data_manager().Set("currency_rates", rates.toStdString());
 }
 
-CurrencyPane::~CurrencyPane()
-{
+CurrencyPane::~CurrencyPane() {
     delete ui;
 }
 
-void CurrencyPane::on_currencyTable_itemChanged(QTableWidgetItem *item) {
-    if (item->row() == 1)
-        UpdateItemChaosValues();
+bool CurrencyPane::LoadCurrencyRates(const QString &data)
+{
+    QMap<QString, QJsonObject> dataObjects;
+    QJsonDocument doc = QJsonDocument::fromJson(data.toLatin1());
+    if (!doc.isNull() && doc.isArray()) {
+        QJsonArray arr = doc.array();
+        for (QJsonValue v : arr) {
+            if (!v.isObject()) continue;
+            QJsonObject obj = v.toObject();
+            dataObjects.insert(obj.value("currency").toString(), obj);
+        }
+    }
+
+    for (int i = 0; i < ui->currencyTable->rowCount(); i++) {
+        QTableWidgetItem* header = ui->currencyTable->verticalHeaderItem(i);
+        if (dataObjects.contains(header->text())) {
+            QJsonObject obj = dataObjects.value(header->text());
+            int count = obj.value("count").toInt();
+            int chaos = obj.value("chaos").toInt();
+
+            QWidget* widget = ui->currencyTable->cellWidget(i, 1);
+            QSpinBox* currencyBox = widget->findChild<QSpinBox*>("CurrencyCount");
+            QSpinBox* chaosBox = widget->findChild<QSpinBox*>("ChaosCount");
+
+            if (currencyBox && chaosBox) {
+                currencyBox->setValue(count);
+                chaosBox->setValue(chaos);
+            }
+        }
+    }
+    UpdateItemChaosValues();
+    return true;
+}
+
+QString CurrencyPane::SaveCurrencyRates()
+{
+    QJsonDocument doc;
+    QJsonArray array;
+    for (int i = 0; i < ui->currencyTable->rowCount(); i++) {
+        QTableWidgetItem* header = ui->currencyTable->verticalHeaderItem(i);
+
+        QWidget* widget = ui->currencyTable->cellWidget(i, 1);
+        QSpinBox* currencyBox = widget->findChild<QSpinBox*>("CurrencyCount");
+        QSpinBox* chaosBox = widget->findChild<QSpinBox*>("ChaosCount");
+
+        if (currencyBox && chaosBox) {
+            QJsonObject obj;
+            obj.insert("currency", header->text());
+            obj.insert("count", currencyBox->value());
+            obj.insert("chaos", chaosBox->value());
+            array.append(obj);
+        }
+    }
+    doc.setArray(array);
+    return doc.toJson(QJsonDocument::Compact);
+}
+
+bool CurrencyPane::LoadCurrencyHistory(const QString &data)
+{
+    QMap<double, double> map;
+    QJsonDocument doc = QJsonDocument::fromJson(data.toLatin1());
+    if (!doc.isNull() && doc.isArray()) {
+        for (QJsonValue val : doc.array()) {
+            QJsonObject obj = val.toObject();
+            double value = obj.value("value").toDouble();
+            double time = obj.value("time").toDouble();
+            if (map.contains(time)) {
+                double otherValue = map.value(time);
+                if (otherValue < value) {
+                    map.remove(time);
+                    map.insert(time, value);
+                }
+            }
+            else {
+                map.insert(time, value);
+            }
+        }
+    }
+    UpdateGraph(map);
+    return true;
+}
+
+QString CurrencyPane::SaveCurrencyHistoryPoint()
+{
+    QJsonObject point;
+    double time = (double)QDateTime(QDate::currentDate()).toTime_t();
+    point.insert("value", totalValue);
+    point.insert("time", time);
+
+    QByteArray data = QByteArray::fromStdString(app_->data_manager().Get("currency_history"));
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    QJsonArray array;
+    if (!doc.isNull() && doc.isArray()) {
+        array = doc.array();
+    }
+    bool insert = true;
+    for (QJsonValue val : array) {
+        if (val.isObject() && val.toObject().value("time").toDouble() == time) {
+            insert = false;
+            break;
+        }
+    }
+    if (insert) array.append(point);
+    doc.setArray(array);
+
+    QString newData = doc.toJson(QJsonDocument::Compact);
+    app_->data_manager().Set("currency_history", newData.toStdString());
+    LoadCurrencyHistory(newData);
+    return newData;
+}
+
+
+RatioCell::RatioCell(QTableWidget *parent) : QWidget(parent) {
+    setLayout(new QHBoxLayout());
+    layout()->setMargin(0);
+
+    first = new QSpinBox(this);
+    first->setObjectName("CurrencyCount");
+    first->setValue(0);
+    first->setMaximum(100000);
+    first->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    layout()->addWidget(first);
+
+    layout()->addWidget(new QLabel(":", this));
+
+    second = new QSpinBox(this);
+    second->setObjectName("ChaosCount");
+    second->setSuffix("c");
+    second->setValue(1);
+    second->setMaximum(100000);
+    second->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    layout()->addWidget(second);
+
+    first->setButtonSymbols(QAbstractSpinBox::NoButtons);
+    second->setButtonSymbols(QAbstractSpinBox::NoButtons);
+
+    setFocusPolicy(Qt::TabFocus);
+    setFocusProxy(first);
+    setTabOrder(first, second);
+    connect(first, &QSpinBox::editingFinished, this, &RatioCell::editingFinished);
+    connect(second, &QSpinBox::editingFinished, this, &RatioCell::editingFinished);
 }
