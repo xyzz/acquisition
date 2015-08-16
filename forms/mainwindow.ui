@@ -688,12 +688,12 @@
          </item>
         </layout>
        </widget>
-       <widget class="RecipePane" name="recipesTab">
+       <widget class="RecipePane" name="recipesPane">
         <attribute name="title">
          <string>Recipes</string>
         </attribute>
        </widget>
-       <widget class="CurrencyPane" name="currencyTab">
+       <widget class="CurrencyPane" name="currencyPane">
         <property name="enabled">
          <bool>true</bool>
         </property>

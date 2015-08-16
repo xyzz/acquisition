@@ -224,6 +224,7 @@ void MainWindow::InitializeActions() {
 void MainWindow::InitializeUi() {
     ui->setupUi(this);
     ui->settingsPane->initialize(this);
+    ui->currencyPane->initialize(this);
     status_bar_label_ = new QLabel("Ready");
     status_bar_label_->setMargin(6);
     statusBar()->addWidget(status_bar_label_);
@@ -1184,7 +1185,7 @@ void MainWindow::OnItemsRefreshed() {
     }
     OnSearchFormChange();
 
-    ui->currencyTab->UpdateItemCounts(app_->items());
+    ui->currencyPane->UpdateItemCounts(app_->items());
 }
 
 MainWindow::~MainWindow() {
