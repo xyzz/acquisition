@@ -61,9 +61,7 @@ bool BuyoutManager::Exists(const Item &item) const {
 }
 
 bool BuyoutManager::Equal(const Buyout &buyout1, const Buyout &buyout2) {
-    return (buyout1.currency == buyout2.currency &&
-            buyout1.type == buyout2.type &&
-            buyout1.value == buyout2.value);
+    return buyout1 == buyout2;
 }
 
 QString BuyoutManager::Generate(const Buyout &buyout) {

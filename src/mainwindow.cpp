@@ -54,6 +54,7 @@
 #include "search.h"
 #include "shop.h"
 #include "util.h"
+#include <forms/templatedialog.h>
 
 const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
 
@@ -134,11 +135,6 @@ void MainWindow::changeEvent(QEvent *event) {
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
-//    if (tray_icon_.isVisible()) {
-//        hide();
-//        event->ignore();
-//        return;
-//    }
     QMainWindow::closeEvent(event);
 }
 
@@ -289,9 +285,6 @@ void MainWindow::InitializeUi() {
     ui->buyoutValueLineEdit->installEventFilter(this);
 
     ui->buyoutCurrencyComboBox->hide();
-
-    ui->actionAutomatically_refresh_items->setChecked(app_->items_manager().auto_update());
-    UpdateShopMenu();
 
     ui->searchAreaWidget->setVisible(false);
     ui->imageWidget->hide();
@@ -691,9 +684,6 @@ void MainWindow::OnSearchFormChange() {
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
 
-//    if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
-//        ExpandCollapse(TreeState::kCollapse);
-
     ResizeTreeColumns();
 
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
@@ -860,9 +850,6 @@ void MainWindow::UpdateCurrentBucket() {
         pos = "Character";
     ui->typeLineLabel->setText(pos + ": " + QString::fromStdString(current_bucket_.location().GetHeader()));
     ui->typeLineLabel->show();
-
-    // QString notes = app_->items_manager().GetObjectNote(QString::fromStdString(current_bucket_.location().GetUniqueHash()));
-    // ui->selectionNotes->setPlainText(notes);
 }
 
 void MainWindow::UpdateCurrentItem() {
@@ -898,9 +885,6 @@ void MainWindow::UpdateCurrentItem() {
         UpdateCurrentItemIcon(image_cache_->Get(icon));
 
     ui->locationLabel->setText("Location: " + QString::fromStdString(current_item_->location().GetHeader()));
-
-    // QString notes = app_->items_manager().GetObjectNote(QString::fromStdString(current_item_->hash()));
-    // ui->selectionNotes->setPlainText(notes);
 }
 
 void MainWindow::GenerateCurrentItemHeader() {

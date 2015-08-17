@@ -101,12 +101,28 @@ const std::vector<std::string> BuyoutTypeAsPrefix({
     "",
 });
 
+class BuyoutManager;
+
 struct Buyout {
     double value;
     BuyoutType type;
     Currency currency;
     QString set_by;
     QDateTime last_update;
+
+    inline bool operator == (const Buyout &rhs) const {
+        return (currency == rhs.currency &&
+                type == rhs.type &&
+                value == rhs.value);
+    }
+
+    inline bool operator<(const Buyout &rhs) const {
+        if (type != rhs.type)
+            return type < rhs.type;
+        if (currency != rhs.currency)
+            return currency < rhs.currency;
+        return value < rhs.value;
+    }
 };
 
 class DataManager;
