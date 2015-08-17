@@ -176,7 +176,7 @@
         <enum>QTabWidget::Rounded</enum>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <property name="documentMode">
         <bool>false</bool>
@@ -688,11 +688,6 @@
          </item>
         </layout>
        </widget>
-       <widget class="RecipePane" name="recipesPane">
-        <attribute name="title">
-         <string>Recipes</string>
-        </attribute>
-       </widget>
        <widget class="CurrencyPane" name="currencyPane">
         <property name="enabled">
          <bool>true</bool>
@@ -872,12 +867,6 @@
    <class>SettingsPane</class>
    <extends>QWidget</extends>
    <header>forms\settingspane.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>RecipePane</class>
-   <extends>QWidget</extends>
-   <header>forms\recipepane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
