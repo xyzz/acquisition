@@ -178,7 +178,7 @@ void SettingsPane::on_updateShopBox_toggled(bool checked) {
     app_->shop().SetAutoUpdate(checked);
 }
 
-void SettingsPane::on_copyClipboardButton_clicked() {
+void SettingsPane::on_copyShopButton_clicked() {
     parent_->on_actionCopy_shop_data_to_clipboard_triggered();
 }
 

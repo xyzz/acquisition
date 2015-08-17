@@ -34,7 +34,7 @@ public slots:
     void on_refreshItemsIntervalBox_editingFinished();
     void on_refreshItemsBox_toggled(bool checked);
     void on_updateShopBox_toggled(bool checked);
-    void on_copyClipboardButton_clicked();
+    void on_copyShopButton_clicked();
     void on_bumpShopBox_toggled(bool checked);
 private slots:
     void on_addShopButton_clicked();
