@@ -123,11 +123,6 @@ void SettingsPane::updateFromStorage() {
     // Force update
     on_buyoutStyleBox_toggled(flag);
 
-    flag = app_->data_manager().GetBool("ShowOldMenu");
-    ui->showMenuBarBox->setChecked(flag);
-    // Force update
-    on_showMenuBarBox_toggled(flag);
-
     // Visual
     flag = app_->data_manager().GetBool("MinimizeToTray");
     ui->minimizeBox->setChecked(flag);
@@ -136,11 +131,6 @@ void SettingsPane::updateFromStorage() {
 void SettingsPane::on_buyoutStyleBox_toggled(bool checked) {
     parent_->ui->buyoutCurrencyComboBox->setHidden(checked);
     app_->data_manager().SetBool("ProcBuyoutStyle", checked);
-}
-
-void SettingsPane::on_showMenuBarBox_toggled(bool checked) {
-    parent_->ui->menuBar->setVisible(checked);
-    app_->data_manager().SetBool("ShowOldMenu", checked);
 }
 
 void SettingsPane::on_showTradeURL_toggled(bool checked) {
@@ -177,7 +167,6 @@ void SettingsPane::on_updateShopBox_toggled(bool checked) {
 }
 
 void SettingsPane::on_copyShopButton_clicked() {
-    parent_->on_actionCopy_shop_data_to_clipboard_triggered();
 }
 
 void SettingsPane::on_bumpShopBox_toggled(bool checked) {

@@ -296,8 +296,6 @@ void MainWindow::InitializeUi() {
     ui->searchAreaWidget->setVisible(false);
     ui->imageWidget->hide();
 
-    ui->menuBar->hide();
-
     ui->splitter_2->setSizes({(int)(this->width() * 0.75), (int)(this->width() * 0.25)});
     ui->splitter_2->setStretchFactor(0, 1);
     ui->splitter_2->setStretchFactor(1, 0);
@@ -1202,32 +1200,8 @@ MainWindow::~MainWindow() {
 #endif
 }
 
-void MainWindow::on_actionForum_shop_thread_triggered() {
-    bool ok;
-    QString thread = QInputDialog::getText(this, "Shop thread",
-        "Enter thread number. You can enter multiple shops by separating them with a comma. More than one shop may be needed if you have a lot of items.",
-        QLineEdit::Normal, Util::StringJoin(app_->shop().threads(), ",").c_str(), &ok);
-    if (ok && !thread.isEmpty())
-        app_->shop().SetThread(Util::StringSplit(thread.toStdString(), ','));
-    UpdateShopMenu();
-    UpdateSettingsBox();
-}
-
-void MainWindow::UpdateShopMenu() {
-    std::string title = "Forum shop thread...";
-    if (!app_->shop().threads().empty())
-        title += " [" + Util::StringJoin(app_->shop().threads(), ",") + "]";
-    ui->actionForum_shop_thread->setText(title.c_str());
-    ui->actionAutomatically_update_shop->setChecked(app_->shop().auto_update());
-}
-
 void MainWindow::UpdateOnlineGui() {
     online_label_.setVisible(auto_online_.enabled());
-    ui->actionAutomatically_refresh_online_status->setChecked(auto_online_.enabled());
-    std::string action_label = "control.poe.xyz.is URL...";
-    if (auto_online_.IsUrlSet())
-        action_label += " [******]";
-    ui->actionControl_poe_xyz_is_URL->setText(action_label.c_str());
 }
 
 void MainWindow::OnUpdateAvailable() {
@@ -1243,58 +1217,6 @@ void MainWindow::OnOnlineUpdate(bool online) {
         online_label_.setStyleSheet("color: red");
         online_label_.setText("Trade Status: Offline");
     }
-}
-
-void MainWindow::on_actionCopy_shop_data_to_clipboard_triggered() {
-    app_->shop().CopyToClipboard();
-}
-
-void MainWindow::on_actionItems_refresh_interval_triggered() {
-    int interval = QInputDialog::getText(this, "Auto refresh items", "Refresh items every X minutes",
-        QLineEdit::Normal, QString::number(app_->items_manager().auto_update_interval())).toInt();
-    if (interval > 0)
-        app_->items_manager().SetAutoUpdateInterval(interval);
-}
-
-void MainWindow::on_actionRefresh_triggered() {
-    app_->items_manager().Update();
-}
-
-void MainWindow::on_actionAutomatically_refresh_items_triggered() {
-    app_->items_manager().SetAutoUpdate(ui->actionAutomatically_refresh_items->isChecked());
-}
-
-void MainWindow::on_actionUpdate_shop_triggered() {
-    app_->shop().SubmitShopToForum(true);
-}
-
-void MainWindow::on_actionShop_template_triggered() {
-    bool ok;
-    QString text = QInputDialog::getMultiLineText(this, "Shop template", "Enter shop template. [items] will be replaced with the list of items you marked for sale.",
-        app_->shop().shop_template().c_str(), &ok);
-    if (ok && !text.isEmpty())
-        app_->shop().SetShopTemplate(text.toStdString());
-}
-
-void MainWindow::on_actionAutomatically_update_shop_triggered() {
-    app_->shop().SetAutoUpdate(ui->actionAutomatically_update_shop->isChecked());
-}
-
-void MainWindow::on_actionControl_poe_xyz_is_URL_triggered() {
-    bool ok;
-    QString url = QInputDialog::getText(this, "control.poe.xyz.is URL",
-        "Copy and paste your whole control.poe.xyz.is URL here",
-        QLineEdit::Normal, "", &ok);
-    if (ok && !url.isEmpty())
-        auto_online_.SetUrl(url.toStdString());
-    UpdateOnlineGui();
-    UpdateSettingsBox();
-}
-
-void MainWindow::on_actionAutomatically_refresh_online_status_triggered() {
-    auto_online_.SetEnabled(ui->actionAutomatically_refresh_online_status->isChecked());
-    UpdateOnlineGui();
-    UpdateSettingsBox();
 }
 
 void MainWindow::on_advancedSearchButton_toggled(bool checked) {

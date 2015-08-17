@@ -17,13 +17,13 @@
    <item>
     <widget class="QToolBox" name="toolBox">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page">
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>-50</y>
+        <y>0</y>
         <width>567</width>
         <height>635</height>
        </rect>
@@ -127,7 +127,7 @@
                <bool>false</bool>
               </property>
               <property name="dragDropMode">
-               <enum>QAbstractItemView::NoDragDrop</enum>
+               <enum>QAbstractItemView::DragOnly</enum>
               </property>
               <property name="alternatingRowColors">
                <bool>true</bool>
@@ -411,13 +411,6 @@
            </widget>
           </item>
          </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="showMenuBarBox">
-         <property name="text">
-          <string>Show Menu Bar</string>
-         </property>
         </widget>
        </item>
        <item>

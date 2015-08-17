@@ -106,16 +106,6 @@ protected:
     void closeEvent(QCloseEvent *event);
     void changeEvent(QEvent *event);
 private slots:
-    void on_actionForum_shop_thread_triggered();
-    void on_actionCopy_shop_data_to_clipboard_triggered();
-    void on_actionItems_refresh_interval_triggered();
-    void on_actionRefresh_triggered();
-    void on_actionAutomatically_refresh_items_triggered();
-    void on_actionUpdate_shop_triggered();
-    void on_actionShop_template_triggered();
-    void on_actionAutomatically_update_shop_triggered();
-    void on_actionControl_poe_xyz_is_URL_triggered();
-    void on_actionAutomatically_refresh_online_status_triggered();
     void on_advancedSearchButton_toggled(bool checked);
     void on_refreshItemsButton_clicked();
     void on_updateShopButton_clicked();

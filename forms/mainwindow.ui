@@ -90,8 +90,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>343</width>
-                 <height>134</height>
+                 <width>403</width>
+                 <height>121</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -745,44 +745,6 @@
      </layout>
     </item>
    </layout>
-  </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>907</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuShop">
-    <property name="title">
-     <string>Shop</string>
-    </property>
-    <addaction name="actionForum_shop_thread"/>
-    <addaction name="actionShop_template"/>
-    <addaction name="actionCopy_shop_data_to_clipboard"/>
-    <addaction name="actionUpdate_shop"/>
-    <addaction name="actionAutomatically_update_shop"/>
-   </widget>
-   <widget class="QMenu" name="menuItems">
-    <property name="title">
-     <string>Items</string>
-    </property>
-    <addaction name="actionRefresh"/>
-    <addaction name="actionAutomatically_refresh_items"/>
-    <addaction name="actionItems_refresh_interval"/>
-   </widget>
-   <widget class="QMenu" name="menuAuto_online">
-    <property name="title">
-     <string>Auto Online</string>
-    </property>
-    <addaction name="actionControl_poe_xyz_is_URL"/>
-    <addaction name="actionAutomatically_refresh_online_status"/>
-   </widget>
-   <addaction name="menuItems"/>
-   <addaction name="menuShop"/>
-   <addaction name="menuAuto_online"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionForum_shop_thread">
