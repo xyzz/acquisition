@@ -23,6 +23,7 @@ public:
     void initialize(MainWindow* parent);
     void updateShops();
     void updateTabExclusions();
+    void showTemplateDialog(const QString &threadId);
 public slots:
     void on_darkThemeRadioButton_clicked();
     void on_lightThemeRadioButton_clicked();
@@ -46,7 +47,10 @@ private slots:
     void on_tabExclusionListWidget_itemChanged(QListWidgetItem *item);
 
 private:
+    void addShop(int id);
     Ui::SettingsPane *ui;
+
+    QMap<int, QString> shopThreadIds;
 
     Application* app_;
     MainWindow* parent_;
@@ -54,7 +58,6 @@ private:
     bool light_theme_;
     QPalette light_palette_;
     QString light_style_;
-    void addShop(int id);
 };
 
 #endif // SETTINGSPANE_H

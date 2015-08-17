@@ -9,9 +9,8 @@
 #include "shop.h"
 #include "datamanager.h"
 
+#include "templatedialog.h"
 #include "util.h"
-
-#include <QDebug>
 
 SettingsPane::SettingsPane(QWidget *parent) :
     QWidget(parent),
@@ -27,9 +26,9 @@ void SettingsPane::initialize(MainWindow* parent) {
     parent_ = parent;
     app_ = parent->application();
 
-    for (auto shop : app_->shop().threads()) {
+    for (QString shop : app_->shop().threadIds()) {
         bool ok = false;
-        int id = QString::fromStdString(shop).toInt(&ok);
+        int id = shop.toInt(&ok);
         if (ok && id) addShop(id);
     }
 
@@ -47,6 +46,14 @@ void SettingsPane::initialize(MainWindow* parent) {
     }
 }
 
+void SettingsPane::showTemplateDialog(const QString &threadId) {
+    TemplateDialog dialog(app_, threadId, this);
+    dialog.setAttribute(Qt::WA_DeleteOnClose, false);
+    if (dialog.exec() == QDialog::Accepted) {
+        app_->shop().SetShopTemplate(threadId, dialog.GetTemplate());
+    }
+}
+
 void SettingsPane::addShop(int id) {
     int row = ui->shopsWidget->rowCount();
     ui->shopsWidget->insertRow(row);
@@ -57,29 +64,71 @@ void SettingsPane::addShop(int id) {
 
     QPushButton* button = new QPushButton("Edit Template...");
     ui->shopsWidget->setCellWidget(row, 1, button);
-    connect(button, &QPushButton::clicked, [this] {
-        parent_->on_actionShop_template_triggered();
+    connect(button, &QPushButton::clicked, [this, row] {
+        // Trigger template!
+        QString threadId = ui->shopsWidget->item(row, 0)->text();
+        showTemplateDialog(threadId);
     });
+
+    shopThreadIds.insert(row, QString::number(id));
 
     if (id == 0) {
         ui->shopsWidget->editItem(thread);
     }
 }
 
-void SettingsPane::updateShops() {
-    QStringList threads = {};
-    for (int i = 0; i < ui->shopsWidget->rowCount(); i++) {
-        QTableWidgetItem* item = ui->shopsWidget->item(i, 0);
-        bool ok = false;
-        int shop = item->text().toInt(&ok);
-        if (ok && shop > 0) threads.append(QString::number(shop));
+void SettingsPane::on_addShopButton_clicked() {
+    addShop(0);
+}
+
+void SettingsPane::on_shopsWidget_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous) {
+    Q_UNUSED(previous)
+    if (current == 0) {
+        ui->removeShopButton->setEnabled(false);
+        ui->copyShopButton->setEnabled(false);
     }
-    threads.removeDuplicates();
-    std::vector<std::string> formatted;
-    while (!threads.isEmpty()) formatted.push_back(threads.takeFirst().toStdString());
-    app_->shop().SetThread(formatted);
-    parent_->UpdateShopMenu();
-    parent_->UpdateSettingsBox();
+    else {
+        ui->removeShopButton->setEnabled(true);
+        ui->copyShopButton->setEnabled(true);
+    }
+}
+
+void SettingsPane::on_removeShopButton_clicked() {
+    auto items = ui->shopsWidget->selectedItems();
+    for (auto item : items) {
+        int row = item->row();
+        QString threadId = ui->shopsWidget->item(row, 0)->text();
+        ui->shopsWidget->removeRow(row);
+        shopThreadIds.remove(row);
+        app_->shop().RemoveShop(threadId);
+    }
+}
+
+void SettingsPane::on_shopsWidget_itemChanged(QTableWidgetItem *item) {
+    Q_ASSERT(item->column() == 0);
+
+    int row = item->row();
+    QString value = item->text();
+
+    bool ok = false;
+    int shop = value.toUInt(&ok);
+    if (ok && shop > 0) {
+        QString last = shopThreadIds.value(row);
+        if (last != value) {
+            if (shopThreadIds.values().contains(item->text())) {
+                item->setText("0");
+                shopThreadIds[row] = "0";
+            }
+            else {
+                app_->shop().RemoveShop(last);
+                app_->shop().AddShop(value);
+                shopThreadIds[row] = value;
+            }
+        }
+    }
+    else {
+        item->setText("0");
+    }
 }
 
 void SettingsPane::updateTabExclusions() {
@@ -104,8 +153,8 @@ void SettingsPane::updateFromStorage() {
 
     // Shop
     // Ignore shop threads as they are handled seperately...
-    ui->updateShopBox->setChecked(app_->shop().auto_update());
-    ui->bumpShopBox->setChecked(app_->shop().doesBump());
+    ui->updateShopBox->setChecked(app_->shop().IsAutoUpdateEnabled());
+    ui->bumpShopBox->setChecked(app_->shop().IsBumpEnabled());
 
     // Trade
     ui->refreshTradeBox->setChecked(parent_->auto_online_.enabled());
@@ -221,50 +270,8 @@ void SettingsPane::on_lightThemeRadioButton_clicked() {
     light_theme_ = true;
 }
 
-SettingsPane::~SettingsPane()
-{
+SettingsPane::~SettingsPane() {
     delete ui;
-}
-
-void SettingsPane::on_addShopButton_clicked()
-{
-    addShop(0);
-}
-
-void SettingsPane::on_shopsWidget_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous)
-{
-    if (current == 0) {
-        ui->removeShopButton->setEnabled(false);
-        ui->copyShopButton->setEnabled(false);
-    }
-    else {
-        ui->removeShopButton->setEnabled(true);
-        ui->copyShopButton->setEnabled(true);
-    }
-}
-
-void SettingsPane::on_removeShopButton_clicked()
-{
-    auto items = ui->shopsWidget->selectedItems();
-    for (auto item : items) {
-        int row = item->row();
-        ui->shopsWidget->removeRow(row);
-    }
-}
-
-void SettingsPane::on_shopsWidget_itemChanged(QTableWidgetItem *item)
-{
-    Q_ASSERT(item->column() == 0);
-    int row = item->row();
-
-    bool ok = false;
-    int shop = item->text().toUInt(&ok);
-    if (ok && shop > 0) {
-        updateShops();
-    }
-    else {
-        ui->shopsWidget->editItem(item);
-    }
 }
 
 void SettingsPane::on_minimizeBox_toggled(bool checked)

@@ -1225,5 +1225,5 @@ void MainWindow::on_refreshItemsButton_clicked() {
 }
 
 void MainWindow::on_updateShopButton_clicked() {
-    app_->shop().SubmitShopToForum(true);
+    app_->shop().SubmitShopToForum();
 }

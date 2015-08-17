@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "shoptemplatemanager.h"
+
 #include <QObject>
 #include <QDateTime>
 #include <string>
@@ -29,31 +31,60 @@ extern const std::string kShopTemplateItems;
 
 class Application;
 
+struct ShopData {
+    QString threadId;
+    QString shopData;
+
+    QString shopTemplate;
+    bool requiresUpdate;
+
+    bool submitting;
+
+    QDateTime lastSubmitted;
+    QDateTime lastBumped;
+    QString lastSubmissionHash;
+};
+
 class Shop : public QObject {
     Q_OBJECT
 public:
     explicit Shop(Application &app);
-    void SetThread(const std::vector<std::string> &threads);
+    void AddShop(const QString &threadId, QString temp = QString());
+    void RemoveShop(const QString &threadId);
+    void CopyToClipboard(const QString &threadId);
+    void ExpireShopData(const QString &threadId = QString());
+    void SetShopTemplate(const QString &threadId, const QString &temp);
+
+    const QList<QString> threadIds() const { return shops_.uniqueKeys(); }
+    QString GetShopTemplate(const QString &threadId);
+
+    void Update(const QString &threadId = QString(), bool force = false);
+    void SubmitShopToForum(const QString &threadId = QString());
+
+    int ShopsIdle() {
+        int count = 0;
+        for (ShopData* shop : shops_.values()) {
+            if (!shop->submitting) count++;
+        }
+        return count;
+    }
+
+    int ShopsSubmitting() {
+        int count = 0;
+        for (ShopData* shop : shops_.values()) {
+            if (shop->submitting) count++;
+        }
+        return count;
+    }
+
     void SetAutoUpdate(bool update);
     void SetDoBump(bool bump);
-    void SetShopTemplate(const std::string &shop_template);
-    void Update();
-    void CopyToClipboard();
-    void ExpireShopData();
-    void SubmitShopToForum(bool force = false);
-    void SubmitShopBumpToForum(int index);
-    bool auto_update() const { return auto_update_; }
-    bool doesBump() const { return do_bump_; }
-    const std::vector<std::string> &threads() const { return threads_; }
-    const std::vector<std::string> &shop_data() const { return shop_data_; }
-    const std::string &shop_template() const { return shop_template_; }
-    std::string ShopEditUrl(int index);
-    std::string ShopBumpUrl(int index);
-    void SubmitSingleShop();
-signals:
-    void ShopUpdateBegin();
-    void ShopUpdateFinished();
-public slots:
+
+    bool IsAutoUpdateEnabled() const { return auto_update_; }
+    bool IsBumpEnabled() const { return do_bump_; }
+    void SaveShops();
+    void LoadShops();
+private slots:
     void OnEditPageFinished();
     void OnShopSubmitted();
     void OnBumpPageFinished();
@@ -61,16 +92,18 @@ public slots:
 signals:
     void StatusUpdate(const CurrentStatusUpdate &status);
 private:
+    QString ShopEditUrl(const QString &threadId);
+    QString ShopBumpUrl(const QString &threadId);
+    void SubmitSingleShop(const QString &threadId);
+    void SubmitShopBumpToForum(const QString &threadId);
 
     Application &app_;
-    std::vector<std::string> threads_;
-    std::vector<std::string> shop_data_;
-    std::string shop_hash_;
-    std::string shop_template_;
-    bool shop_data_outdated_;
+
+    QHash<QString, ShopData*> shops_;
+
     bool auto_update_;
-    QDateTime lastBumped_;
     bool do_bump_;
-    bool submitting_;
-    size_t requests_completed_;
+
+    ShopTemplateManager templateManager;
+    void UpdateState();
 };
