@@ -103,10 +103,7 @@ void SettingsPane::updateFromStorage() {
     ui->refreshItemsIntervalBox->setValue(app_->items_manager().auto_update_interval());
 
     // Shop
-    std::vector<std::string> threads = app_->shop().threads();
-
-//    if (!threads.empty())
-//        ui->shopThreadIdBox->setValue(QString::fromStdString(threads.front()).toUInt());
+    // Ignore shop threads as they are handled seperately...
     ui->updateShopBox->setChecked(app_->shop().auto_update());
     ui->bumpShopBox->setChecked(app_->shop().doesBump());
 
