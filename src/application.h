@@ -32,7 +32,7 @@ class BuyoutManager;
 class Shop;
 class CurrencyManager;
 
-class Application : QObject {
+class Application : public QObject {
     Q_OBJECT
 public:
     Application();
