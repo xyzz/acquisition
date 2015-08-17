@@ -93,7 +93,7 @@ void CurrencyPane::UpdateGraph(const QMap<double, double> map) {
         customPlot->show();
     }
 
-    customPlot->setBackground(Qt::transparent);
+    //customPlot->setBackground(Qt::transparent);
 
     double lastDate = map.lastKey();
     double weekAgo = QDateTime(QDate::currentDate()).addDays(-7).toTime_t();
