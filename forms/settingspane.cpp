@@ -108,6 +108,7 @@ void SettingsPane::updateFromStorage() {
 //    if (!threads.empty())
 //        ui->shopThreadIdBox->setValue(QString::fromStdString(threads.front()).toUInt());
     ui->updateShopBox->setChecked(app_->shop().auto_update());
+    ui->bumpShopBox->setChecked(app_->shop().doesBump());
 
     // Trade
     ui->refreshTradeBox->setChecked(parent_->auto_online_.enabled());
@@ -183,7 +184,7 @@ void SettingsPane::on_copyShopButton_clicked() {
 }
 
 void SettingsPane::on_bumpShopBox_toggled(bool checked) {
-    app_->data_manager().SetBool("shop_bump", checked);
+    app_->shop().SetDoBump(checked);
 }
 
 void SettingsPane::on_darkThemeRadioButton_clicked() {

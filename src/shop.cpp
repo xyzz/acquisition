@@ -52,6 +52,9 @@ Shop::Shop(Application &app) :
     shop_template_ = app_.data_manager().Get("shop_template");
     if (shop_template_.empty())
         shop_template_ = kShopTemplateItems;
+
+    do_bump_ = app_.data_manager().GetBool("shop_bump");
+    lastBumped_ = QDateTime::fromTime_t(QString::fromStdString(app_.data_manager().Get("last_bumped")).toUInt());
 }
 
 void Shop::SetThread(const std::vector<std::string> &threads) {
@@ -66,6 +69,11 @@ void Shop::SetThread(const std::vector<std::string> &threads) {
 void Shop::SetAutoUpdate(bool update) {
     auto_update_ = update;
     app_.data_manager().SetBool("shop_update", update);
+}
+
+void Shop::SetDoBump(bool bump) {
+    do_bump_ = bump;
+    app_.data_manager().SetBool("shop_bump", bump);
 }
 
 void Shop::SetShopTemplate(const std::string &shop_template) {
@@ -265,6 +273,7 @@ void Shop::OnBumpSubmitted() {
 
     QLOG_INFO() << "Shop bumped successfully!";
     lastBumped_ = QDateTime::currentDateTime();
+    app_.data_manager().Set("last_bumped", QString::number(lastBumped_.toTime_t()).toStdString());
 }
 
 void Shop::OnShopSubmitted() {
@@ -285,7 +294,7 @@ void Shop::OnShopSubmitted() {
 
     QLOG_INFO() << "Shop updated successfully!";
 
-    if (app_.data_manager().GetBool("shop_bump")) {
+    if (do_bump_) {
         SubmitShopBumpToForum(requests_completed_);
     }
     emit ShopUpdateFinished();

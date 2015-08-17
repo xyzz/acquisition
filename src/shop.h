@@ -35,6 +35,7 @@ public:
     explicit Shop(Application &app);
     void SetThread(const std::vector<std::string> &threads);
     void SetAutoUpdate(bool update);
+    void SetDoBump(bool bump);
     void SetShopTemplate(const std::string &shop_template);
     void Update();
     void CopyToClipboard();
@@ -42,6 +43,7 @@ public:
     void SubmitShopToForum(bool force = false);
     void SubmitShopBumpToForum(int index);
     bool auto_update() const { return auto_update_; }
+    bool doesBump() const { return do_bump_; }
     const std::vector<std::string> &threads() const { return threads_; }
     const std::vector<std::string> &shop_data() const { return shop_data_; }
     const std::string &shop_template() const { return shop_template_; }
@@ -68,6 +70,7 @@ private:
     bool shop_data_outdated_;
     bool auto_update_;
     QDateTime lastBumped_;
+    bool do_bump_;
     bool submitting_;
     size_t requests_completed_;
 };
