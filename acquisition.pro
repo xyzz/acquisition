@@ -52,7 +52,8 @@ SOURCES += \
     forms/settingspane.cpp \
     forms/recipepane.cpp \
     forms/currencypane.cpp \
-    src/external/qcustomplot.cpp
+    src/external/qcustomplot.cpp \
+    forms/templatedialog.cpp
 
 HEADERS += \
     src/item.h \
@@ -91,14 +92,17 @@ HEADERS += \
     forms/recipepane.h \
     forms/currencypane.h \
     src/external/boolinq.h \
-    src/external/qcustomplot.h
+    src/external/qcustomplot.h \
+    forms/templatedialog.h \
+    src/external/syntaxhighlighter.h
 
 FORMS += \
     forms/mainwindow.ui \
     forms/logindialog.ui \
     forms/settingspane.ui \
     forms/recipepane.ui \
-    forms/currencypane.ui
+    forms/currencypane.ui \
+    forms/templatedialog.ui
 
 CONFIG += c++11
 
