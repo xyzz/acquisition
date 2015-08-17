@@ -119,6 +119,9 @@ public:
     void Delete(const Item &item);
     bool Exists(const Item &item) const;
 
+    static bool Equal(const Buyout &buyout1, const Buyout &buyout2);
+    static QString Generate(const Buyout &buyout);
+
     void SetTab(const Bucket &tab, const Buyout &buyout);
     Buyout GetTab(const std::string &tab) const;
     void DeleteTab(const Bucket &tab);

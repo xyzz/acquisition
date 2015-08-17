@@ -60,6 +60,23 @@ bool BuyoutManager::Exists(const Item &item) const {
     return buyouts_.count(ItemHash(item)) > 0;
 }
 
+bool BuyoutManager::Equal(const Buyout &buyout1, const Buyout &buyout2) {
+    return (buyout1.currency == buyout2.currency &&
+            buyout1.type == buyout2.type &&
+            buyout1.value == buyout2.value);
+}
+
+QString BuyoutManager::Generate(const Buyout &buyout) {
+    QString result;
+    if (buyout.type == BUYOUT_TYPE_NONE) return result;
+    result = QString::fromStdString(BuyoutTypeAsPrefix[buyout.type]);
+    if (buyout.type == BUYOUT_TYPE_BUYOUT || buyout.type == BUYOUT_TYPE_FIXED) {
+        result += QString::number(buyout.value);
+        result += " " + QString::fromStdString(CurrencyAsTag[buyout.currency]);
+    }
+    return result;
+}
+
 bool BuyoutManager::IsItemManuallySet(const Item &item) const {
     return Exists(item) ? buyouts_.at(ItemHash(item)).set_by == "" : false;
 }
@@ -99,7 +116,24 @@ void BuyoutManager::UpdateTabItems(const Bucket &tab) {
     if (set) buyout = GetTab(hash);
     // Set buyouts on items with the "set_by" flag set to the tab
     for (auto &item : tab.items()) {
-        if (set && (!Exists(*item) || (Exists(*item) && !IsItemManuallySet(*item)))) {
+        if (set) {
+            if (!Exists(*item)) {
+                // It's new!
+            }
+            else if (Exists(*item)) {
+                if (IsItemManuallySet(*item)) {
+                    continue;
+                }
+                Buyout curr = Get(*item);
+                if (Equal(buyout, curr) && curr.set_by.toStdString() == hash) {
+                    // Don't update...
+                    continue;
+                }
+            }
+            else {
+                continue;
+            }
+            buyout.last_update = QDateTime::currentDateTime();
             Set(*item, buyout, QString::fromStdString(hash));
         }
         else if (!set && Exists(*item) && !IsItemManuallySet(*item)) {

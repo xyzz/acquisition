@@ -541,9 +541,7 @@ void MainWindow::OnBuyoutChange(bool doParse) {
     if (current_item_) {
         if (app_->buyout_manager().Exists(*current_item_)) {
             Buyout currBo = app_->buyout_manager().Get(*current_item_);
-            if (currBo.currency == bo.currency &&
-                currBo.type == bo.type &&
-                currBo.value == bo.value) {
+            if (BuyoutManager::Equal(currBo, bo)) {
                 isUpdated = false;
             }
 
@@ -564,9 +562,7 @@ void MainWindow::OnBuyoutChange(bool doParse) {
         std::string tab = current_bucket_.location().GetUniqueHash();
         if (app_->buyout_manager().ExistsTab(tab)) {
             Buyout currBo = app_->buyout_manager().GetTab(tab);
-            if (currBo.currency == bo.currency &&
-                currBo.type == bo.type &&
-                currBo.value == bo.value) {
+            if (BuyoutManager::Equal(currBo, bo)) {
                 isUpdated = false;
             }
         }
