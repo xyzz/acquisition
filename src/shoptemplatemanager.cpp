@@ -1,130 +1,274 @@
 #include "shoptemplatemanager.h"
 #include "buyoutmanager.h"
 
+#include "external/boolinq.h"
 #include <QStringList>
 #include <QRegularExpression>
 #include <QDebug>
 #include <QDateTime>
 
-ShopTemplateManager::ShopTemplateManager(QObject *parent) : QObject(parent) {
+using namespace boolinq;
+
+ShopTemplateManager::ShopTemplateManager(Application *parent)
+    : QObject(parent)
+    , parent_(parent) {
     LoadTemplateMatchers();
 }
 
-// The actual generation engine
-QString ShopTemplateManager::Generate(const Application &app, const Items &items) {
-    QString temp = shopTemplate;
-    QRegularExpression expr = QRegularExpression("{(?<key>.*?)}");
-    QRegularExpressionMatchIterator matcher = expr.globalMatch(shopTemplate);
-    int offset = 0;
-    while (matcher.hasNext()) {
-        QRegularExpressionMatch match = matcher.next();
-        QString key = match.captured("key").toLower();
-        int startPos = offset + match.capturedStart();
-        int len = match.capturedLength();
+QString ShopTemplateManager::FetchFromEasyKey(const QString &key, QHash<QString, QString>* options) {
+    QString replacement;
 
-        QString replacement;
+    if (key == "ign") {
+        replacement = "InsertIGNHere"; // todo(novynn): actually put preferred char name?
+    }
+    else if (key == "lastupdated") {
+        replacement = QDateTime::currentDateTime().toString("MMMM dd, yyyy hh:mm A");
+    }
 
-        if (key == "ign") {
-            replacement = "InsertIGNHere"; // todo(novynn): actually put preferred char name?
+    return replacement;
+}
+
+void ShopTemplateManager::WriteItems(const Items &items, QString* writer, bool includeBuyoutTag, bool includeNoBuyouts) {
+    for (auto &item : items) {
+        if (item->location().socketed())
+            continue;
+
+        if (parent_->buyout_manager().Exists(*item)) {
+            Buyout bo = parent_->buyout_manager().Get(*item);
+
+            writer->append(QString::fromStdString(item->location().GetForumCode(parent_->league())));
+            if (includeBuyoutTag)
+                writer->append(BuyoutManager::Generate(bo));
         }
-        else if (key == "lastupdated") {
-            replacement = QDateTime::currentDateTime().toString("MMMM dd, yyyy hh:mm A");
+        else if (includeNoBuyouts) {
+            writer->append(QString::fromStdString(item->location().GetForumCode(parent_->league())));
         }
-        else if (items.size() > 0){
-            Items result;
+    }
+}
 
-            if (key == "everything") {
-                result = items;
-            }
-            else if (key.startsWith("stash:")) {
-                QString name = key.split(":").last();
+QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &items, QHash<QString, QString> *options)
+{
+    QString replacement;
+    if (items.size() > 0){
+        Items result;
+
+        ShopTemplateContainType containType = CONTAIN_TYPE_NONE;
+
+        if (key == "everything") {
+            result = items;
+        }
+        else if (key.startsWith("stash:")) {
+            int index = key.indexOf(":");
+            QString name = (index + 1 >= key.length()) ? "" : key.mid(index + 1);
+            if (!name.isEmpty()) {
                 for (const std::shared_ptr<Item> &item : items) {
                     if (QString::fromStdString(item->location().GetLabel()).compare(name, Qt::CaseInsensitive) == 0) {
                         result.push_back(item);
                     }
                 }
             }
-            else {
-                Items pool = items;
-                QStringList keyParts = key.split("+", QString::SkipEmptyParts);
-                for (QString part : keyParts) {
-                    if (templateMatchers.contains(part)) {
-                        qDebug() << "\tMatched a template matcher!";
-                        result = FindMatchingItems(pool, part);
-                        qDebug() << "\tMatched " << result.size() << "/" << pool.size() << " item/s";
-                    }
-                    else {
-                        // todo(novynn): phase these out? Prefer {Normal+Helmet} over {NormalHelmet}
-                        bool matchedRarity = false;
-                        const QStringList rarities = {"normal", "magic", "rare", "unique"};
-                        for (QString rarity : rarities) {
-                            if (part.startsWith(rarity)) {
-                                QString type = part.mid(rarity.length());
+        }
+        else {
+            Items pool = items;
+            QStringList keyParts = key.split("+", QString::SkipEmptyParts);
+            for (QString part : keyParts) {
+                if (templateMatchers.contains(part)) {
+                    result = FindMatchingItems(pool, part);
+                }
+                else {
+                    // todo(novynn): phase these out? Prefer {Normal+Helmet} over {NormalHelmet}
+                    bool matchedRarity = false;
+                    const QStringList rarities = {"normal", "magic", "rare", "unique"};
+                    for (QString rarity : rarities) {
+                        if (part.startsWith(rarity)) {
+                            QString type = part.mid(rarity.length());
 
-                                result = FindMatchingItems(pool, rarity);
-                                result = FindMatchingItems(result, type);
-                                matchedRarity = true;
-                            }
+                            result = FindMatchingItems(pool, rarity);
+                            result = FindMatchingItems(result, type);
+                            matchedRarity = true;
                         }
+                    }
 
-                        if (matchedRarity) continue;
+                    if (matchedRarity) continue;
 
-                        if (part.endsWith("gems")) {
-                            if (part == "gems" || part == "allgems") {
-                                result = FindMatchingItems(pool, part);
-                            }
-                            else {
-                                const QStringList gemTypes = {"AoE", "Attack", "Aura", "Bow", "Cast", "Chaining", "Chaos",
-                                                              "Cold", "Curse", "Duration", "Fire", "Lightning", "Melee", "Mine", "Minion",
-                                                              "Movement", "Projectile", "Spell", "Totem", "Trap", "Support"};
-                                for (QString gemType : gemTypes) {
-                                    if (!part.startsWith(gemType, Qt::CaseInsensitive)) continue;
+                    if (part.endsWith("gems")) {
+                        if (part == "gems" || part == "allgems") {
+                            result = FindMatchingItems(pool, "gems");
+                        }
+                        else {
+                            const QStringList gemTypes = {"AoE", "Attack", "Aura", "Bow", "Cast", "Chaining", "Chaos",
+                                                          "Cold", "Curse", "Duration", "Fire", "Lightning", "Melee", "Mine", "Minion",
+                                                          "Movement", "Projectile", "Spell", "Totem", "Trap", "Support"};
+                            for (QString gemType : gemTypes) {
+                                if (!part.startsWith(gemType, Qt::CaseInsensitive)) continue;
 
-                                    // This will never just be first key (?)
-                                    QString firstKey = gemType.toLower() + "gems";
-                                    result = FindMatchingItems(pool, firstKey);
+                                // This will never just be first key (?)
+                                QString firstKey = gemType.toLower() + "gems";
+                                result = FindMatchingItems(pool, firstKey);
 
-                                    if (part != firstKey) {
-                                        // supportlightninggems
-                                        QString secondKey = part.mid(gemType.length());
-                                        result = FindMatchingItems(result, secondKey);
-                                    }
+                                if (part != firstKey) {
+                                    // supportlightninggems
+                                    QString secondKey = part.mid(gemType.length());
+                                    result = FindMatchingItems(result, secondKey);
                                 }
                             }
                         }
                     }
-                    pool = result;
                 }
-            }
-
-            for (auto &item : result) {
-                if (item->location().socketed())
-                    continue;
-                Buyout bo;
-                bo.type = BUYOUT_TYPE_NONE;
-
-                std::string hash = item->location().GetUniqueHash();
-                if (app.buyout_manager().ExistsTab(hash))
-                    bo = app.buyout_manager().GetTab(hash);
-                if (app.buyout_manager().Exists(*item))
-                    bo = app.buyout_manager().Get(*item);
-                if (bo.type == BUYOUT_TYPE_NONE)
-                    continue;
-
-                replacement += QString::fromStdString(item->location().GetForumCode(app.league()));
-
-                replacement += QString::fromStdString(BuyoutTypeAsPrefix[bo.type]);
-
-                if (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED) {
-                    replacement += QString::number(bo.value).toUtf8().constData();
-                    replacement += " " + QString::fromStdString(CurrencyAsTag[bo.currency]);
-                }
+                pool = result;
             }
         }
 
-        temp.replace(startPos, len, replacement);
-        offset += replacement.length() - len;
+        // If no items were returned, bail out now!
+        if (result.size() == 0)
+            return replacement;
+
+        // Only select items from your stash unless specified
+        if (!options->contains("include.character")) {
+            result = from(result)
+                    .where([](const std::shared_ptr<Item> item) { return item->location().type() == ItemLocationType::STASH; })
+                    .toVector();
+        }
+
+        // Recheck
+        if (result.size() == 0)
+            return replacement;
+
+        bool includeNoBuyouts = options->contains("include.ignored");
+
+        if (containType == CONTAIN_TYPE_NONE && options->contains("wrap")) containType = CONTAIN_TYPE_WRAP;
+        if (containType == CONTAIN_TYPE_NONE && options->contains("group")) containType = CONTAIN_TYPE_GROUP;
+
+        switch (containType) {
+            case (CONTAIN_TYPE_WRAP): {
+                QString header = "Items";
+                Buyout buyout = {};
+
+                if (options->contains("header")) {
+                    header = options->value("header");
+                }
+
+                const std::shared_ptr<Item> first = result.front();
+                if (parent_->buyout_manager().Exists(*first)) buyout = parent_->buyout_manager().Get(*first);
+
+                bool sameBuyout = from(result).all([this, buyout](const std::shared_ptr<Item> item) {
+                    Buyout thisBuyout = {};
+                    if (parent_->buyout_manager().Exists(*item)) thisBuyout = parent_->buyout_manager().Get(*item);
+                    return BuyoutManager::Equal(thisBuyout, buyout);
+                });
+
+                if (sameBuyout) {
+                    header += BuyoutManager::Generate(buyout);
+                }
+
+                QString temp;
+                WriteItems(result, &temp, !sameBuyout, includeNoBuyouts);
+                if (temp.isEmpty())
+                    return replacement;
+
+                replacement += QString("[spoiler=\"%1\"]").arg(header);
+                replacement += temp;
+                replacement += "[/spoiler]";
+                break;
+            }
+            case CONTAIN_TYPE_GROUP: {
+                QMultiMap<Buyout, std::shared_ptr<Item>> itemsMap;
+
+                for (auto &item : result) {
+                    Buyout b = {};
+                    if (parent_->buyout_manager().Exists(*item))
+                        b = parent_->buyout_manager().Get(*item);
+                    itemsMap.insert(b, item);
+                }
+
+                for (Buyout b : itemsMap.uniqueKeys()) {
+                    Items itemList = itemsMap.values(b).toVector().toStdVector();
+                    if (itemList.size() == 0)
+                        continue;
+                    QString header = BuyoutManager::Generate(b);
+                    if (header.isEmpty()) header = "Offers Accepted";
+                    QString temp;
+                    WriteItems(itemList, &temp, false, includeNoBuyouts);
+                    if (temp.isEmpty())
+                        continue;
+                    replacement += QString("[spoiler=\"%1\"]").arg(header);
+                    replacement += temp;
+                    replacement += "[/spoiler]";
+                }
+                break;
+            }
+            default: {
+                WriteItems(result, &replacement, true, includeNoBuyouts);
+                break;
+            }
+        }
     }
+
+    return replacement;
+}
+
+QString ShopTemplateManager::FetchFromKey(const QString &key, const Items &items, QHash<QString, QString>* options) {
+    QString replacement = FetchFromEasyKey(key, options);
+
+    if (replacement.isEmpty()) {
+        replacement = FetchFromItemsKey(key, items, options);
+    }
+
+    return replacement;
+}
+
+// The actual generation engine
+QString ShopTemplateManager::Generate(const Items &items) {
+    QString temp = shopTemplate;
+    {
+        QRegularExpression expr("{(?<key>.+?)(?<options>(\\|(.+?))*?)}");
+        QRegularExpressionMatchIterator matcher = expr.globalMatch(shopTemplate);
+        int offset = 0;
+        while (matcher.hasNext()) {
+            QRegularExpressionMatch match = matcher.next();
+            QString key = match.captured("key").toLower();
+            int startPos = offset + match.capturedStart();
+            int len = match.capturedLength();
+
+            QStringList optionsAndData = match.captured("options").split("|", QString::SkipEmptyParts);
+            QHash<QString, QString> options;
+            for (QString optionAndData : optionsAndData) {
+                int split = optionAndData.indexOf(":");
+                if (split == -1) {
+                    options.insert(optionAndData.toLower(), "");
+                }
+                else {
+                    QString option = optionAndData.left(split).toLower();
+                    QString data = optionAndData.mid(split + 1);
+                    options.insert(option, data);
+                }
+            }
+
+            QString replacement = FetchFromKey(key, items, &options);
+
+            temp.replace(startPos, len, replacement);
+            offset += replacement.length() - len;
+        }
+    }
+
+    // Now clean up empty spoiler tags!
+    int matches = -1;
+    while (matches != 0){
+        QRegularExpression expr("\\[spoiler=\\\"(?>.*?\\\"\\])(?>\\s*?\\[\\/spoiler\\]\\n)");
+        QRegularExpressionMatchIterator matcher = expr.globalMatch(temp);
+        int offset = 0;
+        matches = 0;
+        while (matcher.hasNext()) {
+            QRegularExpressionMatch match = matcher.next();
+            int startPos = match.capturedStart() + offset;
+            int length = match.capturedLength();
+
+            temp.remove(startPos, length);
+            offset -= length;
+            matches++;
+        }
+    }
+
     return temp;
 }
 
@@ -168,6 +312,13 @@ void ShopTemplateManager::LoadTemplateMatchers() {
         });
     }
 
+    for (int i = 1; i <= 20; i++) {
+        templateMatchers.insert("level" + QString::number(i) + "gems", [i](const std::shared_ptr<Item> &item) {
+            auto level = item->properties().find("Level");
+            int l = QString::fromStdString(level->second).toInt();
+            return item->frameType() == FRAME_TYPE_GEM && l == i;
+        });
+    }
     templateMatchers.insert("leveledgems", [](const std::shared_ptr<Item> &item) {
         auto level = item->properties().find("Level");
         int l = QString::fromStdString(level->second).toInt();
@@ -176,6 +327,10 @@ void ShopTemplateManager::LoadTemplateMatchers() {
 
     templateMatchers.insert("corruptedgems", [](const std::shared_ptr<Item> &item) {
         return item->frameType() == FRAME_TYPE_GEM && item->corrupted();
+    });
+
+    templateMatchers.insert("gems", [](const std::shared_ptr<Item> &item) {
+        return item->frameType() == FRAME_TYPE_GEM;
     });
 
     //    ???{PopularGems} - This is based on the Popular Gems list in settings.xml
