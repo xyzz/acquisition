@@ -52,7 +52,7 @@ public:
     void AddShop(const QString &threadId, QString temp = QString());
     void RemoveShop(const QString &threadId);
     void CopyToClipboard(const QString &threadId);
-    void ExpireShopData(const QString &threadId = QString());
+    void ExpireShopData();
     void SetShopTemplate(const QString &threadId, const QString &temp);
 
     const QList<QString> threadIds() const { return shops_.uniqueKeys(); }

@@ -115,29 +115,37 @@ void BuyoutManager::UpdateTabItems(const Bucket &tab) {
     // Set buyouts on items with the "set_by" flag set to the tab
     for (auto &item : tab.items()) {
         if (set) {
+            Buyout b;
+            b.currency = buyout.currency;
+            b.type = buyout.type;
+            b.value = buyout.value;
             if (!Exists(*item)) {
                 // It's new!
-            }
-            else if (Exists(*item)) {
-                if (IsItemManuallySet(*item)) {
-                    continue;
-                }
-                Buyout curr = Get(*item);
-                if (Equal(buyout, curr) && curr.set_by.toStdString() == hash) {
-                    // Don't update...
-                    continue;
-                }
+                b.last_update = QDateTime::currentDateTime();
             }
             else {
-                continue;
+                if (Exists(*item)) {
+                    if (IsItemManuallySet(*item)) {
+                        continue;
+                    }
+                    Buyout curr = Get(*item);
+                    if (Equal(buyout, curr) && curr.set_by.toStdString() == hash) {
+                        // Don't update...
+                        continue;
+                    }
+                }
+                else {
+                    continue;
+                }
+                b.last_update = buyout.last_update;
             }
-            buyout.last_update = QDateTime::currentDateTime();
-            Set(*item, buyout, QString::fromStdString(hash));
+            Set(*item, b, QString::fromStdString(hash));
         }
         else if (!set && Exists(*item) && !IsItemManuallySet(*item)) {
             Delete(*item);
         }
     }
+    Save();
 }
 
 std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyouts) {

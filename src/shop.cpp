@@ -148,15 +148,9 @@ void Shop::CopyToClipboard(const QString &threadId) {
     clipboard->setText(data->shopData);
 }
 
-void Shop::ExpireShopData(const QString &threadId) {
-    if (threadId.isEmpty()) {
-        for (QString thread : threadIds()) {
-            if (!thread.isEmpty())
-                ExpireShopData(threadId);
-        }
-    }
-    else if (shops_.contains(threadId)) {
-        ShopData* data = shops_.value(threadId);
+void Shop::ExpireShopData() {
+    for (QString thread : threadIds()) {
+        ShopData* data = shops_.value(thread);
         data->requiresUpdate = true;
     }
 }

@@ -24,6 +24,8 @@ TemplateDialog::TemplateDialog(Application *app, const QString &threadId, QWidge
         QString result = manager.Generate(app_->items());
         ui->textBrowser->setPlainText(result);
     });
+
+    emit ui->plainTextEdit->textChanged();
 }
 
 QString TemplateDialog::GetTemplate() {
