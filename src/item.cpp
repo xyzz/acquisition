@@ -21,6 +21,7 @@
 
 #include <utility>
 #include <QString>
+#include <QRegularExpression>
 #include "rapidjson/document.h"
 
 #include "modlist.h"
@@ -60,6 +61,15 @@ Item::Item(const rapidjson::Value &json) :
     sockets_({ 0, 0, 0, 0 }),
     has_mtx_(false)
 {
+    // Fix for 2.0.2
+    QString name = QString::fromStdString(name_);
+    name.remove(QRegularExpression("<(.*)>"));
+    name_ = name.toStdString();
+
+    QString typeLine = QString::fromStdString(typeLine_);
+    typeLine.remove(QRegularExpression("<(.*)>"));
+    typeLine_ = typeLine.toStdString();
+
     for (auto &mod_type : ITEM_MOD_TYPES) {
         text_mods_[mod_type] = std::vector<std::string>();
         if (json.HasMember(mod_type.c_str())) {
