@@ -148,7 +148,7 @@ Item::Item(const rapidjson::Value &json) :
         socket_groups_.push_back(current_group);
     }
 
-    std::string unique(std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~");
+    std::string unique(name_ + "~" + typeLine_ + "~");
 
     if (json.HasMember("explicitMods"))
         for (auto mod_it = json["explicitMods"].Begin(); mod_it != json["explicitMods"].End(); ++mod_it)
