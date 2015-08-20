@@ -46,10 +46,19 @@ static std::string item_unique_properties(const rapidjson::Value &json, const st
     return result;
 }
 
+// Fix up names, remove all <<set:X>> modifiers
+static std::string fixup_name(const std::string &name) {
+    std::string::size_type right_shift = name.rfind(">>");
+    if (right_shift != std::string::npos) {
+        return name.substr(right_shift + 2);
+    }
+    return name;
+}
+
 Item::Item(const rapidjson::Value &json) :
     location_(ItemLocation(json)),
-    name_(json["name"].GetString()),
-    typeLine_(json["typeLine"].GetString()),
+    name_(fixup_name(json["name"].GetString())),
+    typeLine_(fixup_name(json["typeLine"].GetString())),
     corrupted_(json["corrupted"].GetBool()),
     w_(json["w"].GetInt()),
     h_(json["h"].GetInt()),
