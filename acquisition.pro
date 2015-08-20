@@ -19,82 +19,84 @@ include(deps/QsLog/QsLog.pri)
 INCLUDEPATH += src deps
 
 SOURCES += \
-    src/main.cpp\
-    src/mainwindow.cpp \
-    src/item.cpp \
+    deps/sqlite/sqlite3.c \
+    src/application.cpp \
+    src/autoonline.cpp \
+    src/bucket.cpp \
+    src/buyoutmanager.cpp \
     src/column.cpp \
+    src/currencymanager.cpp \
+    src/datamanager.cpp \
+    src/filesystem.cpp \
     src/filters.cpp \
-    src/search.cpp \
-    src/items_model.cpp \
     src/flowlayout.cpp \
     src/imagecache.cpp \
-    src/logindialog.cpp \
-    src/itemsmanager.cpp \
-    src/datamanager.cpp \
-    deps/sqlite/sqlite3.c \
-    src/buyoutmanager.cpp \
-    src/util.cpp \
-    src/shop.cpp \
-    src/porting.cpp \
-    src/bucket.cpp \
+    src/item.cpp \
     src/itemlocation.cpp \
-    src/version.cpp \
-    src/application.cpp \
-    src/steamlogindialog.cpp \
-    src/modsfilter.cpp \
-    src/modlist.cpp \
-    src/logpanel.cpp \
+    src/items_model.cpp \
+    src/itemsmanager.cpp \
     src/itemsmanagerworker.cpp \
-    src/verticalscrollarea.cpp \
+    src/logindialog.cpp \
+    src/logpanel.cpp \
+    src/main.cpp \
+    src/mainwindow.cpp \
+    src/modlist.cpp \
+    src/modsfilter.cpp \
+    src/porting.cpp \
+    src/replytimeout.cpp \
+    src/search.cpp \
+    src/shop.cpp \
+    src/steamlogindialog.cpp \
     src/updatechecker.cpp \
-    src/autoonline.cpp \
-    src/filesystem.cpp \
-    test/testmain.cpp \
+    src/util.cpp \
+    src/version.cpp \
+    src/verticalscrollarea.cpp \
     test/testdata.cpp \
     test/testitem.cpp \
+    test/testmain.cpp \
     test/testshop.cpp \
-    test/testutil.cpp \
-    src/currencymanager.cpp
+    test/testutil.cpp
 
 HEADERS += \
-    src/item.h \
+    deps/sqlite/sqlite3.h \
+    src/application.h \
+    src/autoonline.h \
+    src/bucket.h \
+    src/buyoutmanager.h \
     src/column.h \
+    src/currencymanager.h \
+    src/datamanager.h \
+    src/filesystem.h \
     src/filters.h \
-    src/search.h \
-    src/mainwindow.h \
-    src/items_model.h \
     src/flowlayout.h \
     src/imagecache.h \
-    src/logindialog.h \
-    src/itemsmanager.h \
-    src/datamanager.h \
-    deps/sqlite/sqlite3.h \
-    src/buyoutmanager.h \
-    src/util.h \
-    src/shop.h \
-    src/version.h \
-    src/porting.h \
-    src/bucket.h \
-    src/itemlocation.h \
+    src/item.h \
     src/itemconstants.h \
-    src/version_defines.h \
-    src/application.h \
-    src/steamlogindialog.h \
-    src/rapidjson_util.h \
-    src/modsfilter.h \
-    src/modlist.h \
-    src/logpanel.h \
+    src/itemlocation.h \
+    src/items_model.h \
+    src/itemsmanager.h \
     src/itemsmanagerworker.h \
-    src/verticalscrollarea.h \
+    src/logindialog.h \
+    src/logpanel.h \
+    src/mainwindow.h \
+    src/modlist.h \
+    src/modsfilter.h \
+    src/porting.h \
+    src/rapidjson_util.h \
+    src/replytimeout.h \
+    src/search.h \
+    src/shop.h \
+    src/steamlogindialog.h \
     src/updatechecker.h \
-    src/autoonline.h \
-    src/filesystem.h \
-    test/testmain.h \
+    src/util.h \
+    src/version.h \
+    src/version_defines.h \
+    src/verticalscrollarea.h \
     test/testdata.h \
     test/testitem.h \
+    test/testmain.h \
     test/testshop.h \
-    test/testutil.h \
-    src/currencymanager.h
+    test/testutil.h
 
 FORMS += \
     forms/mainwindow.ui \

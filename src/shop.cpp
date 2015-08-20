@@ -33,6 +33,7 @@
 #include "porting.h"
 #include "util.h"
 #include "mainwindow.h"
+#include "replytimeout.h"
 
 const std::string kPoeEditThread = "https://www.pathofexile.com/forum/edit-thread/";
 const std::string kShopTemplateItems = "[items]";
@@ -134,8 +135,6 @@ void Shop::Update() {
         shop_data_[i] = Util::StringReplace(shop_template_, kShopTemplateItems, "[spoiler]" + shop_data_[i] + "[/spoiler]");
 
     shop_hash_ = Util::Md5(Util::StringJoin(shop_data_, ";"));
-    if (auto_update_)
-        SubmitShopToForum();
 }
 
 void Shop::ExpireShopData() {
@@ -185,6 +184,7 @@ void Shop::SubmitSingleShop() {
     } else {
         // first, get to the edit-thread page to grab CSRF token
         QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopEditUrl(requests_completed_).c_str())));
+        new QReplyTimeout(fetched, kEditThreadTimeout);
         connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
     }
     emit StatusUpdate(status);
@@ -221,6 +221,7 @@ void Shop::OnEditPageFinished() {
     QNetworkRequest request((QUrl(ShopEditUrl(requests_completed_).c_str())));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *submitted = app_.logged_in_nm().post(request, data);
+    new QReplyTimeout(submitted, kEditThreadTimeout);
     connect(submitted, SIGNAL(finished()), this, SLOT(OnShopSubmitted()));
 }
 
