@@ -152,6 +152,13 @@ void Search::Activate(const Items &items, QTreeView *tree) {
     // Set headers
     for (int i = 0; i < tree->header()->count(); i++) {
         tree->header()->setSectionHidden(i, hiddenColumns_.contains(i));
+        int from = tree->header()->visualIndex(i);
+        int to = i;
+        if (columnsMap_.contains(i)) {
+            to = columnsMap_.value(i);
+        }
+        if (to != from)
+            tree->header()->swapSections(from, to);
     }
 
     // Set expanded
@@ -170,7 +177,56 @@ void Search::Activate(const Items &items, QTreeView *tree) {
     }
 }
 
-QModelIndex Search::GetIndex(const QModelIndex &index) const
-{
+QModelIndex Search::GetIndex(const QModelIndex &index) const {
     return sortFilter_->mapToSource(index);
+}
+
+void Search::SaveColumnsPosition(QHeaderView* view) {
+    columnsMap_.clear();
+    for (int i = 0; i < view->count(); i++) {
+        int j = view->visualIndex(i);
+        columnsMap_.insert(i, j);
+    }
+}
+
+void Search::LoadState(const QVariantHash &data) {
+    caption_ = data.value("caption").toString().toStdString();
+    hiddenBuckets_ = data.value("hidden_buckets").toStringList();
+    showHiddenBuckets_ = data.value("show_hidden").toBool();
+    expandedHashs_ = data.value("expanded").toStringList();
+    hiddenColumns_.clear();
+    QStringList items = data.value("hidden_columns").toStringList();
+    for (QString item : items) {
+        hiddenColumns_.append(item.toInt());
+    }
+
+    columnsMap_.clear();
+    QMap<QString, QVariant> columnMap = data.value("columns_map").toMap();
+    for (QString key : columnMap.keys()) {
+        int i = key.toInt();
+        int val = columnMap.value(key).toInt();
+        columnsMap_.insert(i, val);
+    }
+}
+
+QVariantHash Search::SaveState() {
+    QVariantHash hash;
+    hash.insert("caption", QString::fromStdString(caption_));
+    hash.insert("hidden_buckets", hiddenBuckets_);
+    hash.insert("show_hidden", showHiddenBuckets_);
+    hash.insert("expanded", expandedHashs_);
+
+    QStringList items;
+    for (int item : hiddenColumns_) {
+        items.append(QString::number(item));
+    }
+    hash.insert("hidden_columns", items);
+
+    QMap<QString, QVariant> variantMap;
+    for (int i : columnsMap_.keys()) {
+        int j = columnsMap_.value(i);
+        variantMap.insert(QString::number(i), QVariant(j));
+    }
+    hash.insert("columns_map", variantMap);
+    return hash;
 }

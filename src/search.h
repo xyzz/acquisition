@@ -32,6 +32,7 @@ class Filter;
 class FilterData;
 class ItemsModel;
 class QTreeView;
+class QHeaderView;
 
 class Search {
 public:
@@ -59,6 +60,10 @@ public:
     void AddHiddenColumn(int logicalIndex) { hiddenColumns_.append(logicalIndex); }
     bool IsColumnHidden(int logicalIndex) { return hiddenColumns_.contains(logicalIndex); }
     void RemoveHiddenColumn(int logicalIndex)  { hiddenColumns_.removeAll(logicalIndex); }
+
+    void LoadState(const QVariantHash &data);
+    QVariantHash SaveState();
+    void SaveColumnsPosition(QHeaderView *view);
 private:
     std::vector<std::unique_ptr<FilterData>> filters_;
     std::vector<std::unique_ptr<Column>> columns_;
@@ -74,4 +79,5 @@ private:
 
     QStringList expandedHashs_;
     QList<int> hiddenColumns_;
+    QMap<int, int> columnsMap_;
 };

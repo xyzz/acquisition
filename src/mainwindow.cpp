@@ -36,6 +36,10 @@
 #include <QScrollArea>
 #include <QStringList>
 #include <QTabBar>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
 #include "QsLog.h"
 
 #include "application.h"
@@ -78,7 +82,8 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     InitializeUi();
     InitializeLogging();
     InitializeSearchForm();
-    NewSearch();
+    // Load searches
+    LoadSearches();
     InitializeActions();
 
     image_network_manager_ = new QNetworkAccessManager;
@@ -702,7 +707,8 @@ void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /*
 void MainWindow::OnTabChange(int index) {
     // "+" clicked
     if (static_cast<size_t>(index) == searches_.size()) {
-        NewSearch();
+        current_search_ = NewSearch();
+        current_search_->ResetForm();
     } else {
         current_search_ = searches_[index];
         current_search_->ToForm();
@@ -807,9 +813,38 @@ void MainWindow::InitializeSearchForm() {
     mods_layout->addSpacerItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding));
 }
 
-void MainWindow::NewSearch() {
-    current_search_ = new Search(app_->buyout_manager(), QString("Search %1").arg(++search_count_).toStdString(), filters_);
-    tab_bar_->setTabText(tab_bar_->count() - 1, current_search_->GetCaption());
+void MainWindow::LoadSearches() {
+    QByteArray data = QByteArray::fromStdString(app_->data_manager().Get("searches"));
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    QJsonArray array = doc.array();
+
+    for (QJsonValue val : array) {
+        QJsonObject obj = val.toObject();
+        Search* search = NewSearch();
+        search->LoadState(obj.toVariantHash());
+    }
+    tab_bar_->setCurrentIndex(0);
+    OnTabChange(0);
+}
+
+void MainWindow::SaveSearches() {
+    QJsonDocument doc;
+    QJsonArray array;
+
+    for (Search* search : searches_) {
+        search->SaveColumnsPosition(ui->treeView->header());
+        QVariantHash hash = search->SaveState();
+        array.append(QJsonObject::fromVariantHash(hash));
+    }
+
+    doc.setArray(array);
+    QByteArray data = doc.toJson();
+    app_->data_manager().Set("searches", data.toStdString());
+}
+
+Search* MainWindow::NewSearch() {
+    Search* search = new Search(app_->buyout_manager(), QString("Search %1").arg(++search_count_).toStdString(), filters_);
+    tab_bar_->setTabText(tab_bar_->count() - 1, search->GetCaption());
     tab_bar_->tabButton(tab_bar_->count() - 1, QTabBar::RightSide)->resize(16, 16);
     tab_bar_->addTab("+");
     tab_bar_->tabButton(tab_bar_->count() - 1, QTabBar::RightSide)->resize(0, 0);
@@ -822,11 +857,8 @@ void MainWindow::NewSearch() {
         tab_bar_->tabButton(0, QTabBar::RightSide)->resize(0, 0);
     }
 
-    // this can't be done in ctor because it'll call OnSearchFormChange slot
-    // and remove all previous search data
-    current_search_->ResetForm();
-    searches_.push_back(current_search_);
-    OnSearchFormChange();
+    searches_.push_back(search);
+    return search;
 }
 
 void MainWindow::UpdateCurrentBucket() {
@@ -1169,6 +1201,7 @@ void MainWindow::OnItemsRefreshed() {
 }
 
 MainWindow::~MainWindow() {
+    SaveSearches();
     QByteArray geo = saveGeometry();
     app_->data_manager().Set("mainwindow_geometry", geo.toStdString());
     QByteArray state = saveState(VERSION_CODE);
@@ -1213,6 +1246,7 @@ void MainWindow::UpdateCurrentHeaderState()
         QAction* action = view_header_actions_.value(i, 0);
         if (action) action->setChecked(!current_search_->IsColumnHidden(i));
     }
+    current_search_->SaveColumnsPosition(ui->treeView->header());
 }
 
 void MainWindow::on_refreshItemsButton_clicked() {

@@ -86,6 +86,8 @@ public:
     void UpdateSettingsBox();
     void InitializeActions();
     Application* application() { return app_.get(); }
+    void LoadSearches();
+    void SaveSearches();
 public slots:
     void OnTreeChange(const QModelIndex &index, const QModelIndex &prev);
     void OnSearchFormChange();
@@ -117,7 +119,7 @@ private:
     void UpdateCurrentItemIcon(const QImage &image);
     void UpdateCurrentItemProperties();
     void UpdateCurrentBuyout();
-    void NewSearch();
+    Search *NewSearch();
     void InitializeLogging();
     void InitializeSearchForm();
     void InitializeUi();
