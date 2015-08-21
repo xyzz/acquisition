@@ -254,8 +254,9 @@ void ItemsManagerWorker::OnFirstTabReceived() {
     exclusionDoc.Parse(exclusions.c_str());
 
     if (exclusionDoc.IsArray()) {
-        for (auto &excl  : exclusionDoc) {
-            expressions.append(QRegularExpression(excl.GetString()));
+        for (auto &excl : exclusionDoc) {
+            QRegularExpression expr(excl.GetString());
+            if (expr.isValid()) expressions.append(expr);
         }
     }
 
@@ -271,16 +272,24 @@ void ItemsManagerWorker::OnFirstTabReceived() {
             }
         }
 
+        if (skip) continue;
+
         tabs_.push_back(label);
-        if (index > 0 || skip) {
+        if (index > 0) {
             ItemLocation location;
             location.set_type(ItemLocationType::STASH);
             location.set_tab_id(index);
             location.set_tab_label(label);
             if (!tab.HasMember("hidden") || !tab["hidden"].GetBool())
-                QueueRequest(MakeTabRequest(skip ? 0 : index), location);
+                QueueRequest(MakeTabRequest(index), location);
         }
         ++index;
+    }
+
+    if (tabs_.size() == 0) {
+        QLOG_WARN() << "There are no tabs to be downloaded. Try clearing your tab exclusions list.";
+        updating_ = false;
+        return;
     }
 
     ItemLocation first_tab_location;
