@@ -177,7 +177,6 @@ std::string BuyoutManager::Serialize(const QMap<QString, Buyout> &buyouts) {
     }
     doc.setObject(root);
     QByteArray result = doc.toJson();
-    qDebug() << result;
     return result.toStdString();
 }
 

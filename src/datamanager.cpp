@@ -25,8 +25,6 @@
 #include <ctime>
 #include <stdexcept>
 
-#include "currencymanager.h"
-
 DataManager::DataManager(const std::string &filename) :
     filename_(filename)
 {
@@ -37,7 +35,6 @@ DataManager::DataManager(const std::string &filename) :
         throw std::runtime_error("Failed to open sqlite3 database.");
     }
     CreateTable("data", "key TEXT PRIMARY KEY, value BLOB");
-    CreateTable("currency", "timestamp INTEGER PRIMARY KEY, value TEXT");
 }
 
 void DataManager::CreateTable(const std::string &name, const std::string &fields) {
@@ -67,31 +64,6 @@ void DataManager::Set(const std::string &key, const std::string &value) {
     sqlite3_bind_blob(stmt, 2, value.c_str(), value.size(), SQLITE_STATIC);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
-}
-
-void DataManager::InsertCurrencyUpdate(const CurrencyUpdate &update) {
-    std::string query = "INSERT INTO currency (timestamp, value) VALUES (?, ?)";
-    sqlite3_stmt *stmt;
-    sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
-    sqlite3_bind_int64(stmt, 1, update.timestamp);
-    sqlite3_bind_text(stmt, 2, update.value.c_str(), -1, SQLITE_STATIC);
-    sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-}
-
-std::vector<CurrencyUpdate> DataManager::GetAllCurrency() {
-    std::string query = "SELECT timestamp, value FROM currency ORDER BY timestamp ASC";
-    sqlite3_stmt* stmt;
-    sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
-    std::vector<CurrencyUpdate> result;
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        CurrencyUpdate update = CurrencyUpdate();
-        update.timestamp = sqlite3_column_int64(stmt, 0);
-        update.value = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
-        result.push_back(update);
-    }
-    sqlite3_finalize(stmt);
-    return result;
 }
 
 void DataManager::SetBool(const std::string &key, bool value) {

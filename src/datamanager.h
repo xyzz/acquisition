@@ -23,7 +23,6 @@
 #include <vector>
 
 class Application;
-struct CurrencyUpdate;
 struct sqlite3;
 
 class DataManager {
@@ -32,8 +31,6 @@ public:
     ~DataManager();
     void Set(const std::string &key, const std::string &value);
     std::string Get(const std::string &key, const std::string &default_value = "");
-    void InsertCurrencyUpdate(const CurrencyUpdate &update);
-    std::vector<CurrencyUpdate> GetAllCurrency();
     void SetBool(const std::string &key, bool value);
     bool GetBool(const std::string &key, bool default_value = false);
     static std::string MakeFilename(const std::string &name, const std::string &league);
