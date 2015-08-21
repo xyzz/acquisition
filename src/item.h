@@ -70,7 +70,8 @@ public:
     const std::vector<ItemRequirement> &text_requirements() const { return text_requirements_; }
     const std::map<std::string, ItemMods> &text_mods() const { return text_mods_; }
     const std::vector<ItemSocket> &text_sockets() const { return text_sockets_; }
-    const std::string &hash() const { return hash_; }
+    const std::string &hash() const { return old_hash_; }
+    const std::string &new_hash() const { return hash_; }
     const std::vector<std::pair<std::string, int>> &elemental_damage() const { return elemental_damage_; }
     const std::map<std::string, int> &requirements() const { return requirements_; }
     double DPS() const;
@@ -99,6 +100,7 @@ private:
     std::string icon_;
     std::map<std::string, std::string> properties_;
     std::string hash_;
+    std::string old_hash_;
     // vector of pairs [damage, type]
     std::vector<std::pair<std::string, int>> elemental_damage_;
     int sockets_cnt_, links_cnt_;

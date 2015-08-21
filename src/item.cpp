@@ -149,7 +149,7 @@ Item::Item(const rapidjson::Value &json) :
         socket_groups_.push_back(current_group);
     }
 
-    std::string unique(std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~");
+    std::string unique(name_ + "~" + typeLine_);
 
     if (json.HasMember("explicitMods"))
         for (auto mod_it = json["explicitMods"].Begin(); mod_it != json["explicitMods"].End(); ++mod_it)
@@ -165,6 +165,12 @@ Item::Item(const rapidjson::Value &json) :
     if (json.HasMember("sockets"))
         for (auto socket_it = json["sockets"].Begin(); socket_it != json["sockets"].End(); ++socket_it)
             unique += std::to_string((*socket_it)["group"].GetInt()) + "~" + (*socket_it)["attr"].GetString() + "~";
+
+    old_hash_ = Util::Md5(unique);
+
+    // This will only effect corrupted item's hashes...
+    if (corrupted())
+        unique += "corrupted";
 
     hash_ = Util::Md5(unique);
 
