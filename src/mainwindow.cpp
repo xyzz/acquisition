@@ -325,7 +325,7 @@ void MainWindow::InitializeUi() {
             Bucket bucket = *current_search_->buckets()[current_search_->GetIndex(index).row()];
             app_->buyout_manager().DeleteTab(bucket);
             app_->shop().ExpireShopData();
-            if (bucket.location().GetUniqueHash() == current_bucket_.location().GetUniqueHash()) {
+            if (bucket.location().GetGeneralHash() == current_bucket_.location().GetGeneralHash()) {
                 // Update UI
                 Buyout b;
                 b.currency = CURRENCY_NONE;
@@ -347,7 +347,7 @@ void MainWindow::InitializeUi() {
                 app_->buyout_manager().Delete(*item);
             }
             app_->shop().ExpireShopData();
-            if (bucket.location().GetUniqueHash() == current_bucket_.location().GetUniqueHash()) {
+            if (bucket.location().GetGeneralHash() == current_bucket_.location().GetGeneralHash()) {
                 // Update UI
                 Buyout b;
                 b.currency = CURRENCY_NONE;
@@ -536,7 +536,7 @@ void MainWindow::OnBuyoutChange(bool doParse) {
                 isUpdated = false;
             }
 
-            if (currBo.set_by.toStdString() == current_item_->location().GetUniqueHash() &&
+            if (currBo.set_by.toStdString() == current_item_->location().GetGeneralHash() &&
                (bo.type == BUYOUT_TYPE_NONE || bo.currency == CURRENCY_NONE)) {
                 // Set by the tab, changing to "ignore" or not using a currency won't work
                 isUpdated = false;
@@ -550,7 +550,7 @@ void MainWindow::OnBuyoutChange(bool doParse) {
                 app_->buyout_manager().Set(*current_item_, bo);
         }
     } else {
-        std::string tab = current_bucket_.location().GetUniqueHash();
+        std::string tab = current_bucket_.location().GetGeneralHash();
         if (app_->buyout_manager().ExistsTab(tab)) {
             Buyout currBo = app_->buyout_manager().GetTab(tab);
             if (BuyoutManager::Equal(currBo, bo)) {
@@ -1151,7 +1151,7 @@ void MainWindow::UpdateCurrentBuyout() {
         else
             UpdateBuyoutWidgets(app_->buyout_manager().Get(*current_item_));
     } else {
-        std::string tab = current_bucket_.location().GetUniqueHash();
+        std::string tab = current_bucket_.location().GetGeneralHash();
         if (!app_->buyout_manager().ExistsTab(tab))
             ResetBuyoutWidgets();
         else

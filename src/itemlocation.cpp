@@ -64,7 +64,7 @@ void ItemLocation::ToItemJson(rapidjson::Value *root_ptr, rapidjson_allocator &a
 std::string ItemLocation::GetHeader() const {
     if (type_ == ItemLocationType::STASH) {
         QString format("#%1, \"%2\"");
-        return format.arg(tab_id_ + 1).arg(tab_label_.c_str()).toStdString();
+        return format.arg(tab_id_).arg(tab_label_.c_str()).toStdString();
     } else {
         return character_;
     }
@@ -89,9 +89,16 @@ std::string ItemLocation::GetForumCode(const std::string &league) const {
     }
 }
 
+std::string ItemLocation::GetGeneralHash() const {
+    if (type_ == ItemLocationType::STASH)
+        return "stash:" + tab_label_;
+    else
+        return "character:" + character_;
+}
+
 std::string ItemLocation::GetUniqueHash() const {
     if (type_ == ItemLocationType::STASH)
-        return "stash:" + QString::number(tab_id_ + 1).toStdString() + ":" + tab_label_;
+        return "stash:" + QString::number(tab_id_).toStdString() + ":" + tab_label_;
     else
         return "character:" + character_;
 }

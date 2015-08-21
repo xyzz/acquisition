@@ -20,6 +20,7 @@ public:
     std::string GetHeader() const;
     QRectF GetRect() const;
     std::string GetForumCode(const std::string &league) const;
+    std::string GetGeneralHash() const;
     std::string GetUniqueHash() const;
     std::string GetLabel() const { return tab_label_; }
     bool operator<(const ItemLocation &other) const;

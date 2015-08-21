@@ -88,7 +88,7 @@ Buyout BuyoutManager::GetTab(const std::string &tab) const {
 }
 
 void BuyoutManager::SetTab(const Bucket &tab, const Buyout &buyout) {
-    std::string hash = tab.location().GetUniqueHash();
+    std::string hash = tab.location().GetGeneralHash();
     save_needed_ = true;
     tab_buyouts_[hash] = buyout;
 
@@ -100,7 +100,7 @@ bool BuyoutManager::ExistsTab(const std::string &tab) const {
 }
 
 void BuyoutManager::DeleteTab(const Bucket &tab) {
-    std::string hash = tab.location().GetUniqueHash();
+    std::string hash = tab.location().GetGeneralHash();
     save_needed_ = true;
     tab_buyouts_.erase(hash);
 
@@ -108,7 +108,7 @@ void BuyoutManager::DeleteTab(const Bucket &tab) {
 }
 
 void BuyoutManager::UpdateTabItems(const Bucket &tab) {
-    std::string hash = tab.location().GetUniqueHash();
+    std::string hash = tab.location().GetGeneralHash();
     bool set = ExistsTab(hash);
     Buyout buyout;
     if (set) buyout = GetTab(hash);

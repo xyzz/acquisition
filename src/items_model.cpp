@@ -85,9 +85,9 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
             const ItemLocation &location = search_.buckets()[index.row()]->location();
             if (role == Qt::DisplayRole) {
                 QString title(location.GetHeader().c_str());
-                if (bo_manager_.ExistsTab(location.GetUniqueHash()))
-                    title += QString(" [%1]").arg(Util::BuyoutAsText(bo_manager_.GetTab(location.GetUniqueHash())).c_str());
-                if (search_.IsBucketHidden(QString::fromStdString(location.GetUniqueHash()))) {
+                if (bo_manager_.ExistsTab(location.GetGeneralHash()))
+                    title += QString(" [%1]").arg(Util::BuyoutAsText(bo_manager_.GetTab(location.GetGeneralHash())).c_str());
+                if (search_.IsBucketHidden(QString::fromStdString(location.GetGeneralHash()))) {
                     title += " [Hidden]";
                 }
                 return title;
