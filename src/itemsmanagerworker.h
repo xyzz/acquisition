@@ -96,4 +96,5 @@ private:
     std::string selected_character_;
 
     std::string account_name_;
+    void StatusFinished();
 };

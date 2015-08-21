@@ -119,6 +119,14 @@ void ItemsManagerWorker::Update() {
     connect(main_page, &QNetworkReply::finished, this, &ItemsManagerWorker::OnMainPageReceived);
 }
 
+void ItemsManagerWorker::StatusFinished() {
+    CurrentStatusUpdate status = CurrentStatusUpdate();
+    status.state = ProgramState::ItemsCompleted;
+    status.progress = 100;
+    status.total = 100;
+    emit StatusUpdate(status);
+}
+
 void ItemsManagerWorker::OnMainPageReceived() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     std::string page(reply->readAll().constData());
@@ -152,6 +160,7 @@ void ItemsManagerWorker::OnCharacterListReceived() {
             QLOG_ERROR() << "The error was" << rapidjson::GetParseError_En(doc.GetParseError());
         }
         updating_ = false;
+        StatusFinished();
         return;
     }
 
@@ -239,11 +248,13 @@ void ItemsManagerWorker::OnFirstTabReceived() {
     if (!doc.IsObject()) {
         QLOG_ERROR() << "Can't even fetch first tab. Failed to update items.";
         updating_ = false;
+        StatusFinished();
         return;
     }
     if (!doc.HasMember("tabs") || doc["tabs"].Size() == 0) {
         QLOG_WARN() << "There are no tabs, this should not happen, bailing out.";
         updating_ = false;
+        StatusFinished();
         return;
     }
 
@@ -293,6 +304,7 @@ void ItemsManagerWorker::OnFirstTabReceived() {
     if (tabs_.size() == 0) {
         QLOG_WARN() << "There are no tabs to be downloaded. Try clearing your tab exclusions list.";
         updating_ = false;
+        StatusFinished();
         return;
     }
 
