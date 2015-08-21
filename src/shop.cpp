@@ -77,6 +77,31 @@ void Shop::LoadShops() {
         Update();
     }
 
+    if (shops_.count() == 0) {
+        // Hmm, try to load old shops?
+        QString shopId = QString::fromStdString(app_.data_manager().Get("shop"));
+        bool autoUpdate = app_.data_manager().GetBool("shop_update");
+        QString shopTemplate = QString::fromStdString(app_.data_manager().Get("shop_template"));
+
+        if (!shopId.isEmpty()) {
+            QLOG_INFO() << "Found old shop data! Now loading...";
+            if (shopTemplate == "[items]") {
+                shopTemplate = TEMPLATE_MESSAGE;
+            }
+            else {
+                shopTemplate.replace("[items]", "{everything|group}");
+            }
+            AddShop(shopId, shopTemplate);
+
+            auto_update_ = autoUpdate;
+
+            app_.data_manager().Set("shop", "");
+            app_.data_manager().SetBool("shop_update", false);
+            app_.data_manager().Set("shop_template", "");
+            app_.data_manager().Set("shop_hash", "");
+        }
+    }
+
     SaveShops();
 }
 

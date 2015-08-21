@@ -122,8 +122,9 @@ void SettingsPane::on_shopsWidget_itemChanged(QTableWidgetItem *item) {
                 shopThreadIds[row] = "0";
             }
             else {
+                QString temp = app_->shop().GetShopTemplate(last);
                 app_->shop().RemoveShop(last);
-                app_->shop().AddShop(value);
+                app_->shop().AddShop(value, temp);
                 shopThreadIds[row] = value;
             }
         }
@@ -219,6 +220,11 @@ void SettingsPane::on_updateShopBox_toggled(bool checked) {
 }
 
 void SettingsPane::on_copyShopButton_clicked() {
+    int row = ui->shopsWidget->currentRow();
+    if (row < 0) return;
+    QTableWidgetItem* item = ui->shopsWidget->item(row, 0);
+    if (!item) return;
+    app_->shop().CopyToClipboard(item->text());
 }
 
 void SettingsPane::on_bumpShopBox_toggled(bool checked) {
@@ -306,5 +312,6 @@ void SettingsPane::on_removeTabExclusion_clicked()
 }
 
 void SettingsPane::on_tabExclusionListWidget_itemChanged(QListWidgetItem *item) {
+    Q_UNUSED(item);
     updateTabExclusions();
 }
