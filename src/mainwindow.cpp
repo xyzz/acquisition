@@ -158,6 +158,7 @@ void MainWindow::InitializeActions() {
     action->setShortcutContext(Qt::WindowShortcut);
     action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     connect(action, &QAction::triggered, [this] {
+        ui->tabWidget->setCurrentIndex(0);
         ui->buyoutTypeComboBox->setFocus();
     });
     this->addAction(action);
@@ -166,6 +167,7 @@ void MainWindow::InitializeActions() {
     action->setShortcutContext(Qt::WindowShortcut);
     action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_R));
     connect(action, &QAction::triggered, [this] {
+        ui->tabWidget->setCurrentIndex(0);
         ui->buyoutTypeComboBox->setCurrentIndex(0);
         OnBuyoutChange();
     });
@@ -175,9 +177,11 @@ void MainWindow::InitializeActions() {
     action->setShortcutContext(Qt::WindowShortcut);
     action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
     connect(action, &QAction::triggered, [this] {
+        ui->tabWidget->setCurrentIndex(0);
         ui->buyoutTypeComboBox->setCurrentIndex(1);
         OnBuyoutChange(false);
         ui->buyoutValueLineEdit->setFocus();
+        ui->buyoutValueLineEdit->selectAll();
     });
     this->addAction(action);
 
@@ -185,9 +189,11 @@ void MainWindow::InitializeActions() {
     action->setShortcutContext(Qt::WindowShortcut);
     action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F));
     connect(action, &QAction::triggered, [this] {
+        ui->tabWidget->setCurrentIndex(0);
         ui->buyoutTypeComboBox->setCurrentIndex(2);
         OnBuyoutChange(false);
         ui->buyoutValueLineEdit->setFocus();
+        ui->buyoutValueLineEdit->selectAll();
     });
     this->addAction(action);
 
@@ -195,9 +201,9 @@ void MainWindow::InitializeActions() {
     action->setShortcutContext(Qt::WindowShortcut);
     action->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
     connect(action, &QAction::triggered, [this] {
+        ui->tabWidget->setCurrentIndex(0);
         ui->buyoutTypeComboBox->setCurrentIndex(3);
         OnBuyoutChange(false);
-        ui->buyoutValueLineEdit->setFocus();
     });
     this->addAction(action);
 
