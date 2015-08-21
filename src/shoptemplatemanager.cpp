@@ -19,7 +19,7 @@ QString ShopTemplateManager::FetchFromEasyKey(const QString &key, QHash<QString,
     QString replacement;
 
     if (key == "ign") {
-        replacement = "InsertIGNHere"; // todo(novynn): actually put preferred char name?
+        replacement = QString::fromStdString(parent_->active_character());
     }
     else if (key == "lastupdated") {
         replacement = QDateTime::currentDateTime().toString("MMMM dd, yyyy hh:mm A");

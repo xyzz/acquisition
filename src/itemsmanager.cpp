@@ -63,6 +63,7 @@ void ItemsManager::Start() {
     connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
     connect(this, SIGNAL(UpdateSignal()), worker_.get(), SLOT(Update()));
     connect(worker_.get(), &ItemsManagerWorker::StatusUpdate, this, &ItemsManager::OnStatusUpdate);
+    connect(worker_.get(), &ItemsManagerWorker::SelectedCharacterUpdate, &app_, &Application::OnActiveCharacterChange);
     connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>, bool)));
     worker_->moveToThread(thread_.get());
     thread_->start();

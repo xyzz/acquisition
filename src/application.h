@@ -41,6 +41,7 @@ public:
     Application& operator=(const Application&) = delete;
     // Should be called by login dialog after login
     void InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager, const std::string &league, const std::string &email);
+    const std::string &active_character() const { return active_character_; }
     const std::string &league() const { return league_; }
     const std::string &email() const { return email_; }
     const Items &items() const { return items_; }
@@ -53,9 +54,11 @@ public:
     Shop &shop() const { return *shop_; }
 public slots:
     void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh = false);
+    void OnActiveCharacterChange(const QString &character);
 private:
     Items items_;
     std::vector<std::string> tabs_;
+    std::string active_character_;
     std::string league_;
     std::string email_;
     std::unique_ptr<DataManager> data_manager_;

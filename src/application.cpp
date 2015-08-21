@@ -60,3 +60,7 @@ void Application::OnItemsRefreshed(const Items &items, const std::vector<std::st
         shop_->SubmitShopToForum();
     }
 }
+
+void Application::OnActiveCharacterChange(const QString &character) {
+    active_character_ = character.toStdString();
+}

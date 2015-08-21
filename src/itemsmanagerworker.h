@@ -69,6 +69,7 @@ public slots:
     void PreserveSelectedCharacter();
 signals:
     void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
+    void SelectedCharacterUpdate(const QString &character);
     void StatusUpdate(const CurrentStatusUpdate &status);
 private:
     QNetworkRequest MakeTabRequest(int tab_index, bool tabs = false);

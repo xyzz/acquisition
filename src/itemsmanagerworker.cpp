@@ -38,7 +38,7 @@
 const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-stash-items";
 const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
 const char *kGetCharactersUrl = "https://www.pathofexile.com/character-window/get-characters";
-const char *kMainPage = "https://www.pathofexile.com/";
+const char *kMainPage = "https://www.pathofexile.com/news";
 
 ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     data_manager_(app.data_manager()),
@@ -126,6 +126,10 @@ void ItemsManagerWorker::OnMainPageReceived() {
     selected_character_ = Util::FindTextBetween(page, "activeCharacter\":{\"name\":\"", "\",\"league");
     if (selected_character_.empty()) {
         QLOG_WARN() << "Can't extract selected character name from the page";
+    }
+    else {
+        QLOG_INFO() << "Current Active Character is: " << selected_character_.c_str();
+        emit SelectedCharacterUpdate(QString::fromStdString(selected_character_));
     }
 
     // now get character list
