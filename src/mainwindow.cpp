@@ -361,7 +361,7 @@ void MainWindow::InitializeUi() {
 
     connect(ui->treeView, &QTreeView::customContextMenuRequested, [&](const QPoint &pos) {
         QModelIndex index = ui->treeView->indexAt(pos);
-        if (index.isValid() && !index.parent().isValid()) {
+        if (index.isValid() && !index.parent().isValid() && index.column() == 0) {
             QString hash = ui->treeView->model()->data(index, ItemsModel::HashRole).toString();
             if (current_search_->IsBucketHidden(hash)) {
                 bucket_context_menu_toggle_->setText("Show Tab");
@@ -401,21 +401,13 @@ void MainWindow::InitializeUi() {
     });
 
     UpdateSettingsBox();
-    // resize columns when a tab is expanded/collapsed
-    connect(ui->treeView, SIGNAL(collapsed(const QModelIndex&)), this, SLOT(ResizeTreeColumns()));
-    connect(ui->treeView, SIGNAL(expanded(const QModelIndex&)), this, SLOT(ResizeTreeColumns()));
 }
 
 void MainWindow::ExpandCollapse(TreeState state) {
-    // we block signals so that ResizeTreeColumns isn't called for every item, which is damn slow!
-    ui->treeView->blockSignals(true);
     if (state == TreeState::kExpand)
         ui->treeView->expandAll();
     else
         ui->treeView->collapseAll();
-    ui->treeView->blockSignals(false);
-
-    ResizeTreeColumns();
 }
 
 void MainWindow::ToggleBucketAtMenu() {
@@ -430,6 +422,7 @@ void MainWindow::ToggleBucketAtMenu() {
             current_search_->HideBucket(hash);
         }
         current_search_->Activate(app_->items(), ui->treeView);
+
         UpdateCurrentHeaderState();
     }
 }
@@ -437,6 +430,7 @@ void MainWindow::ToggleBucketAtMenu() {
 void MainWindow::ToggleShowHiddenBuckets(bool checked) {
     current_search_->ShowHiddenBuckets(checked);
     current_search_->Activate(app_->items(), ui->treeView);
+
     UpdateCurrentHeaderState();
 }
 
@@ -446,11 +440,6 @@ void MainWindow::OnExpandAll() {
 
 void MainWindow::OnCollapseAll() {
     ExpandCollapse(TreeState::kCollapse);
-}
-
-void MainWindow::ResizeTreeColumns() {
-    for (int i = 0; i < ui->treeView->header()->count(); ++i)
-        ui->treeView->resizeColumnToContents(i);
 }
 
 void MainWindow::OnBuyoutChange(bool doParse) {
@@ -568,7 +557,7 @@ void MainWindow::OnBuyoutChange(bool doParse) {
     // refresh treeView to immediately reflect price changes
     if (isUpdated) {
         ui->treeView->model()->layoutChanged();
-        ResizeTreeColumns();
+
         app_->shop().ExpireShopData();
     }
 }
@@ -684,7 +673,7 @@ void MainWindow::OnSearchFormChange() {
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
 
-    ResizeTreeColumns();
+
 
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
 }

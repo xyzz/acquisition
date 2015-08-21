@@ -94,7 +94,6 @@ public slots:
     void OnItemsRefreshed();
     void OnStatusUpdate(const CurrentStatusUpdate &status);
     void OnBuyoutChange(bool doParse=true);
-    void ResizeTreeColumns();
     void OnExpandAll();
     void OnCollapseAll();
     void OnUpdateAvailable();

@@ -156,6 +156,7 @@ void Search::Activate(const Items &items, QTreeView *tree) {
 
     // Set expanded
     if (!expandedHashs_.isEmpty()) {
+        tree->blockSignals(true);
         tree->setUpdatesEnabled(false);
         for (int i = 0; i < sortFilter_->rowCount(); i++) {
             QModelIndex index = sortFilter_->index(i, 0);
@@ -165,6 +166,7 @@ void Search::Activate(const Items &items, QTreeView *tree) {
             }
         }
         tree->setUpdatesEnabled(true);
+        tree->blockSignals(false);
     }
 }
 
