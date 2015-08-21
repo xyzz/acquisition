@@ -292,7 +292,6 @@ void SettingsPane::on_addTabExclusion_clicked()
 {
     QListWidgetItem* item = new QListWidgetItem("");
     item->setFlags(item->flags () | Qt::ItemIsEditable);
-    item->setBackgroundColor(Qt::red);
     ui->tabExclusionListWidget->addItem(item);
     ui->tabExclusionListWidget->editItem(item);
     updateTabExclusions();
