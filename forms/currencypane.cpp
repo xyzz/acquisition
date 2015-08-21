@@ -85,7 +85,8 @@ void CurrencyPane::initialize(MainWindow* parent) {
 void CurrencyPane::UpdateGraph(const QMap<double, double> map) {
     QCustomPlot* customPlot = ui->plotWidget;
 
-    if (map.size() < 2) {
+    // Only show graph data if we have more than a days worth of currency information (otherwise it looks bad).
+    if (map.firstKey() >= QDateTime::currentDateTime().addDays(-1).toTime_t()) {
         customPlot->hide();
         return;
     }
@@ -96,7 +97,7 @@ void CurrencyPane::UpdateGraph(const QMap<double, double> map) {
     //customPlot->setBackground(Qt::transparent);
 
     double lastDate = map.lastKey();
-    double weekAgo = QDateTime(QDate::currentDate()).addDays(-7).toTime_t();
+    double weekAgo = QDateTime::currentDateTime().addDays(-7).toTime_t();
 
     double highestVal = 0;
     if (!map.isEmpty()) {
@@ -269,7 +270,7 @@ bool CurrencyPane::LoadCurrencyHistory(const QString &data)
 QString CurrencyPane::SaveCurrencyHistoryPoint()
 {
     QJsonObject point;
-    double time = (double)QDateTime(QDate::currentDate()).toTime_t();
+    double time = (double)QDateTime::currentDateTime().toTime_t();
     point.insert("value", totalValue);
     point.insert("time", time);
 
