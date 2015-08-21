@@ -55,6 +55,7 @@ void SettingsPane::showTemplateDialog(const QString &threadId) {
 }
 
 void SettingsPane::addShop(int id) {
+    ui->shopsWidget->blockSignals(true);
     int row = ui->shopsWidget->rowCount();
     ui->shopsWidget->insertRow(row);
 
@@ -71,6 +72,7 @@ void SettingsPane::addShop(int id) {
     });
 
     shopThreadIds.insert(row, QString::number(id));
+    ui->shopsWidget->blockSignals(false);
 
     if (id == 0) {
         ui->shopsWidget->editItem(thread);
