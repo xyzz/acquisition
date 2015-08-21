@@ -25,6 +25,9 @@
 #include <QDateTime>
 #include <string>
 #include <vector>
+#include <QQueue>
+
+#include <shops/shopsubmitter.h>
 
 struct CurrentStatusUpdate;
 extern const std::string kShopTemplateItems;
@@ -37,8 +40,6 @@ struct ShopData {
 
     QString shopTemplate;
     bool requiresUpdate;
-
-    bool submitting;
 
     QDateTime lastSubmitted;
     QDateTime lastBumped;
@@ -61,22 +62,6 @@ public:
     void Update(const QString &threadId = QString(), bool force = false);
     void SubmitShopToForum(const QString &threadId = QString());
 
-    int ShopsIdle() {
-        int count = 0;
-        for (ShopData* shop : shops_.values()) {
-            if (!shop->submitting) count++;
-        }
-        return count;
-    }
-
-    int ShopsSubmitting() {
-        int count = 0;
-        for (ShopData* shop : shops_.values()) {
-            if (shop->submitting) count++;
-        }
-        return count;
-    }
-
     void SetAutoUpdate(bool update);
     void SetDoBump(bool bump);
 
@@ -84,26 +69,23 @@ public:
     bool IsBumpEnabled() const { return do_bump_; }
     void SaveShops();
     void LoadShops();
-private slots:
-    void OnEditPageFinished();
-    void OnShopSubmitted();
-    void OnBumpPageFinished();
-    void OnBumpSubmitted();
+public slots:
+    void OnShopSubmitted(const QString &threadId);
+    void OnShopBumped(const QString &threadId);
+    void OnShopError(const QString &threadId, const QString &error);
 signals:
     void StatusUpdate(const CurrentStatusUpdate &status);
 private:
-    QString ShopEditUrl(const QString &threadId);
-    QString ShopBumpUrl(const QString &threadId);
-    void SubmitSingleShop(const QString &threadId);
-    void SubmitShopBumpToForum(const QString &threadId);
+    void SubmitSingleShop(ShopData* shop);
 
     Application &app_;
+    ShopTemplateManager templateManager;
+    ShopSubmitter submitter_;
 
     QHash<QString, ShopData*> shops_;
 
     bool auto_update_;
     bool do_bump_;
 
-    ShopTemplateManager templateManager;
     void UpdateState();
 };

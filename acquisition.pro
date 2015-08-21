@@ -53,7 +53,8 @@ SOURCES += \
     forms/recipepane.cpp \
     forms/currencypane.cpp \
     src/external/qcustomplot.cpp \
-    forms/templatedialog.cpp
+    forms/templatedialog.cpp \
+    src/shops/shopsubmitter.cpp
 
 HEADERS += \
     src/item.h \
@@ -94,7 +95,8 @@ HEADERS += \
     src/external/boolinq.h \
     src/external/qcustomplot.h \
     forms/templatedialog.h \
-    src/external/syntaxhighlighter.h
+    src/external/syntaxhighlighter.h \
+    src/shops/shopsubmitter.h
 
 FORMS += \
     forms/mainwindow.ui \

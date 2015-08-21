@@ -38,16 +38,17 @@
 #include "util.h"
 #include "mainwindow.h"
 
-const QString POE_EDIT_THREAD = "https://www.pathofexile.com/forum/edit-thread/";
-const QString POE_BUMP_THREAD = "https://www.pathofexile.com/forum/post-reply/";
-const QString BUMP_MESSAGE = "[url=https://github.com/Novynn/acquisitionplus/releases]Bumped with Acquisition Plus![/url]";
-const QString TEMPLATE_MESSAGE = "{everything|group}\n\n[url=https://github.com/Novynn/acquisitionplus/releases]Shop made with Acquisition Plus[/url]";
 const int POE_BUMP_DELAY = 3600; // 1 hour per Path of Exile forum rules
+const QString TEMPLATE_MESSAGE = "{everything|group}\n\n[url=https://github.com/Novynn/acquisitionplus/releases]Shop made with Acquisition Plus[/url]";
 const int POE_MAX_CHAR_IN_POST = 50000;
 
-Shop::Shop(Application &app) :
-    app_(app),
-    templateManager(&app) {
+Shop::Shop(Application &app)
+    : app_(app)
+    , templateManager(&app)
+    , submitter_(&app.logged_in_nm()) {
+    connect(&submitter_, &ShopSubmitter::ShopSubmitted, this, &Shop::OnShopSubmitted);
+    connect(&submitter_, &ShopSubmitter::ShopBumped, this, &Shop::OnShopBumped);
+    connect(&submitter_, &ShopSubmitter::ShopSubmissionError, this, &Shop::OnShopError);
     LoadShops();
 }
 
@@ -118,7 +119,6 @@ void Shop::AddShop(const QString &threadId, QString temp) {
     data->threadId = threadId;
     data->shopTemplate = temp;
     data->requiresUpdate = true;
-    data->submitting = false;
 
     shops_.insert(threadId, data);
 
@@ -126,10 +126,11 @@ void Shop::AddShop(const QString &threadId, QString temp) {
 }
 
 void Shop::RemoveShop(const QString &threadId) {
+    Q_ASSERT(shops_.contains(threadId));
     ShopData* data = shops_.take(threadId);
-    if (data) {
+
+    if (data)
         delete data;
-    }
 
     SaveShops();
 }
@@ -153,6 +154,7 @@ void Shop::ExpireShopData() {
         ShopData* data = shops_.value(thread);
         data->requiresUpdate = true;
     }
+    QLOG_INFO() << "Shop data expired.";
 }
 
 void Shop::SetAutoUpdate(bool update) {
@@ -189,26 +191,14 @@ void Shop::Update(const QString &threadId, bool force) {
         shopsToUpdate.append(shops_.value(threadId));
 
     for (ShopData* shop : shopsToUpdate) {
-        if (!shop) {
-            continue;
-        }
-        if (!shop->requiresUpdate && !force) {
-            continue;
-        }
-        if (shop->submitting) {
+        if (!shop || (!shop->requiresUpdate && !force)) {
             continue;
         }
         templateManager.LoadTemplate(shop->shopTemplate);
         QString result = templateManager.Generate(app_.items());
         shop->requiresUpdate = false;
         shop->shopData = result;
-
-        if (auto_update_) {
-            SubmitShopToForum(threadId);
-        }
     }
-
-
 }
 
 void Shop::SubmitShopToForum(const QString &threadId) {
@@ -225,7 +215,7 @@ void Shop::SubmitShopToForum(const QString &threadId) {
             QLOG_WARN() << "Attempted to submit an invalid shop.";
             continue;
         }
-        if (shop->submitting) {
+        if (submitter_.IsSubmitting(shop->threadId)) {
             QLOG_WARN() << "Already submitting your shop.";
             continue;
         }
@@ -235,15 +225,13 @@ void Shop::SubmitShopToForum(const QString &threadId) {
         }
 
         if (shop->requiresUpdate)
-            Update();
+            Update(shop->threadId);
 
         // Don't update the shop if it hasn't changed
         std::string currentHash = Util::Md5(shop->shopData.toStdString());
         std::string previousHash = shop->lastSubmissionHash.toStdString();
         if (previousHash == currentHash)
             continue;
-
-        shop->submitting = true;
 
         shopsToSubmit.append(shop);
     }
@@ -254,198 +242,54 @@ void Shop::SubmitShopToForum(const QString &threadId) {
     }
 
     for (ShopData* shop : shopsToSubmit) {
-        SubmitSingleShop(shop->threadId);
+        SubmitSingleShop(shop);
     }
     UpdateState();
 }
 
 void Shop::UpdateState() {
+    int submitting = submitter_.Count();
+    int count = shops_.count();
     CurrentStatusUpdate status = CurrentStatusUpdate();
     status.state = ProgramState::ShopSubmitting;
-    status.progress = ShopsIdle();
-    status.total = shops_.count();
-    if (status.progress == status.total) {
+    status.progress = count - submitting;
+    status.total = count;
+    if (submitting == 0) {
         status.state = ProgramState::ShopCompleted;
     }
     emit StatusUpdate(status);
 }
 
-void Shop::SubmitSingleShop(const QString &threadId) {
-    QNetworkRequest request(QUrl(ShopEditUrl(threadId)));
-    // Embed our requested ID just in case!
-    request.setAttribute(QNetworkRequest::User, threadId);
-    QNetworkReply *fetched = app_.logged_in_nm().get(request);
-    connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
+void Shop::SubmitSingleShop(ShopData* shop) {
+    bool shouldBump = false; //IsBumpEnabled() && (shop->lastBumped.isNull() || shop->lastBumped.secsTo(QDateTime::currentDateTime()) >= POE_BUMP_DELAY);
+    submitter_.BeginShopSubmission(shop->threadId, shop->shopData, shouldBump);
+    UpdateState();
 }
 
-void Shop::OnEditPageFinished() {
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    QString threadId = reply->request().attribute(QNetworkRequest::User).toString();
-    QByteArray bytes = reply->readAll();
-    reply->disconnect();
-    reply->deleteLater();
-
-    if (threadId.isEmpty() || !shops_.contains(threadId)) {
-        QLOG_ERROR() << "Shop was deleted while submitting, ignoring reply from GGG.";
-        UpdateState();
-        return;
-    }
+void Shop::OnShopSubmitted(const QString &threadId) {
+    if (!shops_.contains(threadId)) return;
     ShopData* shop = shops_.value(threadId);
-
-    std::string page(bytes.constData(), bytes.size());
-    std::string hash = Util::GetCsrfToken(page, "forum_thread");
-    if (hash.empty()) {
-        QLOG_ERROR() << "Can't update shop -- cannot extract CSRF token from the page. Check if thread ID is valid.";
-        shop->submitting = false;
-        UpdateState();
-        return;
-    }
-
-    std::string title = Util::FindTextBetween(page, "<input type=\"text\" name=\"title\" id=\"title\" value=\"", "\" class=\"textInput\">");
-    if (title.empty()) {
-        QLOG_ERROR() << "Can't update shop -- title is empty. Check if thread ID is valid.";
-        shop->submitting = false;
-        UpdateState();
-        return;
-    }
-
-    QUrlQuery query;
-    query.addQueryItem("forum_thread", hash.c_str());
-    query.addQueryItem("title", title.c_str());
-    query.addQueryItem("content", shop->shopData);
-    query.addQueryItem("submit", "Submit");
-
-    QByteArray data(query.query().toUtf8());
-    QNetworkRequest request(QUrl(ShopEditUrl(threadId)));
-    request.setAttribute(QNetworkRequest::User, threadId);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    QNetworkReply *submitted = app_.logged_in_nm().post(request, data);
-    connect(submitted, SIGNAL(finished()), this, SLOT(OnShopSubmitted()));
-
-}
-
-void Shop::OnShopSubmitted() {
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    QString threadId = reply->request().attribute(QNetworkRequest::User).toString();
-    QByteArray bytes = reply->readAll();
-    reply->disconnect();
-    reply->deleteLater();
-
-    if (threadId.isEmpty() || !shops_.contains(threadId)) {
-        QLOG_ERROR() << "Shop was deleted while submitting...";
-        UpdateState();
-        return;
-    }
-    ShopData* shop = shops_.value(threadId);
-
-    std::string page(bytes.constData(), bytes.size());
-    std::string error = Util::FindTextBetween(page, "<ul class=\"errors\"><li>", "</li></ul>");
-    if (!error.empty()) {
-        QLOG_ERROR() << "Error while submitting shop to forums:" << error.c_str();
-        shop->submitting = false;
-        UpdateState();
-        return;
-    }
-
     // now let's hope that shop was submitted successfully and notify poe.trade
     QNetworkRequest request(QUrl("http://verify.xyz.is/" + threadId + "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
     app_.logged_in_nm().get(request);
 
     QLOG_INFO() << "Shop updated successfully!";
-    shop->submitting = false;
     shop->lastSubmitted = QDateTime::currentDateTime();
     shop->lastSubmissionHash = QString::fromStdString(Util::Md5(shop->shopData.toStdString()));
 
-    if (do_bump_) {
-        SubmitShopBumpToForum(threadId);
-    }
     UpdateState();
     SaveShops();
 }
 
-// BUMPING
-
-void Shop::SubmitShopBumpToForum(const QString &threadId) {
-    if (threadId.isEmpty() || !shops_.contains(threadId)) {
-        QLOG_WARN() << "Asked to bump a shop with invalid thread ID.";
-        return;
-    }
+void Shop::OnShopBumped(const QString &threadId) {
+    if (!shops_.contains(threadId)) return;
     ShopData* shop = shops_.value(threadId);
-    if (!shop->lastBumped.isNull() && shop->lastBumped.secsTo(QDateTime::currentDateTime()) < POE_BUMP_DELAY) {
-        QLOG_WARN() << "Asked to bump too often! Ignoring request.";
-        return;
-    }
-
-    // first, get to the post-reply page
-    QNetworkRequest request(QUrl(ShopBumpUrl(threadId)));
-    request.setAttribute(QNetworkRequest::User, threadId);
-    QNetworkReply *fetched = app_.logged_in_nm().get(request);
-    connect(fetched, SIGNAL(finished()), this, SLOT(OnBumpPageFinished()));
-}
-
-void Shop::OnBumpPageFinished() {
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    QString threadId = reply->request().attribute(QNetworkRequest::User).toString();
-    QByteArray bytes = reply->readAll();
-    reply->disconnect();
-    reply->deleteLater();
-
-    if (threadId.isEmpty() || !shops_.contains(threadId)) {
-        QLOG_ERROR() << "Shop was removed while bumping.";
-        return;
-    }
-
-    std::string page(bytes.constData(), bytes.size());
-    std::string hash = Util::GetCsrfToken(page, "forum_post");
-    if (hash.empty()) {
-        QLOG_ERROR() << "Can't bump shop -- cannot extract CSRF token from the page. Check if thread ID is valid.";
-        return;
-    }
-
-    // now submit our bump
-    QUrlQuery query;
-    query.addQueryItem("forum_post", hash.c_str());
-    query.addQueryItem("content", BUMP_MESSAGE);
-    query.addQueryItem("post_submit", "Submit");
-
-    QByteArray data(query.query().toUtf8());
-    QNetworkRequest request(QUrl(ShopBumpUrl(threadId)));
-    request.setAttribute(QNetworkRequest::User, threadId);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    QNetworkReply *submitted = app_.logged_in_nm().post(request, data);
-    connect(submitted, SIGNAL(finished()), this, SLOT(OnBumpSubmitted()));
-}
-
-void Shop::OnBumpSubmitted() {
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    QString threadId = reply->request().attribute(QNetworkRequest::User).toString();
-    QByteArray bytes = reply->readAll();
-    reply->disconnect();
-    reply->deleteLater();
-
-    if (threadId.isEmpty() || !shops_.contains(threadId)) {
-        QLOG_ERROR() << "Shop was deleted while bumping...";
-        return;
-    }
-    ShopData* shop = shops_.value(threadId);
-
-    std::string page(bytes.constData(), bytes.size());
-    std::string error = Util::FindTextBetween(page, "<ul class=\"errors\"><li>", "</li></ul>");
-    if (!error.empty()) {
-        QLOG_ERROR() << "Error while bumping shop on forums:" << error.c_str();
-        return;
-    }
-
     QLOG_INFO() << "Shop bumped successfully!";
     shop->lastBumped = QDateTime::currentDateTime();
+    UpdateState();
 }
 
-
-QString Shop::ShopEditUrl(const QString &threadId) {
-    return POE_EDIT_THREAD + threadId;
+void Shop::OnShopError(const QString &threadId, const QString &error) {
+    QLOG_ERROR() << "An error occured with shop " + threadId + ": " + error;
+    UpdateState();
 }
-
-QString Shop::ShopBumpUrl(const QString &threadId) {
-    return POE_BUMP_THREAD + threadId;
-}
-
