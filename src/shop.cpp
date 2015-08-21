@@ -70,8 +70,18 @@ void Shop::LoadShops() {
             QString temp = obj.value("template").toString();
             AddShop(id, temp);
             ShopData* data = shops_.value(id);
-            data->lastSubmitted = QDateTime::fromTime_t(obj.value("last_submitted").toInt());
-            data->lastBumped = QDateTime::fromTime_t(obj.value("last_bumped").toInt());
+            // populate other data
+            int timeT = obj.value("last_submitted").toInt();
+            if (timeT >= 0)
+                data->lastSubmitted = QDateTime::fromTime_t(timeT);
+            else
+                data->lastSubmitted = QDateTime();
+
+            timeT = obj.value("last_bumped").toInt();
+            if (timeT >= 0)
+                data->lastBumped = QDateTime::fromTime_t(timeT);
+            else
+                data->lastBumped = QDateTime();
             data->lastSubmissionHash = obj.value("last_hash").toString();
         }
         Update();
@@ -286,7 +296,11 @@ void Shop::UpdateState() {
 }
 
 void Shop::SubmitSingleShop(ShopData* shop) {
-    bool shouldBump = false; //IsBumpEnabled() && (shop->lastBumped.isNull() || shop->lastBumped.secsTo(QDateTime::currentDateTime()) >= POE_BUMP_DELAY);
+    bool shouldBump = IsBumpEnabled();
+    if (shouldBump) {
+        shouldBump = shop->lastBumped.isNull() || !shop->lastBumped.isValid() ||
+                     shop->lastBumped.secsTo(QDateTime::currentDateTime()) >= POE_BUMP_DELAY;
+    }
     submitter_.BeginShopSubmission(shop->threadId, shop->shopData, shouldBump);
     UpdateState();
 }
@@ -315,7 +329,6 @@ void Shop::OnShopBumped(const QString &threadId) {
 }
 
 void Shop::OnShopError(const QString &threadId, const QString &error) {
-    QString message = "An error occured with shop " + threadId + ": " + error;
-    QLOG_ERROR() << qPrintable(message);
+    QLOG_ERROR() << qPrintable("An error occured with shop " + threadId + ": " + error);
     UpdateState();
 }

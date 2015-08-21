@@ -5,7 +5,7 @@
 #include <QUrlQuery>
 #include <QDebug>
 
-int ShopSubmitter::SUBMISSION_TIMEOUT = 30000;
+int ShopSubmitter::SUBMISSION_TIMEOUT = 60000; // A minute
 const QString POE_EDIT_THREAD = "https://www.pathofexile.com/forum/edit-thread/";
 const QString POE_BUMP_THREAD = "https://www.pathofexile.com/forum/post-reply/";
 const QString BUMP_MESSAGE = "[url=https://github.com/Novynn/acquisitionplus/releases]Bumped with Acquisition Plus![/url]";
