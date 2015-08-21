@@ -52,10 +52,10 @@ const char* POE_COOKIE_NAME = "PHPSESSID";
 
 enum {
     LOGIN_PASSWORD,
+    LOGIN_SESSIONID,
 #ifdef WITH_STEAM
-    LOGIN_STEAM,
+    LOGIN_STEAM
 #endif
-    LOGIN_SESSIONID
 };
 
 LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
@@ -67,7 +67,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     ui->setupUi(this);
 
 #ifndef WITH_STEAM
-    ui->tab_2->hide();
+    ui->loginTabs->removeTab(2);
 #endif
     ui->errorLabel->hide();
     ui->errorLabel->setStyleSheet("QLabel { color : red; }");
