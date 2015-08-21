@@ -140,6 +140,7 @@ void SettingsPane::updateTabExclusions() {
 
     for (int i = 0; i < ui->tabExclusionListWidget->count(); i++) {
         QString expr = ui->tabExclusionListWidget->item(i)->text();
+        if (!QRegularExpression(expr).isValid()) continue;
         rapidjson::Value val;
         val.SetString(expr.toLatin1().data(), expr.toLatin1().length());
         doc.PushBack(val, alloc);
@@ -304,15 +305,6 @@ void SettingsPane::on_removeTabExclusion_clicked()
     updateTabExclusions();
 }
 
-void SettingsPane::on_tabExclusionListWidget_itemChanged(QListWidgetItem *item)
-{
-    QRegularExpression expr(item->text());
-    if (!item->text().isEmpty() && expr.isValid()) {
-        item->setBackgroundColor(Qt::green);
-    }
-    else {
-        ui->tabExclusionListWidget->editItem(item);
-        item->setBackgroundColor(Qt::red);
-    }
+void SettingsPane::on_tabExclusionListWidget_itemChanged(QListWidgetItem *item) {
     updateTabExclusions();
 }

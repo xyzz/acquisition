@@ -87,7 +87,7 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
                 QString title(location.GetHeader().c_str());
                 if (bo_manager_.ExistsTab(location.GetGeneralHash()))
                     title += QString(" [%1]").arg(Util::BuyoutAsText(bo_manager_.GetTab(location.GetGeneralHash())).c_str());
-                if (search_.IsBucketHidden(QString::fromStdString(location.GetGeneralHash()))) {
+                if (search_.IsBucketHidden(QString::fromStdString(location.GetUniqueHash()))) {
                     title += " [Hidden]";
                 }
                 return title;

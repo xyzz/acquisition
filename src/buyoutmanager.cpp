@@ -19,6 +19,9 @@
 
 #include "buyoutmanager.h"
 
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <cassert>
 #include <sstream>
 #include <stdexcept>
@@ -42,18 +45,18 @@ BuyoutManager::BuyoutManager(DataManager &data_manager) :
 void BuyoutManager::Set(const Item &item, Buyout &buyout, QString setter) {
     save_needed_ = true;
     buyout.set_by = setter;
-    buyouts_[ItemHash(item)] = buyout;
+    buyouts_.insert(ItemHash(item), buyout);
 }
 
 Buyout BuyoutManager::Get(const Item &item) const {
     if (!Exists(item))
         throw std::runtime_error("Asked to get inexistant buyout.");
-    return buyouts_.at(ItemHash(item));
+    return buyouts_.value(ItemHash(item));
 }
 
 void BuyoutManager::Delete(const Item &item) {
     save_needed_ = true;
-    buyouts_.erase(ItemHash(item));
+    buyouts_.remove(ItemHash(item));
 }
 
 bool BuyoutManager::Exists(const Item &item) const {
@@ -76,33 +79,33 @@ QString BuyoutManager::Generate(const Buyout &buyout) {
 }
 
 bool BuyoutManager::IsItemManuallySet(const Item &item) const {
-    return Exists(item) ? buyouts_.at(ItemHash(item)).set_by == "" : false;
+    return Exists(item) ? buyouts_.value(ItemHash(item)).set_by == "" : false;
 }
 
-std::string BuyoutManager::ItemHash(const Item &item) const {
-    return item.hash();
+QString BuyoutManager::ItemHash(const Item &item) const {
+    return QString::fromStdString(item.hash());
 }
 
 Buyout BuyoutManager::GetTab(const std::string &tab) const {
-    return tab_buyouts_.at(tab);
+    return tab_buyouts_.value(QString::fromStdString(tab));
 }
 
 void BuyoutManager::SetTab(const Bucket &tab, const Buyout &buyout) {
-    std::string hash = tab.location().GetGeneralHash();
+    QString hash = QString::fromStdString(tab.location().GetGeneralHash());
     save_needed_ = true;
-    tab_buyouts_[hash] = buyout;
+    tab_buyouts_.insert(hash, buyout);
 
     UpdateTabItems(tab);
 }
 
 bool BuyoutManager::ExistsTab(const std::string &tab) const {
-    return tab_buyouts_.count(tab) > 0;
+    return tab_buyouts_.count(QString::fromStdString(tab)) > 0;
 }
 
 void BuyoutManager::DeleteTab(const Bucket &tab) {
-    std::string hash = tab.location().GetGeneralHash();
+    QString hash = QString::fromStdString(tab.location().GetGeneralHash());
     save_needed_ = true;
-    tab_buyouts_.erase(hash);
+    tab_buyouts_.remove(hash);
 
     UpdateTabItems(tab);
 }
@@ -123,21 +126,17 @@ void BuyoutManager::UpdateTabItems(const Bucket &tab) {
                 // It's new!
                 b.last_update = QDateTime::currentDateTime();
             }
-            else {
-                if (Exists(*item)) {
-                    if (IsItemManuallySet(*item)) {
-                        continue;
-                    }
-                    Buyout curr = Get(*item);
-                    if (Equal(buyout, curr) && curr.set_by.toStdString() == hash) {
-                        // Don't update...
-                        continue;
-                    }
+            else if (!IsItemManuallySet(*item)) {
+                Buyout curr = Get(*item);
+                if (!Equal(buyout, curr)) {
+                    b.last_update = buyout.last_update;
                 }
                 else {
                     continue;
                 }
-                b.last_update = buyout.last_update;
+            }
+            else {
+                continue;
             }
             Set(*item, b, QString::fromStdString(hash));
         }
@@ -148,13 +147,11 @@ void BuyoutManager::UpdateTabItems(const Bucket &tab) {
     Save();
 }
 
-std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyouts) {
-    rapidjson::Document doc;
-    doc.SetObject();
-    auto &alloc = doc.GetAllocator();
-
-    for (auto &bo : buyouts) {
-        const Buyout &buyout = bo.second;
+std::string BuyoutManager::Serialize(const QMap<QString, Buyout> &buyouts) {
+    QJsonDocument doc;
+    QJsonObject root;
+    for (QString hash : buyouts.uniqueKeys()) {
+        Buyout buyout = buyouts.value(hash);
         if (buyout.type != BUYOUT_TYPE_NO_PRICE && (buyout.currency == CURRENCY_NONE || buyout.type == BUYOUT_TYPE_NONE))
             continue;
         if (buyout.type >= BuyoutTypeAsTag.size() || buyout.currency >= CurrencyAsTag.size()) {
@@ -162,61 +159,66 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
                 << "currency:" << buyout.currency;
             continue;
         }
-        rapidjson::Value item(rapidjson::kObjectType);
-        item.AddMember("value", buyout.value, alloc);
-
-        // Save set_by
-        Util::RapidjsonAddConstString(&item, "set_by", buyout.set_by.toStdString(), alloc);
+        QJsonObject value;
+        value.insert("value", buyout.value);
+        value.insert("set_by", buyout.set_by);
 
         if (!buyout.last_update.isNull()){
-            item.AddMember("last_update", buyout.last_update.toTime_t(), alloc);
-        }else{
+            value.insert("last_update", (int) buyout.last_update.toTime_t());
+        } else {
             // If last_update is null, set as the actual time
-            item.AddMember("last_update", QDateTime::currentDateTime().toTime_t(), alloc);
+            value.insert("last_update", (int) QDateTime::currentDateTime().toTime_t());
         }
 
-        Util::RapidjsonAddConstString(&item, "type", BuyoutTypeAsTag[buyout.type], alloc);
-        Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[buyout.currency], alloc);
+        value.insert("type", QString::fromStdString(BuyoutTypeAsTag[buyout.type]));
+        value.insert("currency", QString::fromStdString(CurrencyAsTag[buyout.currency]));
 
-        rapidjson::Value name(bo.first.c_str(), alloc);
-        doc.AddMember(name, item, alloc);
+        root.insert(hash, value);
     }
-
-    return Util::RapidjsonSerialize(doc);
+    doc.setObject(root);
+    QByteArray result = doc.toJson();
+    qDebug() << result;
+    return result.toStdString();
 }
 
-void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts) {
+void BuyoutManager::Deserialize(const std::string &data, QMap<QString, Buyout> *buyouts) {
     buyouts->clear();
 
     // if data is empty (on first use) we shouldn't make user panic by showing ERROR messages
     if (data.empty())
         return;
 
-    rapidjson::Document doc;
-    if (doc.Parse(data.c_str()).HasParseError()) {
+    QJsonParseError err;
+    QJsonDocument doc = QJsonDocument::fromJson(QByteArray::fromStdString(data), &err);
+    if (err.error != QJsonParseError::NoError) {
         QLOG_ERROR() << "Error while parsing buyouts.";
-        QLOG_ERROR() << rapidjson::GetParseError_En(doc.GetParseError());
+        QLOG_ERROR() << err.errorString();
         return;
     }
-    if (!doc.IsObject())
+    if (!doc.isObject()) {
+        QLOG_ERROR() << "Error while parsing buyouts.";
+        QLOG_ERROR() << "Value is not an object.";
         return;
-    for (auto itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr) {
-        auto &object = itr->value;
-        const std::string &name = itr->name.GetString();
+    }
+
+    for (QString key : doc.object().keys()) {
+        QJsonObject object = doc.object().value(key).toObject();
         Buyout bo;
 
-        bo.currency = static_cast<Currency>(Util::TagAsCurrency(object["currency"].GetString()));
-        bo.type = static_cast<BuyoutType>(Util::TagAsBuyoutType(object["type"].GetString()));
-        bo.value = object["value"].GetDouble();
+        bo.currency = static_cast<Currency>(Util::TagAsCurrency(object.value("currency").toString().toStdString()));
+        bo.type = static_cast<BuyoutType>(Util::TagAsBuyoutType(object.value("type").toString().toStdString()));
+        bo.value = object.value("value").toDouble();
         bo.last_update = QDateTime();
         bo.set_by = "";
-        if (object.HasMember("last_update")) {
-            bo.last_update = QDateTime::fromTime_t(object["last_update"].GetInt());
+
+        if (object.contains("last_update")) {
+            bo.last_update = QDateTime::fromTime_t(object.value("last_update").toInt());
         }
-        if (object.HasMember("set_by")) {
-            bo.set_by = QString::fromStdString(object["set_by"].GetString());
+        if (object.contains("set_by")) {
+            bo.set_by = object.value("set_by").toString();
         }
-        (*buyouts)[name] = bo;
+
+        buyouts->insert(key, bo);
     }
 }
 

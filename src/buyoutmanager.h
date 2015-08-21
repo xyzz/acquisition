@@ -22,6 +22,7 @@
 #include "item.h"
 #include "bucket.h"
 #include <QDateTime>
+#include <QMap>
 
 enum Currency {
     CURRENCY_NONE,
@@ -148,13 +149,13 @@ public:
     bool IsItemManuallySet(const Item &item) const;
     void UpdateTabItems(const Bucket &tab);
 private:
-    std::string ItemHash(const Item &item) const;
-    std::string Serialize(const std::map<std::string, Buyout> &buyouts);
-    void Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts);
+    QString ItemHash(const Item &item) const;
+    static std::string Serialize(const QMap<QString, Buyout> &buyouts);
+    static void Deserialize(const std::string &data, QMap<QString, Buyout> *buyouts);
 
     DataManager &data_manager_;
-    std::map<std::string, Buyout> buyouts_;
-    std::map<std::string, Buyout> tab_buyouts_;
+    QMap<QString, Buyout> buyouts_;
+    QMap<QString, Buyout> tab_buyouts_;
     bool save_needed_;
 };
 
