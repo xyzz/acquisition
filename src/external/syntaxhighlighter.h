@@ -23,7 +23,7 @@ protected:
 
         QTextCharFormat optionFormat;
         optionFormat.setFontUnderline(true);
-        optionFormat.setForeground(Qt::yellow);
+        optionFormat.setForeground(Qt::darkYellow);
 
         QString pattern = "{(?<key>.+?)(?<options>(\\|(.+?))*?)}";
 
