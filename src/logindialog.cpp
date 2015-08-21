@@ -38,6 +38,9 @@
 #include "application.h"
 #include "filesystem.h"
 #include "mainwindow.h"
+#ifdef WITH_STEAM
+#include "steamlogindialog.h"
+#endif
 #include "util.h"
 #include "version.h"
 
@@ -49,6 +52,9 @@ const char* POE_COOKIE_NAME = "PHPSESSID";
 
 enum {
     LOGIN_PASSWORD,
+#ifdef WITH_STEAM
+    LOGIN_STEAM,
+#endif
     LOGIN_SESSIONID
 };
 
@@ -59,6 +65,10 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     asked_to_update_(false)
 {
     ui->setupUi(this);
+
+#ifndef WITH_STEAM
+    ui->tab_2->hide();
+#endif
     ui->errorLabel->hide();
     ui->errorLabel->setStyleSheet("QLabel { color : red; }");
     setWindowTitle(QString("Acquisition Plus - Login [") + VERSION_NAME + "]");
@@ -120,6 +130,18 @@ void LoginDialog::OnLoginButtonClicked() {
     connect(login_page, SIGNAL(finished()), this, SLOT(OnLoginPageFinished()));
 }
 
+#ifdef WITH_STEAM
+void LoginDialog::InitSteamDialog() {
+    steam_login_dialog_ = std::make_unique<SteamLoginDialog>();
+    connect(steam_login_dialog_.get(), SIGNAL(CookieReceived(const QString&)), this, SLOT(OnSteamCookieReceived(const QString&)));
+    connect(steam_login_dialog_.get(), SIGNAL(Closed()), this, SLOT(OnSteamDialogClosed()), Qt::DirectConnection);
+}
+
+void LoginDialog::OnSteamDialogClosed() {
+    DisplayError("Login was not completed");
+}
+#endif
+
 // All characters except + should be handled by QUrlQuery, see http://doc.qt.io/qt-5/qurlquery.html#encoding
 static QString EncodeSpecialCharacters(QString s) {
     s.replace("+", "%2b");
@@ -156,6 +178,15 @@ void LoginDialog::OnLoginPageFinished() {
             connect(logged_in, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
             break;
         }
+#ifdef WITH_STEAM
+        case LOGIN_STEAM: {
+            if (!steam_login_dialog_)
+                InitSteamDialog();
+            steam_login_dialog_->show();
+            steam_login_dialog_->Init();
+            break;
+        }
+#endif
         case LOGIN_SESSIONID: {
             LoginWithCookie(ui->sessionIDLineEdit->text());
             break;
@@ -181,6 +212,16 @@ void LoginDialog::OnLoggedIn() {
     QNetworkReply *main_page = login_manager_->get(QNetworkRequest(QUrl(POE_MY_ACCOUNT)));
     connect(main_page, SIGNAL(finished()), this, SLOT(OnMainPageFinished()));
 }
+
+#ifdef WITH_STEAM
+void LoginDialog::OnSteamCookieReceived(const QString &cookie) {
+    if (cookie.isEmpty()) {
+        DisplayError("Failed to log in, the received cookie is empty.");
+        return;
+    }
+    LoginWithCookie(cookie);
+}
+#endif
 
 void LoginDialog::LoginWithCookie(const QString &cookie) {
     QNetworkCookie poeCookie(POE_COOKIE_NAME, cookie.toUtf8());

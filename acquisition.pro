@@ -3,6 +3,17 @@ TEMPLATE = app
 
 QT += core gui network
 
+# Enable below for steam support
+#CONFIG += steam
+
+steam {
+    QT += webkitwidgets
+    SOURCES += src/steamlogindialog.cpp
+    HEADERS += src/steamlogindialog.h
+    FORMS += forms/steamlogindialog.ui
+    DEFINES += WITH_STEAM
+}
+
 win32 {
     QT += winextras
 }
