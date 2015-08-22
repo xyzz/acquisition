@@ -25,6 +25,7 @@
 #include <QLocale>
 #include "QsLog.h"
 #include "QsLogDest.h"
+#include <clocale>
 #include <limits>
 #include <memory>
 
@@ -48,6 +49,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QsLogging::Level>("QsLogging::Level");
 
     QLocale::setDefault(QLocale::C);
+    std::setlocale(LC_ALL, "C");
 
 #if defined(CRASHRPT) && !defined(DEBUG)
     CR_INSTALL_INFOW info;
