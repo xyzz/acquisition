@@ -26,6 +26,7 @@
 #include <QPushButton>
 
 #ifdef Q_OS_WIN
+#include <QItemSelection>
 #include <QSystemTrayIcon>
 #include <QWinTaskbarButton>
 #include <QWinTaskbarProgress>
@@ -89,7 +90,7 @@ public:
     void LoadSearches();
     void SaveSearches();
 public slots:
-    void OnTreeChange(const QModelIndex &index, const QModelIndex &prev);
+    void OnTreeChange(const QItemSelection &selected, const QItemSelection &deselected);
     void OnSearchFormChange();
     void OnTabChange(int index);
     void OnImageFetched(QNetworkReply *reply);

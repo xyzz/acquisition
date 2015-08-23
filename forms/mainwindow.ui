@@ -139,6 +139,9 @@
               <property name="alternatingRowColors">
                <bool>false</bool>
               </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
               <property name="uniformRowHeights">
                <bool>true</bool>
               </property>

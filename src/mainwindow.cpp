@@ -343,11 +343,7 @@ void MainWindow::InitializeUi() {
             app_->shop().ExpireShopData();
             if (bucket.location().GetGeneralHash() == current_bucket_.location().GetGeneralHash()) {
                 // Update UI
-                Buyout b;
-                b.currency = CURRENCY_NONE;
-                b.value = 0;
-                b.set_by = "";
-                b.type = BUYOUT_TYPE_NONE;
+                Buyout b = {};
                 UpdateBuyoutWidgets(b);
             }
         }
@@ -365,11 +361,7 @@ void MainWindow::InitializeUi() {
             app_->shop().ExpireShopData();
             if (bucket.location().GetGeneralHash() == current_bucket_.location().GetGeneralHash()) {
                 // Update UI
-                Buyout b;
-                b.currency = CURRENCY_NONE;
-                b.value = 0;
-                b.set_by = "";
-                b.type = BUYOUT_TYPE_NONE;
+                Buyout b = {};
                 UpdateBuyoutWidgets(b);
             }
         }
@@ -684,18 +676,31 @@ void MainWindow::OnSearchFormChange() {
     // Save buyouts
     app_->buyout_manager().Save();
 
+    ui->treeView->selectionModel()->disconnect(this);
     current_search_->Activate(app_->items(), ui->treeView);
     UpdateCurrentHeaderState();
-    connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
-            this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
-
-
+    connect(ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::OnTreeChange);
 
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
 }
 
-void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /* previous */) {
-    QModelIndex actualCurrent = current_search_->GetIndex(current);
+void MainWindow::OnTreeChange(const QItemSelection & /*selected*/, const QItemSelection & /* previous */) {
+    QModelIndexList indexes = ui->treeView->selectionModel()->selectedRows();
+    if (indexes.isEmpty()) return;
+
+//    for (QModelIndex index : indexes) {
+//        QModelIndex actualIndex = current_search_->GetIndex(index);
+//        if (!actualIndex.parent().isValid()) {
+//            Bucket b = *(current_search_->buckets()[actualIndex.row()]);
+//            qDebug() << "Selected bucket: " << QString::fromStdString(b.location().GetGeneralHash());
+//        }
+//        else {
+//            std::shared_ptr<Item> item = current_search_->buckets()[actualIndex.parent().row()]->items()[actualIndex.row()];
+//            qDebug() << "Selected item: " << QString::fromStdString(item->PrettyName());
+//        }
+//    }
+
+    QModelIndex actualCurrent = current_search_->GetIndex(indexes.first());
     if (!actualCurrent.parent().isValid()) {
         // clicked on a bucket
         current_item_ = nullptr;
@@ -1162,8 +1167,10 @@ void MainWindow::UpdateBuyoutWidgets(const Buyout &bo) {
     ui->buyoutValueLineEdit->setEnabled(true);
     ui->buyoutTypeComboBox->setCurrentIndex(bo.type);
 
-    if (bo.type == BUYOUT_TYPE_NONE || bo.type == BUYOUT_TYPE_NO_PRICE)
+    if (bo.type == BUYOUT_TYPE_NONE || bo.type == BUYOUT_TYPE_NO_PRICE) {
         ui->buyoutValueLineEdit->setText("");
+        ui->buyoutValueLineEdit->setEnabled(false);
+    }
     else {
         if (ui->buyoutCurrencyComboBox->isVisible()) {
             ui->buyoutValueLineEdit->setText(QString::number(bo.value));
