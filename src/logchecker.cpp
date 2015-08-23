@@ -9,7 +9,7 @@
 LogChecker::LogChecker(QObject *parent, const QString &path)
     : QObject(parent)
     , path_(path) {
-    logTimerId_ = this->startTimer(5000);
+    logTimerId_ = 0; //this->startTimer(5000);
     logLastSize_ = 0;
 }
 
