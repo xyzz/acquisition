@@ -1,5 +1,6 @@
 #include "settingspane.h"
 #include "ui_settingspane.h"
+#include <QInputDialog>
 
 #include "application.h"
 #include "mainwindow.h"
@@ -64,6 +65,7 @@ void SettingsPane::addShop(int id) {
     ui->shopsWidget->setItem(row, 0, thread);
 
     QPushButton* button = new QPushButton("Edit Template...");
+    button->setFlat(true);
     ui->shopsWidget->setCellWidget(row, 1, button);
     connect(button, &QPushButton::clicked, [this, row] {
         // Trigger template!
@@ -73,14 +75,16 @@ void SettingsPane::addShop(int id) {
 
     shopThreadIds.insert(row, QString::number(id));
     ui->shopsWidget->blockSignals(false);
-
-    if (id == 0) {
-        ui->shopsWidget->editItem(thread);
-    }
 }
 
 void SettingsPane::on_addShopButton_clicked() {
-    addShop(0);
+    bool ok;
+    QString threadId = QInputDialog::getText(this, "New Shop", "Enter thread id:", QLineEdit::Normal,
+        "", &ok);
+    int id = threadId.toInt();
+    if (ok && !threadId.isEmpty() && id > 0) {
+        addShop(id);
+    }
 }
 
 void SettingsPane::on_shopsWidget_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous) {
@@ -159,6 +163,7 @@ void SettingsPane::updateFromStorage() {
     // Ignore shop threads as they are handled seperately...
     ui->updateShopBox->setChecked(app_->shop().IsAutoUpdateEnabled());
     ui->bumpShopBox->setChecked(app_->shop().IsBumpEnabled());
+    ui->shopTimeoutBox->setValue(app_->shop().GetTimeout() / 1000);
 
     // Trade
     ui->refreshTradeBox->setChecked(parent_->auto_online_.enabled());
@@ -290,11 +295,16 @@ void SettingsPane::on_minimizeBox_toggled(bool checked)
 
 void SettingsPane::on_addTabExclusion_clicked()
 {
-    QListWidgetItem* item = new QListWidgetItem("");
-    item->setFlags(item->flags () | Qt::ItemIsEditable);
-    ui->tabExclusionListWidget->addItem(item);
-    ui->tabExclusionListWidget->editItem(item);
-    updateTabExclusions();
+    bool ok;
+    QString regex = QInputDialog::getText(this, "New Tab Exclusion", "Enter regex:", QLineEdit::Normal,
+        "", &ok);
+    QRegularExpression expr(regex);
+    if (ok && !regex.isEmpty() && expr.isValid()) {
+        QListWidgetItem* item = new QListWidgetItem(regex);
+        item->setFlags(item->flags () | Qt::ItemIsEditable);
+        ui->tabExclusionListWidget->addItem(item);
+        updateTabExclusions();
+    }
 }
 
 
@@ -313,4 +323,8 @@ void SettingsPane::on_removeTabExclusion_clicked()
 void SettingsPane::on_tabExclusionListWidget_itemChanged(QListWidgetItem *item) {
     Q_UNUSED(item);
     updateTabExclusions();
+}
+
+void SettingsPane::on_shopTimeoutBox_valueChanged(int val) {
+    app_->shop().SetTimeout(val * 1000);
 }

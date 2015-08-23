@@ -49,6 +49,7 @@ Shop::Shop(Application &app)
     connect(&submitter_, &ShopSubmitter::ShopSubmitted, this, &Shop::OnShopSubmitted);
     connect(&submitter_, &ShopSubmitter::ShopBumped, this, &Shop::OnShopBumped);
     connect(&submitter_, &ShopSubmitter::ShopSubmissionError, this, &Shop::OnShopError);
+
     LoadShops();
 }
 
@@ -62,6 +63,9 @@ void Shop::LoadShops() {
     if (!doc.isNull() && doc.isObject()) {
         auto_update_ = doc.object().value("auto_update").toBool();
         do_bump_ = doc.object().value("auto_bump").toBool();
+        int timeout = doc.object().value("timeout").toInt();
+        if (timeout > 0)
+            submitter_.SetTimeout(timeout);
 
         for (QJsonValue val : doc.object().value("shops").toArray()) {
             QJsonObject obj = val.toObject();
@@ -121,6 +125,7 @@ void Shop::SaveShops() {
     QJsonObject mainObject;
     mainObject.insert("auto_update", auto_update_);
     mainObject.insert("auto_bump", do_bump_);
+    mainObject.insert("timeout", submitter_.GetTimeout());
 
     QJsonArray array;
     for (ShopData* data : shops_) {
@@ -212,6 +217,14 @@ void Shop::SetShopTemplate(const QString &threadId, const QString &temp) {
     SaveShops();
 }
 
+void Shop::SetTimeout(int timeout) {
+    submitter_.SetTimeout(timeout);
+}
+
+int Shop::GetTimeout() {
+    return submitter_.GetTimeout();
+}
+
 QString Shop::GetShopTemplate(const QString &threadId) {
     ShopData* data = shops_.value(threadId);
     if (!data) return QString();
@@ -272,7 +285,6 @@ void Shop::SubmitShopToForum(const QString &threadId) {
     }
 
     if (shopsToSubmit.isEmpty()) {
-        QLOG_WARN() << "No shops are ready or need to submit.";
         return;
     }
 

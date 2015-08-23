@@ -5,7 +5,6 @@
 #include <QUrlQuery>
 #include <QDebug>
 
-int ShopSubmitter::SUBMISSION_TIMEOUT = 60000; // A minute
 const QString POE_EDIT_THREAD = "https://www.pathofexile.com/forum/edit-thread/";
 const QString POE_BUMP_THREAD = "https://www.pathofexile.com/forum/post-reply/";
 const QString BUMP_MESSAGE = "[url=https://github.com/Novynn/acquisitionplus/releases]Bumped with Acquisition Plus![/url]";
@@ -13,6 +12,7 @@ const QString BUMP_MESSAGE = "[url=https://github.com/Novynn/acquisitionplus/rel
 ShopSubmitter::ShopSubmitter(QNetworkAccessManager *manager)
     : QObject()
     , network(manager)
+    , timeout(60000)
 {
 }
 
@@ -48,7 +48,7 @@ void ShopSubmitter::BeginShopSubmission(const QString &threadId, const QString &
     submission->bumpAfter = bumpAfter;
     submissions.insert(threadId, submission);
 
-    submission->timerId = startTimer(SUBMISSION_TIMEOUT);
+    submission->timerId = startTimer(GetTimeout());
 
     // Submit!
     QNetworkRequest request(QUrl(ShopEditUrl(threadId)));
@@ -160,7 +160,7 @@ void ShopSubmitter::SubmitShop(ShopSubmission* submission) {
     query.addQueryItem("content", submission->shopData);
     query.addQueryItem("submit", "Submit");
 
-    submission->timerId = startTimer(SUBMISSION_TIMEOUT);
+    submission->timerId = startTimer(GetTimeout());
 
     QNetworkRequest request(QUrl(ShopEditUrl(submission->threadId)));
     request.setAttribute((QNetworkRequest::Attribute) SHOP_DATA_THREAD, submission->threadId);
@@ -177,7 +177,7 @@ void ShopSubmitter::BumpShop(ShopSubmission *submission) {
     query.addQueryItem("content", BUMP_MESSAGE);
     query.addQueryItem("post_submit", "Submit");
 
-    submission->timerId = startTimer(SUBMISSION_TIMEOUT);
+    submission->timerId = startTimer(GetTimeout());
 
     QNetworkRequest request(QUrl(ShopBumpUrl(submission->threadId)));
     request.setAttribute((QNetworkRequest::Attribute) SHOP_DATA_THREAD, submission->threadId);

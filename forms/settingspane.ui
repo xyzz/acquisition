@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>602</width>
+    <width>386</width>
     <height>520</height>
    </rect>
   </property>
@@ -23,9 +23,9 @@
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>0</y>
-        <width>567</width>
-        <height>635</height>
+        <y>-194</y>
+        <width>351</width>
+        <height>615</height>
        </rect>
       </property>
       <attribute name="label">
@@ -73,7 +73,7 @@
              <bool>true</bool>
             </property>
             <property name="suffix">
-             <string>m</string>
+             <string> minutes</string>
             </property>
             <property name="minimum">
              <number>1</number>
@@ -90,100 +90,93 @@
         </widget>
        </item>
        <item>
-        <layout class="QGridLayout" name="gridLayout">
-         <item row="0" column="0">
-          <widget class="QGroupBox" name="groupBox">
-           <property name="title">
-            <string>Exclude Tabs from Acquisition</string>
-           </property>
-           <property name="flat">
-            <bool>false</bool>
-           </property>
-           <property name="checkable">
-            <bool>false</bool>
-           </property>
-           <property name="checked">
-            <bool>false</bool>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_3">
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Exclude Tabs from Acquisition</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QListWidget" name="tabExclusionListWidget">
+            <property name="editTriggers">
+             <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+            </property>
+            <property name="tabKeyNavigation">
+             <bool>true</bool>
+            </property>
+            <property name="showDropIndicator" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="dragDropOverwriteMode">
+             <bool>false</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::DragOnly</enum>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+            <property name="movement">
+             <enum>QListView::Snap</enum>
+            </property>
+            <property name="uniformItemSizes">
+             <bool>true</bool>
+            </property>
+            <property name="sortingEnabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QListWidget" name="tabExclusionListWidget">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
+             <spacer name="horizontalSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
               </property>
-              <property name="editTriggers">
-               <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
               </property>
-              <property name="tabKeyNavigation">
-               <bool>true</bool>
-              </property>
-              <property name="showDropIndicator" stdset="0">
-               <bool>false</bool>
-              </property>
-              <property name="dragDropOverwriteMode">
-               <bool>false</bool>
-              </property>
-              <property name="dragDropMode">
-               <enum>QAbstractItemView::DragOnly</enum>
-              </property>
-              <property name="alternatingRowColors">
-               <bool>true</bool>
-              </property>
-              <property name="selectionMode">
-               <enum>QAbstractItemView::SingleSelection</enum>
-              </property>
-              <property name="selectionBehavior">
-               <enum>QAbstractItemView::SelectRows</enum>
-              </property>
-              <property name="movement">
-               <enum>QListView::Snap</enum>
-              </property>
-              <property name="uniformItemSizes">
-               <bool>true</bool>
-              </property>
-              <property name="sortingEnabled">
-               <bool>false</bool>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="addTabExclusion">
+              <property name="text">
+               <string>Add</string>
               </property>
              </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <item>
-               <spacer name="horizontalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QPushButton" name="addTabExclusion">
-                <property name="text">
-                 <string>Add</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="removeTabExclusion">
-                <property name="text">
-                 <string>Remove</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QPushButton" name="removeTabExclusion">
+              <property name="text">
+               <string>Remove</string>
+              </property>
+             </widget>
             </item>
            </layout>
-          </widget>
-         </item>
-        </layout>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_3">
@@ -211,12 +204,6 @@
             </property>
             <item>
              <widget class="QTableWidget" name="shopsWidget">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
               <property name="showDropIndicator" stdset="0">
                <bool>false</bool>
               </property>
@@ -256,6 +243,16 @@
                <number>6</number>
               </property>
               <item>
+               <widget class="QPushButton" name="copyShopButton">
+                <property name="text">
+                 <string>Copy Shop to Clipboard</string>
+                </property>
+                <property name="flat">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
                <spacer name="horizontalSpacer_2">
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -267,16 +264,6 @@
                  </size>
                 </property>
                </spacer>
-              </item>
-              <item>
-               <widget class="QPushButton" name="copyShopButton">
-                <property name="text">
-                 <string>Copy Shop to Clipboard</string>
-                </property>
-                <property name="flat">
-                 <bool>true</bool>
-                </property>
-               </widget>
               </item>
               <item>
                <widget class="QPushButton" name="addShopButton">
@@ -297,27 +284,44 @@
            </layout>
           </item>
           <item>
-           <widget class="QCheckBox" name="updateShopBox">
-            <property name="text">
-             <string>Automatically Update Shops</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="bumpShopBox">
-            <property name="text">
-             <string>Bump Shops after Update (Every hour at maximum)</string>
-            </property>
-           </widget>
+           <layout class="QFormLayout" name="formLayout_2">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Shop Thread Timeout</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QSpinBox" name="shopTimeoutBox">
+              <property name="suffix">
+               <string> seconds</string>
+              </property>
+              <property name="minimum">
+               <number>30</number>
+              </property>
+              <property name="maximum">
+               <number>360</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="updateShopBox">
+              <property name="text">
+               <string>Automatically Update Shops</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QCheckBox" name="bumpShopBox">
+              <property name="text">
+               <string>Automatically Bump Shops</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="Line" name="line_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
         </widget>
        </item>
        <item>
@@ -382,7 +386,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>584</width>
+        <width>368</width>
         <height>421</height>
        </rect>
       </property>
@@ -450,7 +454,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>584</width>
+        <width>368</width>
         <height>421</height>
        </rect>
       </property>

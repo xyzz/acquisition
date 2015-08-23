@@ -56,6 +56,9 @@ public:
     void ExpireShopData();
     void SetShopTemplate(const QString &threadId, const QString &temp);
 
+    void SetTimeout(int timeout);
+    int GetTimeout();
+
     const QList<QString> threadIds() const { return shops_.uniqueKeys(); }
     QString GetShopTemplate(const QString &threadId);
 

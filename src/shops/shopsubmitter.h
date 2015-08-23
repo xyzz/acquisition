@@ -34,7 +34,6 @@ class ShopSubmitter : public QObject
     Q_OBJECT
 public:
     explicit ShopSubmitter(QNetworkAccessManager* manager);
-    static int SUBMISSION_TIMEOUT;
 
     bool IsSubmitting(const QString &threadId) {
         return submissions.contains(threadId) &&
@@ -52,6 +51,9 @@ public:
         }
         return count;
     }
+
+    void SetTimeout(int t) { timeout = t; }
+    int GetTimeout() { return timeout; }
 
 protected:
     void timerEvent(QTimerEvent *event);
@@ -77,6 +79,8 @@ private:
     void RemoveSubmission(ShopSubmission* submission);
     QNetworkAccessManager* network;
     QHash<QString, ShopSubmission*> submissions;
+
+    int timeout;
 };
 
 #endif // SHOPSUBMITTER_H

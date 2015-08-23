@@ -45,6 +45,7 @@ private slots:
     void on_addTabExclusion_clicked();
     void on_removeTabExclusion_clicked();
     void on_tabExclusionListWidget_itemChanged(QListWidgetItem *item);
+    void on_shopTimeoutBox_valueChanged(int val);
 
 private:
     void addShop(int id);
