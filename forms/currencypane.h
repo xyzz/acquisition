@@ -14,13 +14,13 @@ class QTableWidget;
 class QTableWidgetItem;
 class MainWindow;
 class Application;
-class QSpinBox;
+class QDoubleSpinBox;
 
 class RatioCell : public QWidget {
     Q_OBJECT
 private:
-    QSpinBox* first;
-    QSpinBox* second;
+    QDoubleSpinBox* first;
+    QDoubleSpinBox* second;
 public:
     explicit RatioCell(QTableWidget *parent = 0);
 signals:

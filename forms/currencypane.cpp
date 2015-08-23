@@ -162,11 +162,11 @@ void CurrencyPane::UpdateItemChaosValues() {
         int count = item->data(Qt::DisplayRole).toInt();
 
         QWidget* widget = ui->currencyTable->cellWidget(i, 1);
-        QSpinBox* currencyBox = widget->findChild<QSpinBox*>("CurrencyCount");
-        QSpinBox* chaosBox = widget->findChild<QSpinBox*>("ChaosCount");
+        QDoubleSpinBox* currencyBox = widget->findChild<QDoubleSpinBox*>("CurrencyCount");
+        QDoubleSpinBox* chaosBox = widget->findChild<QDoubleSpinBox*>("ChaosCount");
         double ratio = 0.0;
         if (currencyBox && chaosBox) {
-            ratio = ((double) currencyBox->value() / chaosBox->value());
+            ratio = (currencyBox->value() / chaosBox->value());
         }
         double result = (ratio > 0.0) ? count / ratio : 0.0;
 
@@ -206,8 +206,8 @@ bool CurrencyPane::LoadCurrencyRates(const QString &data)
             int chaos = obj.value("chaos").toInt();
 
             QWidget* widget = ui->currencyTable->cellWidget(i, 1);
-            QSpinBox* currencyBox = widget->findChild<QSpinBox*>("CurrencyCount");
-            QSpinBox* chaosBox = widget->findChild<QSpinBox*>("ChaosCount");
+            QDoubleSpinBox* currencyBox = widget->findChild<QDoubleSpinBox*>("CurrencyCount");
+            QDoubleSpinBox* chaosBox = widget->findChild<QDoubleSpinBox*>("ChaosCount");
 
             if (currencyBox && chaosBox) {
                 currencyBox->setValue(count);
@@ -227,8 +227,8 @@ QString CurrencyPane::SaveCurrencyRates()
         QTableWidgetItem* header = ui->currencyTable->verticalHeaderItem(i);
 
         QWidget* widget = ui->currencyTable->cellWidget(i, 1);
-        QSpinBox* currencyBox = widget->findChild<QSpinBox*>("CurrencyCount");
-        QSpinBox* chaosBox = widget->findChild<QSpinBox*>("ChaosCount");
+        QDoubleSpinBox* currencyBox = widget->findChild<QDoubleSpinBox*>("CurrencyCount");
+        QDoubleSpinBox* chaosBox = widget->findChild<QDoubleSpinBox*>("ChaosCount");
 
         if (currencyBox && chaosBox) {
             QJsonObject obj;
@@ -301,7 +301,7 @@ RatioCell::RatioCell(QTableWidget *parent) : QWidget(parent) {
     setLayout(new QHBoxLayout());
     layout()->setMargin(0);
 
-    first = new QSpinBox(this);
+    first = new QDoubleSpinBox(this);
     first->setObjectName("CurrencyCount");
     first->setValue(0);
     first->setMaximum(100000);
@@ -310,7 +310,7 @@ RatioCell::RatioCell(QTableWidget *parent) : QWidget(parent) {
 
     layout()->addWidget(new QLabel(":", this));
 
-    second = new QSpinBox(this);
+    second = new QDoubleSpinBox(this);
     second->setObjectName("ChaosCount");
     second->setSuffix("c");
     second->setValue(1);
@@ -324,6 +324,6 @@ RatioCell::RatioCell(QTableWidget *parent) : QWidget(parent) {
     setFocusPolicy(Qt::TabFocus);
     setFocusProxy(first);
     setTabOrder(first, second);
-    connect(first, &QSpinBox::editingFinished, this, &RatioCell::editingFinished);
-    connect(second, &QSpinBox::editingFinished, this, &RatioCell::editingFinished);
+    connect(first, &QDoubleSpinBox::editingFinished, this, &RatioCell::editingFinished);
+    connect(second, &QDoubleSpinBox::editingFinished, this, &RatioCell::editingFinished);
 }
