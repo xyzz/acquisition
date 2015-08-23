@@ -72,7 +72,7 @@ ShopSubmission* ShopSubmitter::ExtractResponse(QNetworkReply *reply) {
         submission = submissions.value(threadId);
 
         if (reply->error() != QNetworkReply::NoError) {
-            error = "A network error occured: " + reply->errorString();
+            error = "A network error occurred: " + reply->errorString();
             if (reply->error() == QNetworkReply::OperationCanceledError) {
                 error = "Timed out while submitting to the server.";
             }

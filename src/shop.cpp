@@ -341,6 +341,6 @@ void Shop::OnShopBumped(const QString &threadId) {
 }
 
 void Shop::OnShopError(const QString &threadId, const QString &error) {
-    QLOG_ERROR() << qPrintable("An error occured with shop " + threadId + ": " + error);
+    QLOG_ERROR() << qPrintable("An error occurred with shop " + threadId + ": " + error);
     UpdateState();
 }
