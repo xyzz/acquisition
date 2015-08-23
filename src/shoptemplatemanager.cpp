@@ -52,6 +52,7 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
     if (items.size() > 0){
         Items result;
 
+        bool includeNoBuyouts = options->contains("include.ignored");
         ShopTemplateContainType containType = CONTAIN_TYPE_NONE;
 
         if (key == "everything") {
@@ -67,6 +68,7 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
                     }
                 }
             }
+            includeNoBuyouts = true;
         }
         else {
             Items pool = items;
@@ -133,8 +135,6 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
         // Recheck
         if (result.size() == 0)
             return replacement;
-
-        bool includeNoBuyouts = options->contains("include.ignored");
 
         if (containType == CONTAIN_TYPE_NONE && options->contains("wrap")) containType = CONTAIN_TYPE_WRAP;
         if (containType == CONTAIN_TYPE_NONE && options->contains("group")) containType = CONTAIN_TYPE_GROUP;
