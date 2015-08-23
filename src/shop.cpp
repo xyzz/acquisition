@@ -194,7 +194,7 @@ void Shop::ExpireShopData() {
         ShopData* data = shops_.value(thread);
         data->requiresUpdate = true;
     }
-    QLOG_INFO() << "Shop data expired.";
+    // QLOG_INFO() << "Shop data expired.";
 }
 
 void Shop::SetAutoUpdate(bool update) {

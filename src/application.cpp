@@ -55,8 +55,8 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
 void Application::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh) {
     items_ = items;
     tabs_ = tabs;
+    shop_->ExpireShopData();
     if (!initial_refresh) {
-        shop_->ExpireShopData();
         shop_->SubmitShopToForum();
     }
 }
