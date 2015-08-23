@@ -97,15 +97,14 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
     connect(&auto_online_, &AutoOnline::Update, this, &MainWindow::OnOnlineUpdate);
 
-    log_checker_.setPath("S:\\Path of Exile\\logs\\Client.txt");
+    //log_checker_.setPath("S:\\Path of Exile\\logs\\Client.txt");
 
-    tray_icon_.setIcon(QIcon(":/icon.ico"));
+    tray_icon_.setIcon(QIcon(":/icons/assets/icon.svg"));
     tray_icon_.setToolTip("Acquisition Plus");
-    tray_icon_.show();
 
-    connect(&log_checker_, &LogChecker::onCharacterMessage, [this](const QString &name, const QString &message) {
-       tray_icon_.showMessage("Acquisition Plus - Incoming Whisper", "From " + name + ": " + message, QSystemTrayIcon::NoIcon);
-    });
+    //connect(&log_checker_, &LogChecker::onCharacterMessage, [this](const QString &name, const QString &message) {
+    //   tray_icon_.showMessage("Acquisition Plus - Incoming Whisper", "From " + name + ": " + message, QSystemTrayIcon::NoIcon);
+    //});
 
     connect(&tray_icon_, &QSystemTrayIcon::activated, [this] (QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::DoubleClick) {
@@ -129,12 +128,18 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
 }
 
 void MainWindow::changeEvent(QEvent *event) {
-    if(event->type() == QEvent::WindowStateChange && isMinimized()){
-        // Allow events to run
-        if (!app_->data_manager().GetBool("MinimizeToTray")) return;
-        QTimer::singleShot(0, this, SLOT(hide()));
-        event->ignore();
-        return;
+    if(event->type() == QEvent::WindowStateChange) {
+        if (isMinimized()){
+            // Allow events to run
+            if (!app_->data_manager().GetBool("MinimizeToTray")) return;
+            QTimer::singleShot(0, this, SLOT(hide()));
+            tray_icon_.show();
+            event->ignore();
+            return;
+        }
+        else {
+            tray_icon_.hide();
+        }
     }
     QMainWindow::changeEvent(event);
 }

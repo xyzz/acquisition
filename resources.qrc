@@ -27,9 +27,6 @@
         <file alias="ItemHeaderCurrencyMiddle.png">assets/ItemHeaderCurrencyMiddle.png</file>
         <file alias="ItemHeaderCurrencyRight.png">assets/ItemHeaderCurrencyRight.png</file>
     </qresource>
-    <qresource prefix="/">
-        <file alias="icon.ico">assets/icon.ico</file>
-    </qresource>
     <qresource prefix="/icons">
         <file>assets/icon.svg</file>
     </qresource>
