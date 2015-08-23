@@ -149,30 +149,39 @@ Item::Item(const rapidjson::Value &json) :
         socket_groups_.push_back(current_group);
     }
 
-    std::string unique(name_ + "~" + typeLine_);
+    std::string hashes[3];
+    for (int i = 0; i < 3; i++) {
+        std::string unique(name_ + "~" + typeLine_ + "~");
 
-    if (json.HasMember("explicitMods"))
-        for (auto mod_it = json["explicitMods"].Begin(); mod_it != json["explicitMods"].End(); ++mod_it)
-            unique += std::string(mod_it->GetString()) + "~";
+        if (i == 2) {
+            // Strip off last "~" (a mistake from 0.3)
+            unique = unique.substr(0, unique.length() - 1);
+        }
 
-    if (json.HasMember("implicitMods"))
-        for (auto mod_it = json["implicitMods"].Begin(); mod_it != json["implicitMods"].End(); ++mod_it)
-            unique += std::string(mod_it->GetString()) + "~";
+        if (json.HasMember("explicitMods"))
+            for (auto mod_it = json["explicitMods"].Begin(); mod_it != json["explicitMods"].End(); ++mod_it)
+                unique += std::string(mod_it->GetString()) + "~";
 
-    unique += item_unique_properties(json, "properties") + "~";
-    unique += item_unique_properties(json, "additionalProperties") + "~";
+        if (json.HasMember("implicitMods"))
+            for (auto mod_it = json["implicitMods"].Begin(); mod_it != json["implicitMods"].End(); ++mod_it)
+                unique += std::string(mod_it->GetString()) + "~";
 
-    if (json.HasMember("sockets"))
-        for (auto socket_it = json["sockets"].Begin(); socket_it != json["sockets"].End(); ++socket_it)
-            unique += std::to_string((*socket_it)["group"].GetInt()) + "~" + (*socket_it)["attr"].GetString() + "~";
+        unique += item_unique_properties(json, "properties") + "~";
+        unique += item_unique_properties(json, "additionalProperties") + "~";
 
-    old_hash_ = Util::Md5(unique);
+        if (json.HasMember("sockets"))
+            for (auto socket_it = json["sockets"].Begin(); socket_it != json["sockets"].End(); ++socket_it)
+                unique += std::to_string((*socket_it)["group"].GetInt()) + "~" + (*socket_it)["attr"].GetString() + "~";
 
-    // This will only effect corrupted item's hashes...
-    if (corrupted())
-        unique += "corrupted";
+        // This will only effect corrupted item's new hashes...
+        if (i == 1 && corrupted())
+            unique += "corrupted";
 
-    hash_ = Util::Md5(unique);
+        hashes[i] = Util::Md5(unique);
+    }
+    old_hash_ = hashes[0];
+    hash_ = hashes[1];
+    broken_hash_ = hashes[2];
 
     count_ = 1;
     if (properties_.find("Stack Size") != properties_.end()) {

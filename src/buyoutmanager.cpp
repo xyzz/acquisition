@@ -83,7 +83,10 @@ bool BuyoutManager::IsItemManuallySet(const Item &item) const {
 }
 
 QString BuyoutManager::ItemHash(const Item &item) const {
-    return QString::fromStdString(item.hash());
+    if (!use_broken_) {
+        return QString::fromStdString(item.hash());
+    }
+    return QString::fromStdString(item.broken_hash());
 }
 
 Buyout BuyoutManager::GetTab(const std::string &tab) const {

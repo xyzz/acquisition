@@ -136,6 +136,8 @@ public:
     void Delete(const Item &item);
     bool Exists(const Item &item) const;
 
+    void UseBroken(bool toggle = true) { use_broken_ = toggle; }
+
     static bool Equal(const Buyout &buyout1, const Buyout &buyout2);
     static QString Generate(const Buyout &buyout);
 
@@ -157,5 +159,7 @@ private:
     QMap<QString, Buyout> buyouts_;
     QMap<QString, Buyout> tab_buyouts_;
     bool save_needed_;
+
+    bool use_broken_;
 };
 

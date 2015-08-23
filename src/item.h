@@ -85,6 +85,7 @@ public:
     int count() const { return count_; }
     bool has_mtx() const { return has_mtx_; }
     const ModTable &mod_table() const { return mod_table_; }
+    std::string broken_hash() const { return broken_hash_; }
 
 private:
     // The point of GenerateMods is to create combined (e.g. implicit+explicit) poe.trade-like mod map to be searched by mod filter.
@@ -101,6 +102,7 @@ private:
     std::map<std::string, std::string> properties_;
     std::string hash_;
     std::string old_hash_;
+    std::string broken_hash_;
     // vector of pairs [damage, type]
     std::vector<std::pair<std::string, int>> elemental_damage_;
     int sockets_cnt_, links_cnt_;

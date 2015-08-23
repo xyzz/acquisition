@@ -20,7 +20,7 @@
 #include "application.h"
 
 #include <QNetworkAccessManager>
-
+#include <QsLog.h>
 #include "buyoutmanager.h"
 #include "datamanager.h"
 #include "filesystem.h"
@@ -58,6 +58,24 @@ void Application::OnItemsRefreshed(const Items &items, const std::vector<std::st
     shop_->ExpireShopData();
     if (!initial_refresh) {
         shop_->SubmitShopToForum();
+    }
+    else {
+        // Fix up invalid hashes... ZZZ
+        buyout_manager().UseBroken();
+        for (const std::shared_ptr<Item> &item : items) {
+            if (buyout_manager().Exists(*item)) {
+                // We found a buyout set with the broken hash!
+                QLOG_WARN() << qPrintable("Fixed buyout for item with broken hash: " + QString::fromStdString(item->PrettyName()) +
+                                          ". You can safely ignore this message.");
+                Buyout b = buyout_manager().Get(*item);
+                QString setter = b.set_by;
+                buyout_manager().Delete(*item);
+                buyout_manager().UseBroken(false);
+                buyout_manager().Set(*item, b, setter);
+                buyout_manager().UseBroken();
+            }
+        }
+        buyout_manager().UseBroken(false);
     }
 }
 
