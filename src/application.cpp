@@ -61,21 +61,25 @@ void Application::OnItemsRefreshed(const Items &items, const std::vector<std::st
     }
     else {
         // Fix up invalid hashes... ZZZ
+        int fixed = 0;
         buyout_manager().UseBroken();
         for (const std::shared_ptr<Item> &item : items) {
             if (buyout_manager().Exists(*item)) {
                 // We found a buyout set with the broken hash!
-                QLOG_WARN() << qPrintable("Fixed buyout for item with broken hash: " + QString::fromStdString(item->PrettyName()) +
-                                          ". You can safely ignore this message.");
                 Buyout b = buyout_manager().Get(*item);
                 QString setter = b.set_by;
                 buyout_manager().Delete(*item);
                 buyout_manager().UseBroken(false);
                 buyout_manager().Set(*item, b, setter);
                 buyout_manager().UseBroken();
+                fixed++;
             }
         }
         buyout_manager().UseBroken(false);
+
+        if (fixed) {
+            QLOG_WARN() << qPrintable("Fixed " + QString::number(fixed) + " broken buyout hashes. You can safely ignore this message.");
+        }
     }
 }
 
