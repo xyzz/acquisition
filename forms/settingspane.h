@@ -48,7 +48,7 @@ private slots:
     void on_shopTimeoutBox_valueChanged(int val);
 
 private:
-    void addShop(int id);
+    void addShopWidget(const QString &id);
     Ui::SettingsPane *ui;
 
     QMap<int, QString> shopThreadIds;

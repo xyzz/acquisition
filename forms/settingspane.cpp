@@ -30,11 +30,10 @@ void SettingsPane::initialize(MainWindow* parent) {
     for (QString shop : app_->shop().threadIds()) {
         bool ok = false;
         int id = shop.toInt(&ok);
-        if (ok && id) addShop(id);
+        if (ok && id) addShopWidget(shop);
     }
 
     std::string exclusions = app_->data_manager().Get("tab_exclusions");
-    QList<QRegularExpression> expressions;
     rapidjson::Document exclusionDoc;
     exclusionDoc.Parse(exclusions.c_str());
 
@@ -55,25 +54,26 @@ void SettingsPane::showTemplateDialog(const QString &threadId) {
     }
 }
 
-void SettingsPane::addShop(int id) {
+void SettingsPane::addShopWidget(const QString &id) {
     ui->shopsWidget->blockSignals(true);
-    int row = ui->shopsWidget->rowCount();
-    ui->shopsWidget->insertRow(row);
+    {
+        int row = ui->shopsWidget->rowCount();
+        ui->shopsWidget->insertRow(row);
 
-    // Setup Thread ID
-    QTableWidgetItem* thread = new QTableWidgetItem(QString::number(id));
-    ui->shopsWidget->setItem(row, 0, thread);
+        QTableWidgetItem* thread = new QTableWidgetItem(id);
+        ui->shopsWidget->setItem(row, 0, thread);
 
-    QPushButton* button = new QPushButton("Edit Template...");
-    button->setFlat(true);
-    ui->shopsWidget->setCellWidget(row, 1, button);
-    connect(button, &QPushButton::clicked, [this, row] {
-        // Trigger template!
-        QString threadId = ui->shopsWidget->item(row, 0)->text();
-        showTemplateDialog(threadId);
-    });
+        QPushButton* button = new QPushButton("Edit Template...");
+        button->setFlat(true);
+        ui->shopsWidget->setCellWidget(row, 1, button);
+        connect(button, &QPushButton::clicked, [this, row] {
+            // Trigger template!
+            QString threadId = ui->shopsWidget->item(row, 0)->text();
+            showTemplateDialog(threadId);
+        });
 
-    shopThreadIds.insert(row, QString::number(id));
+        shopThreadIds.insert(row, id);
+    }
     ui->shopsWidget->blockSignals(false);
 }
 
@@ -83,7 +83,8 @@ void SettingsPane::on_addShopButton_clicked() {
         "", &ok);
     int id = threadId.toInt();
     if (ok && !threadId.isEmpty() && id > 0) {
-        addShop(id);
+        addShopWidget(threadId);
+        app_->shop().AddShop(threadId);
     }
 }
 
