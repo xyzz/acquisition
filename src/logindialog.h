@@ -73,7 +73,7 @@ private:
     QString saved_league_;
     QString session_id_;
     std::unique_ptr<QNetworkAccessManager> login_manager_;
-    std::vector<std::string> leagues_;
+    QStringList leagues_;
 #ifdef WITH_STEAM
     std::unique_ptr<SteamLoginDialog> steam_login_dialog_;
 #endif

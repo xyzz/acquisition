@@ -80,8 +80,6 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     LoadSettings();
 
     login_manager_ = std::make_unique<QNetworkAccessManager>();
-    QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
-    connect(leagues_reply, SIGNAL(finished()), this, SLOT(OnLeaguesRequestFinished()));
     connect(ui->proxyCheckBox, SIGNAL(clicked(bool)), this, SLOT(OnProxyCheckBoxClicked(bool)));
     connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(OnLoginButtonClicked()));
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, [&](){
@@ -91,9 +89,23 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
         asked_to_update_ = true;
         UpdateChecker::AskUserToUpdate(this);
     });
+
+    // Moved this functionality here since we ignore GGG's response anyway.
+//    QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
+//    connect(leagues_reply, SIGNAL(finished()), this, SLOT(OnLeaguesRequestFinished()));
+    leagues_ = QStringList({ "Warbands", "Tempest", "Standard", "Hardcore" });
+
+    ui->leagueComboBox->clear();
+    for (const QString &league : leagues_)
+        ui->leagueComboBox->addItem(league);
+    ui->leagueComboBox->setEnabled(true);
+
+    if (!saved_league_.isEmpty())
+        ui->leagueComboBox->setCurrentText(saved_league_);
 }
 
 void LoginDialog::OnLeaguesRequestFinished() {
+#if 0
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
     rapidjson::Document doc;
@@ -121,6 +133,7 @@ void LoginDialog::OnLeaguesRequestFinished() {
 
     if (saved_league_.size() > 0)
         ui->leagueComboBox->setCurrentText(saved_league_);
+#endif
 }
 
 void LoginDialog::OnLoginButtonClicked() {
