@@ -24,10 +24,10 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QPushButton>
-
-#ifdef Q_OS_WIN
 #include <QItemSelection>
 #include <QSystemTrayIcon>
+
+#ifdef Q_OS_WIN
 #include <QWinTaskbarButton>
 #include <QWinTaskbarProgress>
 #endif
@@ -38,6 +38,7 @@
 #include "porting.h"
 #include "updatechecker.h"
 #include "logchecker.h"
+#include "forms/currencypane.h"
 
 
 class QNetworkAccessManager;
