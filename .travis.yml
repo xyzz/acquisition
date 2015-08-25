@@ -8,7 +8,7 @@ compiler:
  - gcc
 
 before_install: 
- - chmod a+x install-travis-deps
+ - chmod a+x install-travis-deps.sh
  - ./install-travis-deps.sh
 
 script:
