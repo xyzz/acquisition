@@ -7,7 +7,9 @@ compiler:
  - clang
  - gcc
 
-before_install: ./install-travis-deps.sh
+before_install: 
+ - chmod a+x install-travis-deps
+ - ./install-travis-deps.sh
 
 script:
  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
