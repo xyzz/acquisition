@@ -1,6 +1,8 @@
 #include "settingspane.h"
 #include "ui_settingspane.h"
 #include <QInputDialog>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 #include "application.h"
 #include "mainwindow.h"
@@ -34,12 +36,11 @@ void SettingsPane::initialize(MainWindow* parent) {
     }
 
     std::string exclusions = app_->data_manager().Get("tab_exclusions");
-    rapidjson::Document exclusionDoc;
-    exclusionDoc.Parse(exclusions.c_str());
+    QJsonDocument doc = QJsonDocument::fromJson(QByteArray::fromStdString(exclusions));
 
-    if (exclusionDoc.IsArray()) {
-        for (auto &excl  : exclusionDoc) {
-            QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(excl.GetString()));
+    if (!doc.isEmpty() && doc.isArray()) {
+        for (const QJsonValue &excl  : doc.array()) {
+            QListWidgetItem* item = new QListWidgetItem(excl.toString());
             item->setFlags(item->flags () | Qt::ItemIsEditable);
             ui->tabExclusionListWidget->addItem(item);
         }
@@ -140,19 +141,18 @@ void SettingsPane::on_shopsWidget_itemChanged(QTableWidgetItem *item) {
 }
 
 void SettingsPane::updateTabExclusions() {
-    rapidjson::Document doc;
-    doc.SetArray();
-    auto &alloc = doc.GetAllocator();
+    QJsonDocument doc;
 
+    QJsonArray array;
     for (int i = 0; i < ui->tabExclusionListWidget->count(); i++) {
         QString expr = ui->tabExclusionListWidget->item(i)->text();
         if (!QRegularExpression(expr).isValid()) continue;
-        rapidjson::Value val;
-        val.SetString(expr.toLatin1().data(), expr.toLatin1().length());
-        doc.PushBack(val, alloc);
+        array.append(expr);
     }
 
-    app_->data_manager().Set("tab_exclusions", Util::RapidjsonSerialize(doc));
+    doc.setArray(array);
+
+    app_->data_manager().Set("tab_exclusions", doc.toJson().toStdString());
 }
 
 void SettingsPane::updateFromStorage() {
