@@ -23,6 +23,8 @@ unix {
     QMAKE_CXXFLAGS += -Wno-inconsistent-missing-override
 }
 
+QMAKE_CXXFLAGS += -Wno-missing-field-initializers
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 include(deps/QsLog/QsLog.pri)
