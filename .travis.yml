@@ -7,6 +7,9 @@ compiler:
  - clang
  - gcc
 
+before_script:
+ - chmod a+x install-travis-deps
+
 before_install: ./install-travis-deps.sh
 
 script:
