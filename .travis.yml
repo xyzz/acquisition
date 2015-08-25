@@ -15,4 +15,4 @@ script:
  - . /opt/qt54/bin/qt54-env.sh
  - qmake QMAKE_CC=$CC QMAKE_CXX=$CXX QMAKE_CXXFLAGS+="-g" QMAKE_CFLAGS+="-g"
  - make -j2
- - valgrind ./acquisition --test -platform offscreen
+ - valgrind ./acquisitionplus --test -platform offscreen
