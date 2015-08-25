@@ -22,17 +22,10 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <cassert>
-#include <sstream>
-#include <stdexcept>
 #include "QsLog.h"
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/error/en.h"
 
 #include "application.h"
 #include "datamanager.h"
-#include "rapidjson_util.h"
 #include "util.h"
 
 BuyoutManager::BuyoutManager(DataManager &data_manager) :
@@ -49,8 +42,7 @@ void BuyoutManager::Set(const Item &item, Buyout &buyout, QString setter) {
 }
 
 Buyout BuyoutManager::Get(const Item &item) const {
-    if (!Exists(item))
-        throw std::runtime_error("Asked to get inexistant buyout.");
+    Q_ASSERT(Exists(item));
     return buyouts_.value(ItemHash(item));
 }
 

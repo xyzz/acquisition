@@ -28,14 +28,11 @@
 #include <iostream>
 #include <stdexcept>
 #include "QsLog.h"
-#include "rapidjson/document.h"
-#include "rapidjson/error/en.h"
 
 #include "application.h"
 #include "datamanager.h"
 #include "itemsmanagerworker.h"
 #include "porting.h"
-#include "rapidjson_util.h"
 #include "shop.h"
 #include "util.h"
 #include "mainwindow.h"
