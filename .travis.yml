@@ -2,6 +2,7 @@ notifications:
   email: false
 
 language: cpp
+sudo: required
 
 compiler:
  - clang
