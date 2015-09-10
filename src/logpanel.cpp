@@ -47,7 +47,7 @@ LogPanel::LogPanel(MainWindow *window, Ui::MainWindow *ui):
     UpdateStatusLabel();
     QObject::connect(status_button_, SIGNAL(clicked()), &signal_handler_, SLOT(OnStatusLabelClicked()));
 
-    ui->mainLayout->addWidget(output_);
+    ui->centralWidget->layout()->addWidget(output_);
 }
 
 void LogPanel::UpdateStatusLabel() {
