@@ -137,6 +137,7 @@ void CurrencyPane::UpdateGraph(const QMap<double, double> map) {
     customPlot->yAxis->setRange(0, highestVal);
     // show legend:
     customPlot->legend->setVisible(true);
+    customPlot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop);
 }
 
 void CurrencyPane::UpdateItemCounts(const Items &items) {
