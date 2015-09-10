@@ -29,7 +29,14 @@ QString ShopTemplateManager::FetchFromEasyKey(const QString &key, QHash<QString,
 }
 
 void ShopTemplateManager::WriteItems(const Items &items, QString* writer, bool includeBuyoutTag, bool includeNoBuyouts) {
-    for (auto &item : items) {
+    Items sorted = items;
+
+    // Sort to ensure that the template matches even if the item order is different.
+    std::sort(sorted.begin(), sorted.end(), [](const std::shared_ptr<Item> &first, const std::shared_ptr<Item> &second) -> bool {
+        return first->PrettyName() > second->PrettyName();
+    });
+
+    for (auto &item : sorted) {
         if (item->location().socketed())
             continue;
 
