@@ -155,9 +155,10 @@ void ShopSubmitter::OnBumpPageFinished() {
 
 void ShopSubmitter::SubmitShop(ShopSubmission* submission) {
     QUrlQuery query;
+    QString encodedData = submission->shopData.replace("+", "%2b");
     query.addQueryItem("forum_thread", submission->data.value("forum_thread").toString());
     query.addQueryItem("title", submission->data.value("forum_title").toString());
-    query.addQueryItem("content", submission->shopData);
+    query.addQueryItem("content", encodedData);
     query.addQueryItem("submit", "Submit");
 
     submission->timerId = startTimer(GetTimeout());
