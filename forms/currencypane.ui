@@ -168,7 +168,7 @@
   <customwidget>
    <class>QCustomPlot</class>
    <extends>QWidget</extends>
-   <header>external\qcustomplot.h</header>
+   <header>external/qcustomplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
