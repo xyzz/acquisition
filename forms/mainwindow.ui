@@ -759,13 +759,13 @@
   <customwidget>
    <class>SettingsPane</class>
    <extends>QWidget</extends>
-   <header>forms\settingspane.h</header>
+   <header>forms/settingspane.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>CurrencyPane</class>
    <extends>QWidget</extends>
-   <header>forms\currencypane.h</header>
+   <header>forms/currencypane.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

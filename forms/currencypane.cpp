@@ -85,6 +85,8 @@ void CurrencyPane::initialize(MainWindow* parent) {
 void CurrencyPane::UpdateGraph(const QMap<double, double> map) {
     QCustomPlot* customPlot = ui->plotWidget;
 
+    if (map.isEmpty()) return;
+
     // Only show graph data if we have more than a days worth of currency information (otherwise it looks bad).
     if (map.firstKey() >= QDateTime::currentDateTime().addDays(-1).toTime_t()) {
         customPlot->hide();
