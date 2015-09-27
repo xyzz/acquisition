@@ -1,5 +1,7 @@
 # Acquisition Plus
 
+![Travis](https://travis-ci.org/Novynn/acquisitionplus.svg?branch=master)
+
 Acquisition Plus is an inventory management tool for [Path of Exile](https://www.pathofexile.com/).
 
 IMPORTANT! Please not that Acquisition Plus is a modified version of the original Acquisition, which can be found [here](https://github.com/xyzz/acquisition).
