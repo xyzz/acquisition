@@ -11,4 +11,4 @@ fi
 if [ "$CXX" = "clang++" ]; then
 	sudo apt-get install clang-3.6
 fi
-sudo apt-get install qt54base qt54webkit valgrind
+sudo apt-get install qt55base qt55webkit valgrind
