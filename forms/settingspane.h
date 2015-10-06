@@ -36,7 +36,8 @@ public slots:
     void on_updateShopBox_toggled(bool checked);
     void on_copyShopButton_clicked();
     void on_bumpShopBox_toggled(bool checked);
-private slots:
+    void on_bumpIntervalBox_valueChanged(int val);
+    void on_shopTimeoutBox_valueChanged(int val);
     void on_addShopButton_clicked();
     void on_shopsWidget_currentItemChanged(QTableWidgetItem *current, QTableWidgetItem *previous);
     void on_removeShopButton_clicked();
@@ -45,7 +46,6 @@ private slots:
     void on_addTabExclusion_clicked();
     void on_removeTabExclusion_clicked();
     void on_tabExclusionListWidget_itemChanged(QListWidgetItem *item);
-    void on_shopTimeoutBox_valueChanged(int val);
 
 private:
     void addShopWidget(const QString &id);
