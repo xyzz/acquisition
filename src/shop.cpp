@@ -63,6 +63,7 @@ void Shop::LoadShops() {
     if (!doc.isNull() && doc.isObject()) {
         auto_update_ = doc.object().value("auto_update").toBool();
         do_bump_ = doc.object().value("auto_bump").toBool();
+        bump_interval_ = doc.object().value("bump_interval").toInt(POE_BUMP_DELAY);
         int timeout = doc.object().value("timeout").toInt();
         if (timeout > 0)
             submitter_.SetTimeout(timeout);
@@ -125,6 +126,7 @@ void Shop::SaveShops() {
     QJsonObject mainObject;
     mainObject.insert("auto_update", auto_update_);
     mainObject.insert("auto_bump", do_bump_);
+    mainObject.insert("bump_interval", bump_interval_);
     mainObject.insert("timeout", submitter_.GetTimeout());
 
     QJsonArray array;
@@ -311,7 +313,7 @@ void Shop::SubmitSingleShop(ShopData* shop) {
     bool shouldBump = IsBumpEnabled();
     if (shouldBump) {
         shouldBump = shop->lastBumped.isNull() || !shop->lastBumped.isValid() ||
-                     shop->lastBumped.secsTo(QDateTime::currentDateTime()) >= POE_BUMP_DELAY;
+                     shop->lastBumped.secsTo(QDateTime::currentDateTime()) >= BumpInterval();
     }
     submitter_.BeginShopSubmission(shop->threadId, shop->shopData, shouldBump);
     UpdateState();

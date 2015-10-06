@@ -164,6 +164,7 @@ void SettingsPane::updateFromStorage() {
     // Ignore shop threads as they are handled seperately...
     ui->updateShopBox->setChecked(app_->shop().IsAutoUpdateEnabled());
     ui->bumpShopBox->setChecked(app_->shop().IsBumpEnabled());
+    ui->bumpIntervalBox->setValue(app_->shop().BumpInterval() / 60); // BumpInterval is in seconds
     ui->shopTimeoutBox->setValue(app_->shop().GetTimeout() / 1000);
 
     // Trade
@@ -328,4 +329,8 @@ void SettingsPane::on_tabExclusionListWidget_itemChanged(QListWidgetItem *item) 
 
 void SettingsPane::on_shopTimeoutBox_valueChanged(int val) {
     app_->shop().SetTimeout(val * 1000);
+}
+
+void SettingsPane::on_bumpIntervalBox_valueChanged(int val) {
+    app_->shop().SetBumpInterval(val * 60); // BumpInterval is in seconds, val is in minutes
 }

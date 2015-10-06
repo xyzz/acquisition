@@ -70,6 +70,8 @@ public:
 
     bool IsAutoUpdateEnabled() const { return auto_update_; }
     bool IsBumpEnabled() const { return do_bump_; }
+    int BumpInterval() const { return bump_interval_; }
+    void SetBumpInterval(int i) { bump_interval_ = i;}
     void SaveShops();
     void LoadShops();
 public slots:
@@ -89,6 +91,7 @@ private:
 
     bool auto_update_;
     bool do_bump_;
+    int bump_interval_;
 
     void UpdateState();
 };
