@@ -287,16 +287,17 @@ void ItemsManagerWorker::OnFirstTabReceived() {
             }
         }
 
-        if (skip) continue;
+        if (!skip) {
 
-        tabs_.push_back(label);
-        if (index > 0) {
-            ItemLocation location;
-            location.set_type(ItemLocationType::STASH);
-            location.set_tab_id(index);
-            location.set_tab_label(label);
-            if (!tab.HasMember("hidden") || !tab["hidden"].GetBool())
-                QueueRequest(MakeTabRequest(index), location);
+            tabs_.push_back(label);
+            if (index > 0) {
+                ItemLocation location;
+                location.set_type(ItemLocationType::STASH);
+                location.set_tab_id(index);
+                location.set_tab_label(label);
+                if (!tab.HasMember("hidden") || !tab["hidden"].GetBool())
+                    QueueRequest(MakeTabRequest(index), location);
+            }
         }
         ++index;
     }
