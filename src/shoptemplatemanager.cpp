@@ -179,20 +179,20 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
                 break;
             }
             case CONTAIN_TYPE_GROUP: {
-                QMultiMap<Buyout, std::shared_ptr<Item>> itemsMap;
+                QMultiMap<QString, std::shared_ptr<Item>> itemsMap;
 
                 for (auto &item : result) {
                     Buyout b = {};
                     if (parent_->buyout_manager().Exists(*item))
                         b = parent_->buyout_manager().Get(*item);
-                    itemsMap.insert(b, item);
+                    itemsMap.insert(BuyoutManager::Generate(b), item);
                 }
 
-                for (Buyout b : itemsMap.uniqueKeys()) {
-                    Items itemList = itemsMap.values(b).toVector().toStdVector();
+                for (QString buyout : itemsMap.uniqueKeys()) {
+                    Items itemList = itemsMap.values(buyout).toVector().toStdVector();
                     if (itemList.size() == 0)
                         continue;
-                    QString header = BuyoutManager::Generate(b);
+                    QString header = buyout;
                     if (header.isEmpty()) header = "Offers Accepted";
                     QString temp;
                     WriteItems(itemList, &temp, false, includeNoBuyouts);
