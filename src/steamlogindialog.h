@@ -45,6 +45,8 @@ private:
     void SetSteamCookie(QNetworkCookie);
     void SaveSteamCookie(QNetworkCookie);
     QNetworkCookie LoadSteamCookie();
+
+    std::string settings_path_;
 private slots:
     void OnLoadFinished();
 };

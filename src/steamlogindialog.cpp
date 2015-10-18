@@ -27,6 +27,9 @@
 #include <QNetworkRequest>
 #include <QUrlQuery>
 #include <QFile>
+#include <QSettings>
+
+#include "filesystem.h"
 
 SteamLoginDialog::SteamLoginDialog(QWidget *parent) :
     QDialog(parent),
@@ -58,6 +61,7 @@ void SteamLoginDialog::Init() {
 
     ui->webView->load(request, QNetworkAccessManager::PostOperation, data);
 
+    settings_path_ = Filesystem::UserDir() + "/settings.ini";
     SetSteamCookie(LoadSteamCookie());
 
     connect(ui->webView, SIGNAL(loadFinished(bool)), this, SLOT(OnLoadFinished()));
@@ -75,11 +79,14 @@ void SteamLoginDialog::OnLoadFinished() {
         QNetworkCookieJar *steam_jar = ui->webView->page()->networkAccessManager()->cookieJar();
         QList<QNetworkCookie> steam_cookies = steam_jar->cookiesForUrl(QUrl("https://steamcommunity.com/openid/"));
 
+        QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
+        bool rembme = settings.value("remember_me_checked").toBool();
+
         for(auto cookie: steam_cookies) {
             if(cookie.name().startsWith("steamMachineAuth")) {
-                if(!QFile::exists("cookies.txt")) {
+                if(rembme && !settings.contains("steamMachineAuth")) {
                     SaveSteamCookie(cookie);
-                } else if(QFile::exists("cookies.txt") && cookie != LoadSteamCookie()) {
+                } else if(rembme && cookie != LoadSteamCookie()) {
                     SaveSteamCookie(cookie);
                 }
             }
@@ -111,42 +118,23 @@ void SteamLoginDialog::SetSteamCookie(QNetworkCookie steam_cookie) {
 void SteamLoginDialog::SaveSteamCookie(QNetworkCookie cookie) {
     // Saves the file to a file located in the acquisition directory.
 
-    QFile cookie_file("cookies.txt");
-
-    if(cookie_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-         cookie_file.write(cookie.name());
-         cookie_file.write("\n");
-         cookie_file.write(cookie.value());
-    } else {
-        qWarning() << "Failed to open file";
-    }
-
+    QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
+    settings.setValue("steam-id", cookie.name().remove(0, 16));
+    settings.setValue(cookie.name(), cookie.value());
 }
 
 QNetworkCookie SteamLoginDialog::LoadSteamCookie() {
     // Function to load the cookie from a file located in the acquisition
     // directory.
 
-    QByteArray cookie_name("");
-    QByteArray cookie_value("");
-    QFile cookie_file("cookies.txt");
+    QString cookie_name = "steamMachineAuth";
+    QString cookie_value;
+    QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
 
-    if(cookie_file.open(QIODevice::ReadOnly)) {
-        QTextStream read(&cookie_file);
-        while(!read.atEnd()) {
-            QString line = read.readLine();
-            if(line.startsWith("steamMachineAuth"))
-                cookie_name.append(line);
-            else
-                cookie_value.append(line);
-        }
-        cookie_file.close();
-    } else {
-        // Failed to open the file. Probably doesn't exist.
-        qWarning() << "Failed to load cookies file";
-    }
+    cookie_name.append(settings.value("steam-id").toString());
+    cookie_value = settings.value(cookie_name).toString();
 
-    QNetworkCookie cookie(cookie_name, cookie_value);
+    QNetworkCookie cookie(cookie_name.toUtf8(), cookie_value.toUtf8());
     cookie.setPath("/");
     cookie.setDomain("steamcommunity.com");
 
