@@ -89,6 +89,9 @@ int main(int argc, char *argv[])
 
     QLOG_INFO() << "--------------------------------------------------------------------------------";
     QLOG_INFO() << "Built with Qt" << QT_VERSION_STR << "running on" << qVersion();
+#ifdef WITH_STEAM
+    QLOG_INFO() << "\tSteam Support: Yes!";
+#endif
 
     LoginDialog login(std::make_unique<Application>());
     login.show();
