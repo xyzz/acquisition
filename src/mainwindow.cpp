@@ -740,3 +740,7 @@ void MainWindow::on_actionList_currency_triggered() {
 void MainWindow::on_actionExport_currency_triggered() {
     app_->currency_manager().ExportCurrency();
 }
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    auto_online_.SendOnlineUpdate(false);
+}
