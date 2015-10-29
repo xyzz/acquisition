@@ -740,3 +740,8 @@ void MainWindow::on_actionList_currency_triggered() {
 void MainWindow::on_actionExport_currency_triggered() {
     app_->currency_manager().ExportCurrency();
 }
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    std::string url = auto_online_.GetUrl();
+    auto_online_.SendOnlineUpdate(url + "/offline");
+}

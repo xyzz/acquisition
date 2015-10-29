@@ -91,6 +91,17 @@ static bool IsPoeRunning() {
 #endif
 }
 
+std::string AutoOnline::GetUrl() {
+    return url_;
+}
+
+void AutoOnline::SendOnlineUpdate(std::string url) {
+    QNetworkRequest request(QUrl(url.c_str()));
+    QByteArray data;
+    request.setHeader(QNetworkRequest::UserAgentHeader, (std::string("Acquisition ") + VERSION_NAME).c_str());
+    nm_.post(request, data);
+}
+
 void AutoOnline::Check() {
     bool running = IsPoeRunning();
 
@@ -99,12 +110,8 @@ void AutoOnline::Check() {
         url += "/offline";
 
     if (running || previous_status_) {
-        QNetworkRequest request(QUrl(url.c_str()));
-        QByteArray data;
-        request.setHeader(QNetworkRequest::UserAgentHeader, (std::string("Acquisition ") + VERSION_NAME).c_str());
-        nm_.post(request, data);
+        SendOnlineUpdate(url);
     }
-
     previous_status_ = running;
 
     emit Update(running);
