@@ -742,6 +742,5 @@ void MainWindow::on_actionExport_currency_triggered() {
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
-    std::string url = auto_online_.GetUrl();
-    auto_online_.SendOnlineUpdate(url + "/offline");
+    auto_online_.SendOnlineUpdate(false);
 }

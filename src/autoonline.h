@@ -30,11 +30,10 @@ class AutoOnline : public QObject {
 public:
     AutoOnline(DataManager &data, DataManager &sensitive_data);
     void SetUrl(const std::string &url);
-    std::string GetUrl();
     void SetEnabled(bool enabled);
     bool enabled() { return enabled_; }
     bool IsUrlSet() { return !url_.empty(); }
-    void SendOnlineUpdate(std::string url);
+    void SendOnlineUpdate(bool online);
 public slots:
     void Check();
 signals:
