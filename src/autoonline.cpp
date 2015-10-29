@@ -108,7 +108,7 @@ void AutoOnline::Check() {
     bool running = IsPoeRunning();
 
     if (running || previous_status_) {
-        SendOnlineUpdate(true);
+        SendOnlineUpdate(running);
     }
     previous_status_ = running;
 
