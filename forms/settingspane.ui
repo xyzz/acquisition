@@ -312,6 +312,12 @@
               </property>
              </widget>
             </item>
+            <item row="2" column="0">
+              <property name="text">
+               <string>Split Up Items Between Templates</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
