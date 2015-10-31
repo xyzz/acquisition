@@ -170,7 +170,7 @@ std::string PriceColumn::value(const Item &item) {
 QColor PriceColumn::color(const Item &item) {
     if (bo_manager_.Exists(item)) {
         const Buyout &bo = bo_manager_.Get(item);
-        if (bo.weak)
+        if (bo.inherited)
             return QColor(0xaa, 0xaa, 0xaa);
     }
     return QColor();

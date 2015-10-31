@@ -104,7 +104,7 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
         Util::RapidjsonAddConstString(&item, "type", BuyoutTypeAsTag[buyout.type], alloc);
         Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[buyout.currency], alloc);
 
-        item.AddMember("weak", buyout.weak, alloc);
+        item.AddMember("inherited", buyout.inherited, alloc);
 
         rapidjson::Value name(bo.first.c_str(), alloc);
         doc.AddMember(name, item, alloc);
@@ -139,9 +139,9 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
         if (object.HasMember("last_update")){
             bo.last_update = QDateTime::fromTime_t(object["last_update"].GetInt());
         }
-        bo.weak = false;
-        if (object.HasMember("weak"))
-            bo.weak = object["weak"].GetBool();
+        bo.inherited = false;
+        if (object.HasMember("inherited"))
+            bo.inherited = object["inherited"].GetBool();
         (*buyouts)[name] = bo;
     }
 }
@@ -172,7 +172,7 @@ void BuyoutManager::MigrateItem(const Item &item) {
 
 bool Buyout::operator==(const Buyout&o) const {
     static const double eps = 1e-6;
-    return std::fabs(o.value - value) < eps && o.type == type && o.currency == currency && o.weak == weak;
+    return std::fabs(o.value - value) < eps && o.type == type && o.currency == currency && o.inherited == inherited;
 }
 
 bool Buyout::operator!=(const Buyout &o) const {

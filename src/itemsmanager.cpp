@@ -82,14 +82,14 @@ void ItemsManager::PropagateTabBuyouts() {
         // The logic below is quite complicated and probably should be simplified.
         // One day.
 
-        // We update weak attribute here because it later gets copied to the item if
+        // We update inherited attribute here because it later gets copied to the item if
         // its buyout doesn't match exactly the tab buyout
-        tab_bo.weak = true;
+        tab_bo.inherited = true;
 
         // Don't do anything to the item if it has a personal buyout set
-        if (item_bo_exists && !item_bo.weak)
+        if (item_bo_exists && !item_bo.inherited)
             continue;
-        // If item has a weak buyout but tab is clear, delete it
+        // If item has an inherited buyout but tab is clear, delete it
         if (item_bo_exists && !tab_bo_exists) {
             bo.Delete(item);
         // If tab buyout exists and item's buyout doesn't match it, update it

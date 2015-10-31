@@ -105,7 +105,7 @@ struct Buyout {
     BuyoutType type;
     Currency currency;
     QDateTime last_update;
-    bool weak = false;
+    bool inherited = false;
     bool operator==(const Buyout &o) const;
     bool operator!=(const Buyout &o) const;
 };
