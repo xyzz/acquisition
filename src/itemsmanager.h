@@ -29,7 +29,7 @@ struct CurrentStatusUpdate;
 class QThread;
 class Application;
 class BuyoutManager;
-class DataManager;
+class DataStore;
 class ItemsManagerWorker;
 class Shop;
 
@@ -72,7 +72,7 @@ private:
     std::unique_ptr<QTimer> auto_update_timer_;
     std::unique_ptr<ItemsManagerWorker> worker_;
     std::unique_ptr<QThread> thread_;
-    DataManager &data_manager_;
+    DataStore &data_;
     BuyoutManager &bo_manager_;
     Shop &shop_;
     Application &app_;

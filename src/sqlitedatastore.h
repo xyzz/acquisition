@@ -22,14 +22,16 @@
 #include <string>
 #include <vector>
 
+#include "datastore.h"
+
 class Application;
 struct CurrencyUpdate;
 struct sqlite3;
 
-class DataManager {
+class SqliteDataStore : public DataStore {
 public:
-    DataManager(const std::string &filename_);
-    ~DataManager();
+    SqliteDataStore(const std::string &filename_);
+    ~SqliteDataStore();
     void Set(const std::string &key, const std::string &value);
     std::string Get(const std::string &key, const std::string &default_value = "");
     void InsertCurrencyUpdate(const CurrencyUpdate &update);

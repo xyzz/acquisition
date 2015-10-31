@@ -28,7 +28,7 @@
 #include "mainwindow.h"
 
 class Application;
-class DataManager;
+class DataStore;
 class QNetworkReply;
 class QSignalMapper;
 class QTimer;
@@ -76,7 +76,7 @@ private:
     void QueueRequest(const QNetworkRequest &request, const ItemLocation &location);
     void ParseItems(rapidjson::Value *value_ptr, const ItemLocation &base_location, rapidjson_allocator &alloc);
 
-    DataManager &data_manager_;
+    DataStore &data_;
     QNetworkAccessManager network_manager_;
     QSignalMapper *signal_mapper_;
     std::vector<std::string> tabs_;

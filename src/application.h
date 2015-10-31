@@ -26,7 +26,7 @@
 
 class QNetworkReply;
 
-class DataManager;
+class DataStore;
 class ItemsManager;
 class BuyoutManager;
 class Shop;
@@ -44,8 +44,8 @@ public:
     const std::string &league() const { return league_; }
     const std::string &email() const { return email_; }
     ItemsManager &items_manager() { return *items_manager_; }
-    DataManager &data_manager() const { return *data_manager_; }
-    DataManager &sensitive_data_manager() const { return *sensitive_data_manager_; }
+    DataStore &data() const { return *data_; }
+    DataStore &sensitive_data() const { return *sensitive_data_; }
     BuyoutManager &buyout_manager() const { return *buyout_manager_; }
     QNetworkAccessManager &logged_in_nm() const { return *logged_in_nm_; }
     Shop &shop() const { return *shop_; }
@@ -55,9 +55,9 @@ public slots:
 private:
     std::string league_;
     std::string email_;
-    std::unique_ptr<DataManager> data_manager_;
+    std::unique_ptr<DataStore> data_;
     // stores sensitive data that you'd rather not share, like control.poe.xyz.is secret URL
-    std::unique_ptr<DataManager> sensitive_data_manager_;
+    std::unique_ptr<DataStore> sensitive_data_;
     std::unique_ptr<BuyoutManager> buyout_manager_;
     std::unique_ptr<Shop> shop_;
     std::unique_ptr<QNetworkAccessManager> logged_in_nm_;

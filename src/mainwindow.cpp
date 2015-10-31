@@ -61,7 +61,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     ui(new Ui::MainWindow),
     current_search_(nullptr),
     search_count_(0),
-    auto_online_(app_->data_manager(), app_->sensitive_data_manager())
+    auto_online_(app_->data(), app_->sensitive_data())
 {
 #ifdef Q_OS_WIN32
     createWinId();

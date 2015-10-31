@@ -98,7 +98,7 @@ public:
 
 private:
     Application &app_;
-    DataManager &data_;
+    DataStore &data_;
     std::vector<CurrencyItem> currencies_;
     // We only need the "count" of a CurrencyItem so int will be enough
     std::vector<int> wisdoms_;

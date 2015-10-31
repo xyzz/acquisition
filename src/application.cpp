@@ -22,7 +22,7 @@
 #include <QNetworkAccessManager>
 
 #include "buyoutmanager.h"
-#include "datamanager.h"
+#include "sqlitedatastore.h"
 #include "filesystem.h"
 #include "itemsmanager.h"
 #include "currencymanager.h"
@@ -41,10 +41,10 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
     email_ = email;
     logged_in_nm_ = std::move(login_manager);
 
-    std::string data_file = DataManager::MakeFilename(email, league);
-    data_manager_ = std::make_unique<DataManager>(Filesystem::UserDir() + "/data/" + data_file);
-    sensitive_data_manager_ = std::make_unique<DataManager>(Filesystem::UserDir() + "/sensitive_data/" + data_file);
-    buyout_manager_ = std::make_unique<BuyoutManager>(*data_manager_);
+    std::string data_file = SqliteDataStore::MakeFilename(email, league);
+    data_ = std::make_unique<SqliteDataStore>(Filesystem::UserDir() + "/data/" + data_file);
+    sensitive_data_ = std::make_unique<SqliteDataStore>(Filesystem::UserDir() + "/sensitive_data/" + data_file);
+    buyout_manager_ = std::make_unique<BuyoutManager>(*data_);
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);
     currency_manager_ = std::make_unique<CurrencyManager>(*this);

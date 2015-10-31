@@ -28,12 +28,12 @@
 #include "rapidjson/error/en.h"
 
 #include "application.h"
-#include "datamanager.h"
+#include "datastore.h"
 #include "rapidjson_util.h"
 #include "util.h"
 
-BuyoutManager::BuyoutManager(DataManager &data_manager) :
-    data_manager_(data_manager),
+BuyoutManager::BuyoutManager(DataStore &data) :
+    data_(data),
     save_needed_(false)
 {
     Load();
@@ -150,13 +150,13 @@ void BuyoutManager::Save() {
     if (!save_needed_)
         return;
     save_needed_ = false;
-    data_manager_.Set("buyouts", Serialize(buyouts_));
-    data_manager_.Set("tab_buyouts", Serialize(tab_buyouts_));
+    data_.Set("buyouts", Serialize(buyouts_));
+    data_.Set("tab_buyouts", Serialize(tab_buyouts_));
 }
 
 void BuyoutManager::Load() {
-    Deserialize(data_manager_.Get("buyouts"), &buyouts_);
-    Deserialize(data_manager_.Get("tab_buyouts"), &tab_buyouts_);
+    Deserialize(data_.Get("buyouts"), &buyouts_);
+    Deserialize(data_.Get("tab_buyouts"), &tab_buyouts_);
 }
 
 void BuyoutManager::MigrateItem(const Item &item) {

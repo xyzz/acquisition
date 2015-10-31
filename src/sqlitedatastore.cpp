@@ -17,7 +17,7 @@
     along with Acquisition.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "datamanager.h"
+#include "sqlitedatastore.h"
 
 #include "sqlite/sqlite3.h"
 #include <QCryptographicHash>
@@ -27,7 +27,7 @@
 
 #include "currencymanager.h"
 
-DataManager::DataManager(const std::string &filename) :
+SqliteDataStore::SqliteDataStore(const std::string &filename) :
     filename_(filename)
 {
     QDir dir((filename + "/..").c_str());
@@ -40,14 +40,14 @@ DataManager::DataManager(const std::string &filename) :
     CreateTable("currency", "timestamp INTEGER PRIMARY KEY, value TEXT");
 }
 
-void DataManager::CreateTable(const std::string &name, const std::string &fields) {
+void SqliteDataStore::CreateTable(const std::string &name, const std::string &fields) {
     std::string query = "CREATE TABLE IF NOT EXISTS " + name + "(" + fields + ")";
     if (sqlite3_exec(db_, query.c_str(), 0, 0, 0) != SQLITE_OK) {
         throw std::runtime_error("Failed to execute creation statement for table " + name + ".");
     }
 }
 
-std::string DataManager::Get(const std::string &key, const std::string &default_value) {
+std::string SqliteDataStore::Get(const std::string &key, const std::string &default_value) {
     std::string query = "SELECT value FROM data WHERE key = ?";
     sqlite3_stmt *stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
@@ -59,7 +59,7 @@ std::string DataManager::Get(const std::string &key, const std::string &default_
     return result;
 }
 
-void DataManager::Set(const std::string &key, const std::string &value) {
+void SqliteDataStore::Set(const std::string &key, const std::string &value) {
     std::string query = "INSERT OR REPLACE INTO data (key, value) VALUES (?, ?)";
     sqlite3_stmt *stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
@@ -69,7 +69,7 @@ void DataManager::Set(const std::string &key, const std::string &value) {
     sqlite3_finalize(stmt);
 }
 
-void DataManager::InsertCurrencyUpdate(const CurrencyUpdate &update) {
+void SqliteDataStore::InsertCurrencyUpdate(const CurrencyUpdate &update) {
     std::string query = "INSERT INTO currency (timestamp, value) VALUES (?, ?)";
     sqlite3_stmt *stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
@@ -79,7 +79,7 @@ void DataManager::InsertCurrencyUpdate(const CurrencyUpdate &update) {
     sqlite3_finalize(stmt);
 }
 
-std::vector<CurrencyUpdate> DataManager::GetAllCurrency() {
+std::vector<CurrencyUpdate> SqliteDataStore::GetAllCurrency() {
     std::string query = "SELECT timestamp, value FROM currency ORDER BY timestamp ASC";
     sqlite3_stmt* stmt;
     sqlite3_prepare(db_, query.c_str(), -1, &stmt, 0);
@@ -94,27 +94,27 @@ std::vector<CurrencyUpdate> DataManager::GetAllCurrency() {
     return result;
 }
 
-void DataManager::SetBool(const std::string &key, bool value) {
+void SqliteDataStore::SetBool(const std::string &key, bool value) {
     SetInt(key, static_cast<int>(value));
 }
 
-bool DataManager::GetBool(const std::string &key, bool default_value) {
+bool SqliteDataStore::GetBool(const std::string &key, bool default_value) {
     return static_cast<bool>(GetInt(key, static_cast<int>(default_value)));
 }
 
-void DataManager::SetInt(const std::string &key, int value) {
+void SqliteDataStore::SetInt(const std::string &key, int value) {
     Set(key, std::to_string(value));
 }
 
-int DataManager::GetInt(const std::string &key, int default_value) {
+int SqliteDataStore::GetInt(const std::string &key, int default_value) {
     return std::stoi(Get(key, std::to_string(default_value)));
 }
 
-DataManager::~DataManager() {
+SqliteDataStore::~SqliteDataStore() {
     sqlite3_close(db_);
 }
 
-std::string DataManager::MakeFilename(const std::string &name, const std::string &league) {
+std::string SqliteDataStore::MakeFilename(const std::string &name, const std::string &league) {
     std::string key = name + "|" + league;
     return QString(QCryptographicHash::hash(key.c_str(), QCryptographicHash::Md5).toHex()).toStdString();
 }

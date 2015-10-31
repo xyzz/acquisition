@@ -31,7 +31,7 @@
 #include "rapidjson/error/en.h"
 
 #include "application.h"
-#include "datamanager.h"
+#include "datastore.h"
 #include "util.h"
 #include "currencymanager.h"
 #include "mainwindow.h"
@@ -41,7 +41,7 @@ const char *kGetCharactersUrl = "https://www.pathofexile.com/character-window/ge
 const char *kMainPage = "https://www.pathofexile.com/";
 
 ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
-    data_manager_(app.data_manager()),
+    data_(app.data()),
     signal_mapper_(nullptr),
     league_(app.league()),
     updating_(false),
@@ -59,7 +59,7 @@ ItemsManagerWorker::~ItemsManagerWorker() {
 
 void ItemsManagerWorker::Init() {
     items_.clear();
-    std::string items = data_manager_.Get("items");
+    std::string items = data_.Get("items");
     if (items.size() != 0) {
         rapidjson::Document doc;
         doc.Parse(items.c_str());
@@ -68,7 +68,7 @@ void ItemsManagerWorker::Init() {
     }
 
     tabs_.clear();
-    std::string tabs = data_manager_.Get("tabs");
+    std::string tabs = data_.Get("tabs");
     if (tabs.size() != 0) {
         rapidjson::Document doc;
         if (doc.Parse(tabs.c_str()).HasParseError()) {
@@ -341,9 +341,9 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
         // ' ' when no items were parsed or ',' when at least one item is parsed, and the first character is '['
         items_as_string_[items_as_string_.size() - 1] = ']';
 
-        // DataManager is thread safe so it's ok to call it here
-        data_manager_.Set("items", items_as_string_);
-        data_manager_.Set("tabs", tabs_as_string_);
+        // DataStore is thread safe so it's ok to call it here
+        data_.Set("items", items_as_string_);
+        data_.Set("tabs", tabs_as_string_);
 
         updating_ = false;
         QLOG_INFO() << "Finished updating stash.";

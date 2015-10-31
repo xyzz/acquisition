@@ -19,31 +19,16 @@
 
 #pragma once
 
-#include <QNetworkAccessManager>
-#include <QObject>
-#include <QTimer>
+#include <QtTest/QtTest>
 
-class DataStore;
+#include "application.h"
 
-class AutoOnline : public QObject {
+class TestItemsManager : public QObject
+{
     Q_OBJECT
-public:
-    AutoOnline(DataStore &data, DataStore &sensitive_data);
-    void SetUrl(const std::string &url);
-    void SetEnabled(bool enabled);
-    bool enabled() { return enabled_; }
-    bool IsUrlSet() { return !url_.empty(); }
-    void SendOnlineUpdate(bool online);
-public slots:
-    void Check();
-signals:
-    void Update(bool running);
+private slots:
+    void initTestCase();
+    void BuyoutPropagation();
 private:
-    DataStore &data_;
-    DataStore &sensitive_data_;
-    bool enabled_;
-    std::string url_;
-    bool previous_status_;
-    QTimer timer_;
-    QNetworkAccessManager nm_;
+    Application app_;
 };

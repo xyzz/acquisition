@@ -28,13 +28,13 @@
 
 #include <QNetworkRequest>
 #include "QsLog.h"
-#include "datamanager.h"
+#include "datastore.h"
 #include "version.h"
 
 // check for PoE running every minute
 const int kOnlineCheckInterval = 60 * 1000;
 
-AutoOnline::AutoOnline(DataManager &data, DataManager &sensitive_data):
+AutoOnline::AutoOnline(DataStore &data, DataStore &sensitive_data) :
     data_(data),
     sensitive_data_(sensitive_data),
     enabled_(data_.GetBool("online_enabled")),

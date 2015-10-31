@@ -110,11 +110,11 @@ struct Buyout {
     bool operator!=(const Buyout &o) const;
 };
 
-class DataManager;
+class DataStore;
 
 class BuyoutManager {
 public:
-    explicit BuyoutManager(DataManager &data_manager);
+    explicit BuyoutManager(DataStore &data);
     void Set(const Item &item, const Buyout &buyout);
     Buyout Get(const Item &item) const;
     void Delete(const Item &item);
@@ -133,7 +133,7 @@ private:
     std::string Serialize(const std::map<std::string, Buyout> &buyouts);
     void Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts);
 
-    DataManager &data_manager_;
+    DataStore &data_;
     std::map<std::string, Buyout> buyouts_;
     std::map<std::string, Buyout> tab_buyouts_;
     bool save_needed_;

@@ -3,6 +3,7 @@
 
 #include "porting.h"
 #include "testitem.h"
+#include "testitemsmanager.h"
 #include "testshop.h"
 #include "testutil.h"
 
@@ -11,9 +12,10 @@
 int test_main() {
     int result = 0;
 
-    TEST(TestItem);
-    TEST(TestShop);
-    TEST(TestUtil);
+    //TEST(TestItem);
+    //TEST(TestShop);
+    //TEST(TestUtil);
+    TEST(TestItemsManager);
 
     return result != 0 ? -1 : 0;
 }

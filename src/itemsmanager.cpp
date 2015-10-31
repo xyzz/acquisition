@@ -24,7 +24,7 @@
 
 #include "application.h"
 #include "buyoutmanager.h"
-#include "datamanager.h"
+#include "datastore.h"
 #include "itemsmanagerworker.h"
 #include "porting.h"
 #include "rapidjson_util.h"
@@ -34,13 +34,13 @@
 
 ItemsManager::ItemsManager(Application &app) :
     auto_update_timer_(std::make_unique<QTimer>()),
-    data_manager_(app.data_manager()),
+    data_(app.data()),
     bo_manager_(app.buyout_manager()),
     shop_(app.shop()),
     app_(app)
 {
-    auto_update_interval_ = std::stoi(data_manager_.Get("autoupdate_interval", "30"));
-    auto_update_ = data_manager_.GetBool("autoupdate", true);
+    auto_update_interval_ = std::stoi(data_.Get("autoupdate_interval", "30"));
+    auto_update_ = data_.GetBool("autoupdate", true);
     SetAutoUpdateInterval(auto_update_interval_);
     connect(auto_update_timer_.get(), SIGNAL(timeout()), this, SLOT(OnAutoRefreshTimer()));
 }
@@ -115,7 +115,7 @@ void ItemsManager::Update() {
 }
 
 void ItemsManager::SetAutoUpdate(bool update) {
-    data_manager_.SetBool("autoupdate", update);
+    data_.SetBool("autoupdate", update);
     auto_update_ = update;
     if (!auto_update_)
         auto_update_timer_->stop();
@@ -125,7 +125,7 @@ void ItemsManager::SetAutoUpdate(bool update) {
 }
 
 void ItemsManager::SetAutoUpdateInterval(int minutes) {
-    data_manager_.Set("autoupdate_interval", std::to_string(minutes));
+    data_.Set("autoupdate_interval", std::to_string(minutes));
     auto_update_interval_ = minutes;
     if (auto_update_)
         auto_update_timer_->start(auto_update_interval_ * 60 * 1000);

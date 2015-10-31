@@ -26,7 +26,7 @@ SOURCES += \
     src/buyoutmanager.cpp \
     src/column.cpp \
     src/currencymanager.cpp \
-    src/datamanager.cpp \
+    src/sqlitedatastore.cpp \
     src/filesystem.cpp \
     src/filters.cpp \
     src/flowlayout.cpp \
@@ -65,7 +65,8 @@ HEADERS += \
     src/buyoutmanager.h \
     src/column.h \
     src/currencymanager.h \
-    src/datamanager.h \
+    src/datastore.h \
+    src/sqlitedatastore.h \
     src/filesystem.h \
     src/filters.h \
     src/flowlayout.h \
