@@ -12,9 +12,9 @@
 int test_main() {
     int result = 0;
 
-    //TEST(TestItem);
-    //TEST(TestShop);
-    //TEST(TestUtil);
+    TEST(TestItem);
+    TEST(TestShop);
+    TEST(TestUtil);
     TEST(TestItemsManager);
 
     return result != 0 ? -1 : 0;

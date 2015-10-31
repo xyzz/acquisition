@@ -40,6 +40,7 @@ SOURCES += \
     src/logpanel.cpp \
     src/main.cpp \
     src/mainwindow.cpp \
+    src/memorydatastore.cpp \
     src/modlist.cpp \
     src/modsfilter.cpp \
     src/porting.cpp \
@@ -53,6 +54,7 @@ SOURCES += \
     src/verticalscrollarea.cpp \
     test/testdata.cpp \
     test/testitem.cpp \
+    test/testitemsmanager.cpp \
     test/testmain.cpp \
     test/testshop.cpp \
     test/testutil.cpp
@@ -80,6 +82,7 @@ HEADERS += \
     src/logindialog.h \
     src/logpanel.h \
     src/mainwindow.h \
+    src/memorydatastore.h \
     src/modlist.h \
     src/modsfilter.h \
     src/porting.h \
@@ -95,6 +98,7 @@ HEADERS += \
     src/verticalscrollarea.h \
     test/testdata.h \
     test/testitem.h \
+    test/testitemsmanager.h \
     test/testmain.h \
     test/testshop.h \
     test/testutil.h

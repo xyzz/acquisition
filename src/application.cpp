@@ -23,6 +23,7 @@
 
 #include "buyoutmanager.h"
 #include "sqlitedatastore.h"
+#include "memorydatastore.h"
 #include "filesystem.h"
 #include "itemsmanager.h"
 #include "currencymanager.h"
@@ -36,14 +37,21 @@ Application::~Application() {
         buyout_manager_->Save();
 }
 
-void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager, const std::string &league, const std::string &email) {
+void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager, const std::string &league, const std::string &email,
+        bool mock_data) {
     league_ = league;
     email_ = email;
     logged_in_nm_ = std::move(login_manager);
 
-    std::string data_file = SqliteDataStore::MakeFilename(email, league);
-    data_ = std::make_unique<SqliteDataStore>(Filesystem::UserDir() + "/data/" + data_file);
-    sensitive_data_ = std::make_unique<SqliteDataStore>(Filesystem::UserDir() + "/sensitive_data/" + data_file);
+    if (mock_data) {
+        // This is used in tests
+        data_ = std::make_unique<MemoryDataStore>();
+        sensitive_data_ = std::make_unique<MemoryDataStore>();
+    } else {
+        std::string data_file = SqliteDataStore::MakeFilename(email, league);
+        data_ = std::make_unique<SqliteDataStore>(Filesystem::UserDir() + "/data/" + data_file);
+        sensitive_data_ = std::make_unique<SqliteDataStore>(Filesystem::UserDir() + "/sensitive_data/" + data_file);
+    }
     buyout_manager_ = std::make_unique<BuyoutManager>(*data_);
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);

@@ -29,7 +29,7 @@
 void TestItemsManager::initTestCase() {
     auto null_nm = std::make_unique<QNetworkAccessManager>();
     null_nm->setNetworkAccessible(QNetworkAccessManager::NotAccessible);
-    app_.InitLogin(std::move(null_nm), "TestLeague", "testuser");
+    app_.InitLogin(std::move(null_nm), "TestLeague", "testuser", true);
 }
 
 void TestItemsManager::BuyoutPropagation() {
