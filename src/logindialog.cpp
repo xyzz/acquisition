@@ -99,7 +99,7 @@ void LoginDialog::OnLeaguesRequestFinished() {
         // But let's do our best and try to add at least some leagues!
         // It's in case GGG's API is broken and suddenly starts returning empty pages,
         // which of course will never happen.
-        leagues_ = { "Warbands", "Tempest", "Standard", "Hardcore" };
+        leagues_ = { "Flashback Event (IC001)", "Flashback Event HC (IC002)", "Standard", "Hardcore" };
     } else {
         for (auto &league : doc)
             leagues_.push_back(league["id"].GetString());

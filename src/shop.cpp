@@ -34,6 +34,7 @@
 #include "porting.h"
 #include "util.h"
 #include "mainwindow.h"
+#include "replytimeout.h"
 
 const std::string kPoeEditThread = "https://www.pathofexile.com/forum/edit-thread/";
 const std::string kShopTemplateItems = "[items]";
@@ -77,6 +78,14 @@ void Shop::SetShopTemplate(const std::string &shop_template) {
     app_.data_manager().Set("shop_template", shop_template);
     ExpireShopData();
 }
+std::string Shop::SpoilerBuyout(Buyout &bo) {
+    std::string out = "";
+    out += "[spoiler=\"" + BuyoutTypeAsPrefix[bo.type];
+    if (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED)
+        out += " " + QString::number(bo.value).toStdString() + " "+ CurrencyAsTag[bo.currency];
+    out += "\"]";
+    return out;
+}
 
 void Shop::Update() {
     if (submitting_) {
@@ -86,24 +95,42 @@ void Shop::Update() {
     shop_data_outdated_ = false;
     shop_data_.clear();
     std::string data = "";
+    std::vector<AugmentedItem> aug_items;
+    AugmentedItem tmp = AugmentedItem();
+    //Get all buyouts to be able to sort them
     for (auto &item : app_.items_manager().items()) {
+        tmp.item = item.get();
+        tmp.bo.type = BUYOUT_TYPE_NONE;
+        tmp.bo.type = BUYOUT_TYPE_NONE;
+        std::string hash = item->location().GetUniqueHash();
+        if (app_.buyout_manager().ExistsTab(hash))
+            tmp.bo = app_.buyout_manager().GetTab(hash);
+        if (app_.buyout_manager().Exists(*item))
+            tmp.bo = app_.buyout_manager().Get(*item);
+        if (tmp.bo.type == BUYOUT_TYPE_NONE)
+            continue;
         if (item->location().socketed())
             continue;
-        Buyout bo;
-        bo.type = BUYOUT_TYPE_NONE;
+        aug_items.push_back(tmp);
+    }
+    if (aug_items.size() == 0)
+        return;
+    std::sort(aug_items.begin(), aug_items.end());
 
-        if (app_.buyout_manager().Exists(*item))
-            bo = app_.buyout_manager().Get(*item);
-        if (bo.type == BUYOUT_TYPE_NONE)
-            continue;
-
-        std::string item_string = item->location().GetForumCode(app_.league()) + BuyoutTypeAsPrefix[bo.type];
-        if (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED)
-            item_string += QString::number(bo.value).toStdString() + " " + CurrencyAsTag[bo.currency];
-
-        if (data.size() + item_string.size() + shop_template_.size()+ kSpoilerOverhead > kMaxCharactersInPost) {
+    Buyout current_bo = aug_items[0].bo;
+    data += SpoilerBuyout(current_bo);
+    for (auto &aug : aug_items) {
+        if (aug.bo.type != current_bo.type || aug.bo.currency != current_bo.currency || aug.bo.value != current_bo.value) {
+            current_bo = aug.bo;
+            data += "[/spoiler]";
+            data += SpoilerBuyout(current_bo);
+        }
+        std::string item_string = aug.item->location().GetForumCode(app_.league());
+        if (data.size() + item_string.size() + shop_template_.size()+ kSpoilerOverhead + QString("[/spoiler]").size() > kMaxCharactersInPost) {
+            data +="[/spoiler]";
             shop_data_.push_back(data);
-            data = item_string;
+            data = SpoilerBuyout(current_bo);
+            data += item_string;
         } else {
             data += item_string;
         }
@@ -115,8 +142,6 @@ void Shop::Update() {
         shop_data_[i] = Util::StringReplace(shop_template_, kShopTemplateItems, "[spoiler]" + shop_data_[i] + "[/spoiler]");
 
     shop_hash_ = Util::Md5(Util::StringJoin(shop_data_, ";"));
-    if (auto_update_)
-        SubmitShopToForum();
 }
 
 void Shop::ExpireShopData() {
@@ -166,6 +191,7 @@ void Shop::SubmitSingleShop() {
     } else {
         // first, get to the edit-thread page to grab CSRF token
         QNetworkReply *fetched = app_.logged_in_nm().get(QNetworkRequest(QUrl(ShopEditUrl(requests_completed_).c_str())));
+        new QReplyTimeout(fetched, kEditThreadTimeout);
         connect(fetched, SIGNAL(finished()), this, SLOT(OnEditPageFinished()));
     }
     emit StatusUpdate(status);
@@ -202,6 +228,7 @@ void Shop::OnEditPageFinished() {
     QNetworkRequest request((QUrl(ShopEditUrl(requests_completed_).c_str())));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     QNetworkReply *submitted = app_.logged_in_nm().post(request, data);
+    new QReplyTimeout(submitted, kEditThreadTimeout);
     connect(submitted, SIGNAL(finished()), this, SLOT(OnShopSubmitted()));
 }
 

@@ -22,10 +22,24 @@
 #include <QObject>
 #include <string>
 #include <vector>
+#include "item.h"
+#include "buyoutmanager.h"
 
 struct CurrentStatusUpdate;
 extern const std::string kShopTemplateItems;
-
+struct AugmentedItem {
+    Item *item;
+    Buyout bo;
+    bool operator<(const AugmentedItem &other) const {
+        if (bo.type != other.bo.type)
+            return bo.type < other.bo.type;
+        if (bo.currency != other.bo.currency)
+            return bo.currency < other.bo.currency;
+        if (bo.value != other.bo.value)
+            return bo.value < other.bo.value;
+        return false;
+    }
+};
 class Application;
 
 class Shop : public QObject {
@@ -51,6 +65,7 @@ signals:
 private:
     void SubmitSingleShop();
     std::string ShopEditUrl(int idx);
+    std::string SpoilerBuyout(Buyout &bo);
 
     Application &app_;
     std::vector<std::string> threads_;

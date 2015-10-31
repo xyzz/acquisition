@@ -20,6 +20,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QNetworkCookie>
 
 namespace Ui {
 class SteamLoginDialog;
@@ -41,6 +42,11 @@ protected:
 private:
     Ui::SteamLoginDialog *ui;
     bool completed_;
+    void SetSteamCookie(QNetworkCookie);
+    void SaveSteamCookie(QNetworkCookie);
+    QNetworkCookie LoadSteamCookie();
+
+    std::string settings_path_;
 private slots:
     void OnLoadFinished();
 };

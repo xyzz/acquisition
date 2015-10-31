@@ -55,6 +55,7 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
 
 void Application::OnItemsRefreshed(bool initial_refresh) {
     currency_manager_->Update();
-    if (!initial_refresh)
-        shop_->Update();
+    shop_->ExpireShopData();
+    if (!initial_refresh && shop_->auto_update())
+        shop_->SubmitShopToForum();
 }

@@ -29,6 +29,7 @@
 #include "itemsmanager.h"
 #include "item.h"
 #include "porting.h"
+#include "util.h"
 
 CurrencyManager::CurrencyManager(Application &app):
     app_(app),
@@ -105,15 +106,14 @@ void CurrencyManager::InitCurrency() {
 }
 
 void CurrencyManager::LoadCurrency() {
-    // Way easier to use QT function instead of re-implementing a split() in C++
-    QStringList list = QString(data_.Get("currency_base", "").c_str()).split(";");
-    for (int i = 0; i < list.size(); i++) {
+    std::vector<std::string> list = Util::StringSplit(data_.Get("currency_base"), ';');
+    for (unsigned int i = 0; i < list.size(); i++) {
         CurrencyItem curr;
         curr.count = 0;
         curr.name = CurrencyAsString[i];
         // We can't use the toDouble function from QT, because it encodes a double with a ","
         // Might be related to localisation issue, but anyway it's safer this way
-        curr.base = std::stod(list[i].toStdString());
+        curr.base = std::stod(list[i]);
         curr.exalt = 0;
         currencies_.push_back(curr);
     }
