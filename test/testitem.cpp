@@ -38,7 +38,7 @@ void TestItem::Parse() {
     QCOMPARE(item.sockets().w, 0);
 
     // the hash should be the same between different versions of Acquisition and OSes
-    QCOMPARE(item.hash().c_str(), "");
+    QCOMPARE(item.hash().c_str(), "605d9f566bc4305f4fd425efbbbed6a6");
     // This needs to match so that item hash migration is successful
-    QCOMPARE(item.old_hash().c_str(), "60924ab15f8eab8b8eaedcd3957bcd7e");
+    QCOMPARE(item.old_hash().c_str(), "5f083f2f5ceb10ed720bd4c1771ed09d");
 }
