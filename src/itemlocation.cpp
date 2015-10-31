@@ -14,6 +14,12 @@ ItemLocation::ItemLocation(const rapidjson::Value &root):
     FromItemJson(root);
 }
 
+ItemLocation::ItemLocation(int tab_id, std::string tab_label) :
+    tab_id_(tab_id),
+    tab_label_(tab_label),
+    type_(ItemLocationType::STASH)
+{}
+
 void ItemLocation::FromItemJson(const rapidjson::Value &root) {
     if (root.HasMember("_type")) {
         type_ = static_cast<ItemLocationType>(root["_type"].GetInt());

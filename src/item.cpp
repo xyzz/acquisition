@@ -54,6 +54,12 @@ static std::string fixup_name(const std::string &name) {
     return name;
 }
 
+Item::Item(const std::string &name, const ItemLocation &location) :
+    name_(name),
+    location_(location),
+    hash_(Util::Md5(name)) // Unique enough for tests
+{}
+
 Item::Item(const rapidjson::Value &json) :
     location_(ItemLocation(json)),
     name_(fixup_name(json["name"].GetString())),

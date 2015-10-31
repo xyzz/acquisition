@@ -57,6 +57,7 @@ typedef std::unordered_map<std::string, double> ModTable;
 class Item {
 public:
     explicit Item(const rapidjson::Value &json);
+    Item(const std::string &name, const ItemLocation &location); // used by tests
     std::string name() const { return name_; }
     std::string typeLine() const { return typeLine_; }
     std::string PrettyName() const;

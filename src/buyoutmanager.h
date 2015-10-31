@@ -108,6 +108,17 @@ struct Buyout {
     bool inherited = false;
     bool operator==(const Buyout &o) const;
     bool operator!=(const Buyout &o) const;
+    Buyout() :
+        value(0),
+        type(BUYOUT_TYPE_NONE),
+        currency(CURRENCY_NONE)
+    {}
+    Buyout(double value_, BuyoutType type_, Currency currency_, QDateTime last_update_) :
+        value(value_),
+        type(type_),
+        currency(currency_),
+        last_update(last_update_)
+    {}
 };
 
 class DataStore;
