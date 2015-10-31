@@ -224,8 +224,8 @@ void MainWindow::OnBuyoutChange() {
             app_->buyout_manager().DeleteTab(tab);
         else
             app_->buyout_manager().SetTab(tab, bo);
-        app_->items_manager().PropagateTabBuyouts();
     }
+    app_->items_manager().PropagateTabBuyouts();
     // refresh treeView to immediately reflect price changes
     ui->treeView->model()->layoutChanged();
     ResizeTreeColumns();
