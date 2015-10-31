@@ -32,6 +32,9 @@ private slots:
     void BuyoutForNewItem();
     void BuyoutPropagation();
     void UserSetBuyoutPropagation();
+    void MoveItemNoBoToBo();
+    void MoveItemBoToNoBo();
+    void MoveItemBoToBo();
 private:
     Application *app_;
 };

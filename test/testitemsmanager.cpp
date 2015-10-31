@@ -102,3 +102,97 @@ void TestItemsManager::UserSetBuyoutPropagation() {
     QVERIFY2(from_mgr_first == item_buyout, "First item must have its own buyout");
     QVERIFY2(from_mgr_second == tab_buyout, "Second item must have a tabwide buyout");
 }
+
+// Tests moving an item without a buyout from a tab without a buyout to a tab with a buyout
+// NoBo => Bo
+void TestItemsManager::MoveItemNoBoToBo() {
+    ItemLocation first_tab(1, "first");
+    ItemLocation second_tab(2, "second");
+    auto item_before = std::make_shared<Item>("First item", first_tab);
+    auto item_after = std::make_shared<Item>("First item", second_tab);
+
+    QVERIFY2(item_before->hash() == item_after->hash(), "Before/after must have equal hashes");
+
+    auto &bo = app_->buyout_manager();
+    Buyout tab_buyout(456.0, BUYOUT_TYPE_BUYOUT, CURRENCY_CHAOS_ORB, QDateTime::currentDateTime());
+    bo.SetTab(second_tab.GetUniqueHash(), tab_buyout);
+
+    std::vector<std::string> tabs = { "first", "second" };
+    // Put item into the first tab
+    app_->items_manager().OnItemsRefreshed({ item_before }, tabs, true);
+
+    QVERIFY2(!bo.Exists(*item_before), "Before: the buyout must not exist");
+
+    // Move item to the second tab
+    app_->items_manager().OnItemsRefreshed({ item_after }, tabs, true);
+
+    QVERIFY2(bo.Exists(*item_before), "After: the buyout must exist");
+    auto buyout = bo.Get(*item_before);
+    QVERIFY2(buyout.inherited == true, "After: the buyout must be inherited");
+    buyout.inherited = false;
+    QVERIFY2(buyout == tab_buyout, "After: the buyout must equal tab buyout");
+}
+
+// Bo => NoBo, check that the buyout is reset
+void TestItemsManager::MoveItemBoToNoBo() {
+    ItemLocation first_tab(1, "first");
+    ItemLocation second_tab(2, "second");
+    auto item_before = std::make_shared<Item>("First item", first_tab);
+    auto item_after = std::make_shared<Item>("First item", second_tab);
+
+    QVERIFY2(item_before->hash() == item_after->hash(), "Before/after must have equal hashes");
+
+    auto &bo = app_->buyout_manager();
+    Buyout tab_buyout(456.0, BUYOUT_TYPE_BUYOUT, CURRENCY_CHAOS_ORB, QDateTime::currentDateTime());
+    bo.SetTab(first_tab.GetUniqueHash(), tab_buyout);
+
+    std::vector<std::string> tabs = { "first", "second" };
+    // Put item into the first tab
+    app_->items_manager().OnItemsRefreshed({ item_before }, tabs, true);
+
+    QVERIFY2(bo.Exists(*item_before), "Before: the buyout must exist");
+    auto buyout = bo.Get(*item_before);
+    QVERIFY2(buyout.inherited == true, "Before: the buyout must be inherited");
+    buyout.inherited = false;
+    QVERIFY2(buyout == tab_buyout, "Before: the buyout must equal tab buyout");
+
+    // Move item to the second tab
+    app_->items_manager().OnItemsRefreshed({ item_after }, tabs, true);
+
+    QVERIFY2(!bo.Exists(*item_before), "After: the buyout must not exist");
+}
+
+// Bo => Bo, check that the buyout is updated
+void TestItemsManager::MoveItemBoToBo() {
+    ItemLocation first_tab(1, "first");
+    ItemLocation second_tab(2, "second");
+    auto item_before = std::make_shared<Item>("First item", first_tab);
+    auto item_after = std::make_shared<Item>("First item", second_tab);
+
+    QVERIFY2(item_before->hash() == item_after->hash(), "Before/after must have equal hashes");
+
+    auto &bo = app_->buyout_manager();
+    Buyout first_buyout(456.0, BUYOUT_TYPE_BUYOUT, CURRENCY_CHAOS_ORB, QDateTime::currentDateTime());
+    Buyout second_buyout(234.0, BUYOUT_TYPE_BUYOUT, CURRENCY_CARTOGRAPHERS_CHISEL, QDateTime::currentDateTime());
+    bo.SetTab(first_tab.GetUniqueHash(), first_buyout);
+    bo.SetTab(second_tab.GetUniqueHash(), second_buyout);
+
+    std::vector<std::string> tabs = { "first", "second" };
+    // Put item into the first tab
+    app_->items_manager().OnItemsRefreshed({ item_before }, tabs, true);
+
+    QVERIFY2(bo.Exists(*item_before), "Before: the buyout must exist");
+    auto buyout = bo.Get(*item_before);
+    QVERIFY2(buyout.inherited == true, "Before: the buyout must be inherited");
+    buyout.inherited = false;
+    QVERIFY2(buyout == first_buyout, "Before: the buyout must equal first tab buyout");
+
+    // Move item to the second tab
+    app_->items_manager().OnItemsRefreshed({ item_after }, tabs, true);
+
+    QVERIFY2(bo.Exists(*item_before), "After: the buyout must exist");
+    buyout = bo.Get(*item_before);
+    QVERIFY2(buyout.inherited == true, "After: the buyout must be inherited");
+    buyout.inherited = false;
+    QVERIFY2(buyout == second_buyout, "After: the buyout must equal second tab buyout");
+}
