@@ -22,6 +22,7 @@
 #include "rapidjson/document.h"
 
 #include "buyoutmanager.h"
+#include "datastore.h"
 #include "item.h"
 #include "itemsmanager.h"
 #include "testdata.h"
@@ -195,4 +196,27 @@ void TestItemsManager::MoveItemBoToBo() {
     QVERIFY2(buyout.inherited == true, "After: the buyout must be inherited");
     buyout.inherited = false;
     QVERIFY2(buyout == second_buyout, "After: the buyout must equal second tab buyout");
+}
+
+// Checks that buyouts are migrated properly after item hash was changed
+void TestItemsManager::ItemHashMigration() {
+    rapidjson::Document doc;
+    doc.Parse(kItem1.c_str());
+
+    Item item(doc);
+
+    auto &bo = app_->buyout_manager();
+
+    // very hacky way to set a buyout with old itemhash
+    auto buyout = Buyout(1.23, BUYOUT_TYPE_BUYOUT, CURRENCY_ORB_OF_ALTERATION, QDateTime::fromTime_t(567));
+    app_->data().Set("buyouts", "{'60924ab15f8eab8b8eaedcd3957bcd7e': {'currency': 'alt', 'type': 'b/o', 'value': 1.23, 'last_update': 567}}");
+    bo.Load();
+
+    QVERIFY2(!bo.Exists(item), "Before migration: the buyout mustn't exist");
+    // trigger buyout migration by refreshing itemsmanager
+    app_->items_manager().OnItemsRefreshed({ std::make_shared<Item>(item) }, {}, true);
+
+    QVERIFY2(bo.Exists(item), "After migration: the buyout must exist");
+    auto buyout_from_mgr = bo.Get(item);
+    QVERIFY2(buyout_from_mgr == buyout, "After migration: the buyout must match our data");
 }

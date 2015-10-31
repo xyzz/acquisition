@@ -35,6 +35,7 @@ private slots:
     void MoveItemNoBoToBo();
     void MoveItemBoToNoBo();
     void MoveItemBoToBo();
+    void ItemHashMigration();
 private:
     Application *app_;
 };
