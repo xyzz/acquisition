@@ -23,6 +23,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <QStringList>
 #include "rapidjson/document.h"
 
 class Item;
@@ -48,5 +49,5 @@ private:
     std::vector<std::string> matches_;
 };
 
-extern std::vector<std::string> mod_list;
+extern QStringList mod_string_list;
 extern std::vector<std::unique_ptr<ModGenerator>> mod_generators;

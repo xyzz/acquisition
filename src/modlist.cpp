@@ -24,12 +24,14 @@
 #include <unordered_map>
 #include <vector>
 
+#include <QStringList>
+
 #include "item.h"
 #include "porting.h"
 #include "util.h"
 
 // Actual list of mods is computed at runtime
-std::vector<std::string> mod_list;
+QStringList mod_string_list;
 
 // These are just summed, and the mod named as the first element of a vector is generated with value equaling the sum.
 // Both implicit and explicit fields are considered.
@@ -96,7 +98,7 @@ std::vector<std::unique_ptr<ModGenerator>> mod_generators;
 
 void InitModlist() {
     for (auto &list : simple_sum) {
-        mod_list.push_back(list[0]);
+        mod_string_list.push_back(list[0].c_str());
 
         mod_generators.push_back(std::make_unique<SumModGenerator>(list[0], list));
     }

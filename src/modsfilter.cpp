@@ -28,12 +28,6 @@
 #include "modlist.h"
 #include "porting.h"
 
-static void FillMods(QComboBox *combobox) {
-    combobox->addItem("");
-    for (auto &mod : mod_list)
-        combobox->addItem(mod.c_str());
-}
-
 SelectedMod::SelectedMod(const std::string &name, double min, double max, bool min_filled, bool max_filled) :
     data_(name, min, max, min_filled, max_filled),
     mod_select_(std::make_unique<QComboBox>()),
@@ -41,7 +35,14 @@ SelectedMod::SelectedMod(const std::string &name, double min, double max, bool m
     max_text_(std::make_unique<QLineEdit>()),
     delete_button_(std::make_unique<QPushButton>("x"))
 {
-    FillMods(mod_select_.get());
+    mod_select_->setEditable(true);
+    mod_select_->addItems(mod_string_list);
+    mod_completer_ = new QCompleter(mod_string_list);
+    mod_completer_->setCompletionMode(QCompleter::PopupCompletion);
+    mod_completer_->setFilterMode(Qt::MatchContains);
+    mod_completer_->setCaseSensitivity(Qt::CaseInsensitive);
+    mod_select_->setCompleter(mod_completer_);
+
     mod_select_->setCurrentIndex(mod_select_->findText(name.c_str()));
     if (min_filled)
         min_text_->setText(QString::number(min));
