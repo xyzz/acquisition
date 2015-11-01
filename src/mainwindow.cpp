@@ -171,11 +171,13 @@ void MainWindow::InitializeUi() {
 
     ui->propertiesLabel->setStyleSheet("QLabel { background-color: black; color: #7f7f7f; padding: 10px; font-size: 17px; }");
     ui->propertiesLabel->setFont(QFont("Fontin SmallCaps"));
-    ui->propertiesLabel->hide();
     ui->itemNameFirstLine->setFont(QFont("Fontin SmallCaps"));
     ui->itemNameSecondLine->setFont(QFont("Fontin SmallCaps"));
     ui->itemNameFirstLine->setAlignment(Qt::AlignCenter);
     ui->itemNameSecondLine->setAlignment(Qt::AlignCenter);
+
+    ui->itemTooltipWidget->hide();
+    ui->uploadTooltipButton->hide();
 }
 
 void MainWindow::ExpandCollapse(TreeState state) {
@@ -438,7 +440,8 @@ void MainWindow::UpdateCurrentBucket() {
     ui->imageLabel->hide();
     ui->minimapLabel->hide();
     ui->locationLabel->hide();
-    ui->propertiesLabel->hide();
+    ui->itemTooltipWidget->hide();
+    ui->uploadTooltipButton->hide();
 
     ui->nameLabel->setText(current_bucket_.location().GetHeader().c_str());
     ui->nameLabel->show();
@@ -450,7 +453,8 @@ void MainWindow::UpdateCurrentItem() {
     ui->imageLabel->show();
     ui->minimapLabel->show();
     ui->locationLabel->show();
-    ui->propertiesLabel->show();
+    ui->itemTooltipWidget->show();
+    ui->uploadTooltipButton->show();
     ui->nameLabel->hide();
 
     ui->imageLabel->setText("Loading...");
