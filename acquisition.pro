@@ -91,6 +91,7 @@ HEADERS += \
     src/rapidjson_util.h \
     src/replytimeout.h \
     src/search.h \
+    src/selfdestructingreply.h \
     src/shop.h \
     src/steamlogindialog.h \
     src/updatechecker.h \

@@ -93,7 +93,7 @@ void ItemsManagerWorker::Update() {
         return;
     }
 
-    QLOG_INFO() << "Updating stash tabs";
+    QLOG_DEBUG() << "Updating stash tabs";
     updating_ = true;
     // remove all mappings (from previous requests)
     if (signal_mapper_)
@@ -145,7 +145,7 @@ void ItemsManagerWorker::OnCharacterListReceived() {
         return;
     }
 
-    QLOG_INFO() << "Received character list, there are" << doc.Size() << "characters";
+    QLOG_DEBUG() << "Received character list, there are" << doc.Size() << "characters";
     for (auto &character : doc) {
         if (!character.HasMember("league") || !character.HasMember("name") || !character["league"].IsString() || !character["name"].IsString()) {
             QLOG_ERROR() << "Malformed character entry, the reply is most likely invalid" << bytes.constData();
@@ -188,7 +188,7 @@ QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name
 }
 
 void ItemsManagerWorker::QueueRequest(const QNetworkRequest &request, const ItemLocation &location) {
-    QLOG_INFO() << "Queued" << location.GetHeader().c_str();
+    QLOG_DEBUG() << "Queued" << location.GetHeader().c_str();
     ItemsRequest items_request;
     items_request.network_request = request;
     items_request.id = queue_id_++;
@@ -214,7 +214,7 @@ void ItemsManagerWorker::FetchItems(int limit) {
 
         tab_titles += request.location.GetHeader() + " ";
     }
-    QLOG_INFO() << "Created" << count << "requests:" << tab_titles.c_str();
+    QLOG_DEBUG() << "Created" << count << "requests:" << tab_titles.c_str();
     requests_needed_ = count;
     requests_completed_ = 0;
 }
@@ -239,7 +239,7 @@ void ItemsManagerWorker::OnFirstTabReceived() {
 
     tabs_as_string_ = Util::RapidjsonSerialize(doc["tabs"]);
 
-    QLOG_INFO() << "Received tabs list, there are" << doc["tabs"].Size() << "tabs";
+    QLOG_DEBUG() << "Received tabs list, there are" << doc["tabs"].Size() << "tabs";
     tabs_.clear();
     for (auto &tab : doc["tabs"]) {
         std::string label = tab["n"].GetString();
@@ -290,7 +290,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     }
 
     ItemsReply reply = replies_[request_id];
-    QLOG_INFO() << "Received a reply for" << reply.request.location.GetHeader().c_str();
+    QLOG_DEBUG() << "Received a reply for" << reply.request.location.GetHeader().c_str();
     QByteArray bytes = reply.network_reply->readAll();
     rapidjson::Document doc;
     doc.Parse(bytes.constData());
@@ -317,7 +317,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     bool throttled = false;
     if (requests_completed_ == requests_needed_ && queue_.size() > 0) {
         throttled = true;
-        QLOG_INFO() << "Sleeping one minute to prevent throttling.";
+        QLOG_DEBUG() << "Sleeping one minute to prevent throttling.";
         QTimer::singleShot(kThrottleSleep * 1000, this, SLOT(FetchItems()));
     }
     CurrentStatusUpdate status = CurrentStatusUpdate();
@@ -346,7 +346,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
         data_.Set("tabs", tabs_as_string_);
 
         updating_ = false;
-        QLOG_INFO() << "Finished updating stash.";
+        QLOG_DEBUG() << "Finished updating stash.";
 
         // if we're at the verge of getting throttled, sleep so we don't
         if (requests_completed_ == kThrottleRequests)

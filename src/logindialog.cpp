@@ -229,7 +229,7 @@ void LoginDialog::OnMainPageFinished() {
         return;
     }
     QString account = regexp.cap(1);
-    QLOG_INFO() << "Logged in as:" << account;
+    QLOG_DEBUG() << "Logged in as:" << account;
 
     std::string league(ui->leagueComboBox->currentText().toStdString());
     app_->InitLogin(std::move(login_manager_), league, account.toStdString());

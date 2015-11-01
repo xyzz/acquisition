@@ -50,7 +50,9 @@
 #include "itemsmanager.h"
 #include "logpanel.h"
 #include "modsfilter.h"
+#include "replytimeout.h"
 #include "search.h"
+#include "selfdestructingreply.h"
 #include "shop.h"
 #include "util.h"
 #include "verticalscrollarea.h"
@@ -62,7 +64,8 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     ui(new Ui::MainWindow),
     current_search_(nullptr),
     search_count_(0),
-    auto_online_(app_->data(), app_->sensitive_data())
+    auto_online_(app_->data(), app_->sensitive_data()),
+    network_manager_(new QNetworkAccessManager)
 {
 #ifdef Q_OS_WIN32
     createWinId();
@@ -169,7 +172,6 @@ void MainWindow::InitializeUi() {
     ui->propertiesLabel->setStyleSheet("QLabel { background-color: black; color: #7f7f7f; padding: 10px; font-size: 17px; }");
     ui->propertiesLabel->setFont(QFont("Fontin SmallCaps"));
     ui->propertiesLabel->hide();
-    ui->itemTooltipLayout->addStretch();
     ui->itemNameFirstLine->setFont(QFont("Fontin SmallCaps"));
     ui->itemNameSecondLine->setFont(QFont("Fontin SmallCaps"));
     ui->itemNameFirstLine->setAlignment(Qt::AlignCenter);
@@ -554,7 +556,7 @@ void MainWindow::OnOnlineUpdate(bool online) {
         online_label_.setText("Online");
     } else {
         online_label_.setStyleSheet("color: red");
-        online_label_.setText("Offline");
+online_label_.setText("Offline");
     }
 }
 
@@ -617,4 +619,57 @@ void MainWindow::on_actionExport_currency_triggered() {
 
 void MainWindow::closeEvent(QCloseEvent *event) {
     auto_online_.SendOnlineUpdate(false);
+}
+
+void MainWindow::on_uploadTooltipButton_clicked() {
+    ui->uploadTooltipButton->setDisabled(true);
+    ui->uploadTooltipButton->setText("Uploading...");
+
+    QPixmap pixmap(ui->itemTooltipWidget->size());
+    ui->itemTooltipWidget->render(&pixmap);
+
+    QByteArray bytes;
+    QBuffer buffer(&bytes);
+    buffer.open(QIODevice::WriteOnly);
+    pixmap.save(&buffer, "PNG"); // writes pixmap into bytes in PNG format
+
+    QNetworkRequest request(QUrl("https://api.imgur.com/3/upload/"));
+    request.setRawHeader("Authorization", "Client-ID d6d2d8a0437a90f");
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    QByteArray data = "image=" + QUrl::toPercentEncoding(bytes.toBase64());
+    QNetworkReply *reply = network_manager_->post(request, data);
+    new QReplyTimeout(reply, kImgurUploadTimeout);
+    connect(reply, &QNetworkReply::finished, this, &MainWindow::OnUploadFinished);
+}
+
+void MainWindow::OnUploadFinished() {
+    ui->uploadTooltipButton->setDisabled(false);
+    ui->uploadTooltipButton->setText("Upload to imgur");
+
+    SelfDestructingReply reply(qobject_cast<QNetworkReply *>(QObject::sender()));
+    QByteArray bytes = reply->readAll();
+
+    rapidjson::Document doc;
+    doc.Parse(bytes.constData());
+
+    if (doc.HasParseError() || !doc.IsObject() || !doc.HasMember("status") || !doc["status"].IsNumber()) {
+        QLOG_ERROR() << "Imgur API returned invalid data (or timed out): " << bytes;
+        reply->deleteLater();
+        return;
+    }
+    if (doc["status"].GetInt() != 200) {
+        QLOG_ERROR() << "Imgur API returned status!=200: " << bytes;
+        reply->deleteLater();
+        return;
+    }
+    if (!doc.HasMember("data") || !doc["data"].HasMember("link") || !doc["data"]["link"].IsString()) {
+        QLOG_ERROR() << "Imgur API returned malformed reply: " << bytes;
+        reply->deleteLater();
+        return;
+    }
+    std::string url = doc["data"]["link"].GetString();
+    QApplication::clipboard()->setText(url.c_str());
+    QLOG_INFO() << "Image successfully uploaded, the URL is" << url.c_str() << "It also was copied to your clipboard.";
+
+    reply->deleteLater();
 }

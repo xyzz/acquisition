@@ -13,3 +13,4 @@ private slots:
 };
 
 const int kEditThreadTimeout = 30000; // 30s, pathofexile.com can be slow
+const int kImgurUploadTimeout = 10000; // 10s
