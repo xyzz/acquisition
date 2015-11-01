@@ -92,6 +92,22 @@ const std::vector<std::vector<std::string>> simple_sum = {
     { "#% increased Attack Speed" },
     { "#% increased Cast Speed" },
     { "#% increased Movement Speed" },
+    // Master mods
+    { "+#% to Quality of Socketed Support Gems" },
+    { "-# to Mana Cost of Skills" },
+    { "+# to Level of Socketed Support Gems", "+# to Level of Socketed Gems" },
+    { "Causes Bleeding on Hit" },
+    { "#% increased Life Leeched per second" },
+    { "#% increased Damage" },
+    { "Hits can't be evaded" },
+    { "Area is inhabited by # additional Invasion Boss" },
+    // Master meta-crafting
+    { "Prefixes Cannot Be Changed" },
+    { "Can have multiple Crafted Mods" },
+    { "Cannot roll Attack Mods" },
+    { "Suffixes Cannot Be Changed" },
+    { "Cannot roll Mods with Required Level above #" },
+    { "Cannot roll Caster Mods" },
 };
 
 std::vector<std::unique_ptr<ModGenerator>> mod_generators;
