@@ -33,7 +33,7 @@ void TestItemsManager::initTestCase() {
 
 void TestItemsManager::init() {
     if (app_)
-        delete app_;
+        app_->deleteLater();
     app_ = new Application();
     auto null_nm = std::make_unique<QNetworkAccessManager>();
     null_nm->setNetworkAccessible(QNetworkAccessManager::NotAccessible);
