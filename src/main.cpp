@@ -22,6 +22,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDir>
+#include <QFontDatabase>
 #include <QLocale>
 #include "QsLog.h"
 #include "QsLogDest.h"
@@ -65,6 +66,8 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     Filesystem::Init();
+
+    QFontDatabase::addApplicationFont(":/fonts/Fontin-SmallCaps.ttf");
 
     QCommandLineParser parser;
     QCommandLineOption option_test("test"), option_data_dir("data-dir", "Where to save Acquisition data.", "data-dir");

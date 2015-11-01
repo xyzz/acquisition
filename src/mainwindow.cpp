@@ -46,6 +46,7 @@
 #include "imagecache.h"
 #include "item.h"
 #include "itemlocation.h"
+#include "itemtooltip.h"
 #include "itemsmanager.h"
 #include "logpanel.h"
 #include "modsfilter.h"
@@ -101,7 +102,6 @@ void MainWindow::InitializeUi() {
     statusBar()->addWidget(status_bar_label_);
     ui->itemLayout->setAlignment(Qt::AlignTop);
     ui->itemLayout->setAlignment(ui->minimapLabel, Qt::AlignHCenter);
-    ui->itemLayout->setAlignment(ui->typeLineLabel, Qt::AlignHCenter);
     ui->itemLayout->setAlignment(ui->nameLabel, Qt::AlignHCenter);
     ui->itemLayout->setAlignment(ui->imageLabel, Qt::AlignHCenter);
     ui->itemLayout->setAlignment(ui->locationLabel, Qt::AlignHCenter);
@@ -165,6 +165,15 @@ void MainWindow::InitializeUi() {
     // resize columns when a tab is expanded/collapsed
     connect(ui->treeView, SIGNAL(collapsed(const QModelIndex&)), this, SLOT(ResizeTreeColumns()));
     connect(ui->treeView, SIGNAL(expanded(const QModelIndex&)), this, SLOT(ResizeTreeColumns()));
+
+    ui->propertiesLabel->setStyleSheet("QLabel { background-color: black; color: #7f7f7f; padding: 10px; font-size: 17px; }");
+    ui->propertiesLabel->setFont(QFont("Fontin SmallCaps"));
+    ui->propertiesLabel->hide();
+    ui->itemTooltipLayout->addStretch();
+    ui->itemNameFirstLine->setFont(QFont("Fontin SmallCaps"));
+    ui->itemNameSecondLine->setFont(QFont("Fontin SmallCaps"));
+    ui->itemNameFirstLine->setAlignment(Qt::AlignCenter);
+    ui->itemNameSecondLine->setAlignment(Qt::AlignCenter);
 }
 
 void MainWindow::ExpandCollapse(TreeState state) {
@@ -307,7 +316,7 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
     image_cache_->Set(url, image);
 
     if (current_item_ && (url == current_item_->icon() || url == POE_WEBCDN + current_item_->icon()))
-        UpdateCurrentItemIcon(image);
+        GenerateItemIcon(*current_item_, image, ui);
 }
 
 void MainWindow::OnSearchFormChange() {
@@ -424,7 +433,6 @@ void MainWindow::NewSearch() {
 }
 
 void MainWindow::UpdateCurrentBucket() {
-    ui->typeLineLabel->hide();
     ui->imageLabel->hide();
     ui->minimapLabel->hide();
     ui->locationLabel->hide();
@@ -435,26 +443,21 @@ void MainWindow::UpdateCurrentBucket() {
 }
 
 void MainWindow::UpdateCurrentItem() {
-    ui->typeLineLabel->show();
+    app_->buyout_manager().Save();
+
     ui->imageLabel->show();
     ui->minimapLabel->show();
     ui->locationLabel->show();
     ui->propertiesLabel->show();
+    ui->nameLabel->hide();
 
-    app_->buyout_manager().Save();
-    ui->typeLineLabel->setText(current_item_->typeLine().c_str());
-    if (current_item_->name().empty())
-        ui->nameLabel->hide();
-    else {
-        ui->nameLabel->setText(current_item_->name().c_str());
-        ui->nameLabel->show();
-    }
     ui->imageLabel->setText("Loading...");
     ui->imageLabel->setStyleSheet("QLabel { background-color : rgb(12, 12, 43); color: white }");
     ui->imageLabel->setFixedSize(QSize(current_item_->w(), current_item_->h()) * PIXELS_PER_SLOT);
 
-    UpdateCurrentItemProperties();
-    UpdateCurrentItemMinimap();
+    // Everything except item image now lives in itemtooltip.cpp
+    // in future should move everything tooltip-related there
+    GenerateItemTooltip(*current_item_, ui);
 
     std::string icon = current_item_->icon();
     if (icon.size() && icon[0] == '/')
@@ -462,138 +465,9 @@ void MainWindow::UpdateCurrentItem() {
     if (!image_cache_->Exists(icon))
         image_network_manager_->get(QNetworkRequest(QUrl(icon.c_str())));
     else
-        UpdateCurrentItemIcon(image_cache_->Get(icon));
+        GenerateItemIcon(*current_item_, image_cache_->Get(icon), ui);
 
     ui->locationLabel->setText(current_item_->location().GetHeader().c_str());
-}
-
-void MainWindow::UpdateCurrentItemProperties() {
-    std::vector<std::string> sections;
-
-    std::string properties_text;
-    bool first_prop = true;
-    for (auto &property : current_item_->text_properties()) {
-        if (!first_prop)
-            properties_text += "<br>";
-        first_prop = false;
-        if (property.display_mode == 3) {
-            QString format(property.name.c_str());
-            for (auto &value : property.values)
-                format = format.arg(value.c_str());
-            properties_text += format.toStdString();
-        } else {
-            properties_text += property.name;
-            if (property.values.size()) {
-                if (property.name.size() > 0)
-                    properties_text += ": ";
-                bool first_val = true;
-                for (auto &value : property.values) {
-                    if (!first_val)
-                        properties_text += ", ";
-                    first_val = false;
-                    properties_text += value;
-                }
-            }
-        }
-    }
-    if (properties_text.size() > 0)
-        sections.push_back(properties_text);
-
-    std::string requirements_text;
-    bool first_req = true;
-    for (auto &requirement : current_item_->text_requirements()) {
-        if (!first_req)
-            requirements_text += ", ";
-        first_req = false;
-        requirements_text += requirement.name + ": " + requirement.value;
-    }
-    if (requirements_text.size() > 0)
-        sections.push_back("Requires " + requirements_text);
-
-    auto &mods = current_item_->text_mods();
-    for (auto &mod_type : ITEM_MOD_TYPES) {
-        std::string mod_list = Util::ModListAsString(mods.at(mod_type));
-        if (!mod_list.empty())
-            sections.push_back(mod_list);
-    }
-
-    std::string text;
-    bool first = true;
-    for (auto &s : sections) {
-        if (!first)
-            text += "<hr>";
-        first = false;
-        text += s;
-    }
-    ui->propertiesLabel->setText(text.c_str());
-}
-
-void MainWindow::UpdateCurrentItemIcon(const QImage &image) {
-    QPixmap pixmap = QPixmap::fromImage(image);
-    QPainter painter(&pixmap);
-
-    static const QImage link_h(":/sockets/linkH.png");
-    static const QImage link_v(":/sockets/linkV.png");
-    ItemSocket prev = { 255, '-' };
-    size_t i = 0;
-    for (auto &socket : current_item_->text_sockets()) {
-        bool link = socket.group == prev.group;
-        QImage socket_image(":/sockets/" + QString(socket.attr) + ".png");
-        if (current_item_->w() == 1) {
-            painter.drawImage(0, PIXELS_PER_SLOT * i, socket_image);
-            if (link)
-                painter.drawImage(16, PIXELS_PER_SLOT * i - 19, link_v);
-        } else /* w == 2 */ {
-            int row = i / 2;
-            int column = i % 2;
-            if (row % 2 == 1)
-                column = 1 - column;
-            painter.drawImage(PIXELS_PER_SLOT * column, PIXELS_PER_SLOT * row, socket_image);
-            if (link) {
-                if (i == 1 || i == 3 || i == 5) {
-                    // horizontal link
-                    painter.drawImage(
-                        PIXELS_PER_SLOT - LINKH_WIDTH / 2,
-                        row * PIXELS_PER_SLOT + PIXELS_PER_SLOT / 2 - LINKH_HEIGHT / 2,
-                        link_h
-                    );
-                } else if (i == 2) {
-                    painter.drawImage(
-                        PIXELS_PER_SLOT * 1.5 - LINKV_WIDTH / 2,
-                        row * PIXELS_PER_SLOT - LINKV_HEIGHT / 2,
-                        link_v
-                    );
-                } else if (i == 4) {
-                    painter.drawImage(
-                        PIXELS_PER_SLOT / 2 - LINKV_WIDTH / 2,
-                        row * PIXELS_PER_SLOT - LINKV_HEIGHT / 2,
-                        link_v
-                    );
-                } else {
-                    QLOG_ERROR() << "No idea how to draw link for" << current_item_->PrettyName().c_str();
-                }
-            }
-        }
-
-        prev = socket;
-        ++i;
-    }
-
-    ui->imageLabel->setPixmap(pixmap);
-}
-
-void MainWindow::UpdateCurrentItemMinimap() {
-    QPixmap pixmap(MINIMAP_SIZE, MINIMAP_SIZE);
-    pixmap.fill(QColor("transparent"));
-
-    QPainter painter(&pixmap);
-    painter.setBrush(QBrush(QColor(0x0c, 0x0b, 0x0b)));
-    painter.drawRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE);
-    const ItemLocation &location = current_item_->location();
-    painter.setBrush(QBrush(location.socketed() ? Qt::blue : Qt::red));
-    QRectF rect = current_item_->location().GetRect();
-    painter.drawRect(rect);
-    ui->minimapLabel->setPixmap(pixmap);
 }
 
 void MainWindow::ResetBuyoutWidgets() {

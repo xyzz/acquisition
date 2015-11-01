@@ -10,4 +10,40 @@
     <qresource prefix="/icons">
         <file>assets/icon.svg</file>
     </qresource>
+    <qresource prefix="/fonts">
+        <file alias="Fontin-SmallCaps.ttf">assets/Fontin-SmallCaps.ttf</file>
+    </qresource>
+    <qresource prefix="/tooltip">
+        <file alias="SeparatorWhite.png">assets/SeparatorWhite.png</file>
+        <file alias="SeparatorMagic.png">assets/SeparatorMagic.png</file>
+        <file alias="SeparatorRare.png">assets/SeparatorRare.png</file>
+        <file alias="SeparatorUnique.png">assets/SeparatorUnique.png</file>
+        <file alias="SeparatorGem.png">assets/SeparatorGem.png</file>
+        <file alias="SeparatorCurrency.png">assets/SeparatorCurrency.png</file>
+
+        <file alias="ItemHeaderWhiteLeft.png">assets/ItemHeaderWhiteLeft.png</file>
+        <file alias="ItemHeaderWhiteRight.png">assets/ItemHeaderWhiteRight.png</file>
+        <file alias="ItemHeaderWhiteMiddle.png">assets/ItemHeaderWhiteMiddle.png</file>
+        <file alias="ItemHeaderMagicLeft.png">assets/ItemHeaderMagicLeft.png</file>
+        <file alias="ItemHeaderMagicRight.png">assets/ItemHeaderMagicRight.png</file>
+        <file alias="ItemHeaderMagicMiddle.png">assets/ItemHeaderMagicMiddle.png</file>
+        <file alias="ItemHeaderRareLeft.png">assets/ItemHeaderRareLeft.png</file>
+        <file alias="ItemHeaderRareRight.png">assets/ItemHeaderRareRight.png</file>
+        <file alias="ItemHeaderRareMiddle.png">assets/ItemHeaderRareMiddle.png</file>
+        <file alias="ItemHeaderUniqueLeft.png">assets/ItemHeaderUniqueLeft.png</file>
+        <file alias="ItemHeaderUniqueRight.png">assets/ItemHeaderUniqueRight.png</file>
+        <file alias="ItemHeaderUniqueMiddle.png">assets/ItemHeaderUniqueMiddle.png</file>
+        <file alias="ItemHeaderGemLeft.png">assets/ItemHeaderGemLeft.png</file>
+        <file alias="ItemHeaderGemRight.png">assets/ItemHeaderGemRight.png</file>
+        <file alias="ItemHeaderGemMiddle.png">assets/ItemHeaderGemMiddle.png</file>
+        <file alias="ItemHeaderCurrencyLeft.png">assets/ItemHeaderCurrencyLeft.png</file>
+        <file alias="ItemHeaderCurrencyRight.png">assets/ItemHeaderCurrencyRight.png</file>
+        <file alias="ItemHeaderCurrencyMiddle.png">assets/ItemHeaderCurrencyMiddle.png</file>
+        <file alias="ItemHeaderRareSingleLineLeft.png">assets/ItemHeaderRareSingleLineLeft.png</file>
+        <file alias="ItemHeaderRareSingleLineRight.png">assets/ItemHeaderRareSingleLineRight.png</file>
+        <file alias="ItemHeaderRareSingleLineMiddle.png">assets/ItemHeaderRareSingleLineMiddle.png</file>
+        <file alias="ItemHeaderUniqueSingleLineLeft.png">assets/ItemHeaderUniqueSingleLineLeft.png</file>
+        <file alias="ItemHeaderUniqueSingleLineRight.png">assets/ItemHeaderUniqueSingleLineRight.png</file>
+        <file alias="ItemHeaderUniqueSingleLineMiddle.png">assets/ItemHeaderUniqueSingleLineMiddle.png</file>
+    </qresource>
 </RCC>

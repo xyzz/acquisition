@@ -35,15 +35,20 @@ struct ItemSocketGroup {
     int r, g, b, w;
 };
 
+struct ItemPropertyValue {
+    std::string str;
+    int type;
+};
+
 struct ItemProperty {
     std::string name;
-    std::vector<std::string> values;
+    std::vector<ItemPropertyValue> values;
     int display_mode;
 };
 
 struct ItemRequirement {
     std::string name;
-    std::string value;
+    ItemPropertyValue value;
 };
 
 struct ItemSocket {
@@ -62,6 +67,7 @@ public:
     std::string typeLine() const { return typeLine_; }
     std::string PrettyName() const;
     bool corrupted() const { return corrupted_; }
+    bool identified() const { return identified_; }
     int w() const { return w_; }
     int h() const { return h_; }
     int frameType() const { return frameType_; }
@@ -97,6 +103,7 @@ private:
     std::string name_;
     std::string typeLine_;
     bool corrupted_;
+    bool identified_;
     int w_, h_;
     int frameType_;
     std::string icon_;

@@ -65,6 +65,7 @@ Item::Item(const rapidjson::Value &json) :
     name_(fixup_name(json["name"].GetString())),
     typeLine_(fixup_name(json["typeLine"].GetString())),
     corrupted_(json["corrupted"].GetBool()),
+    identified_(json["identified"].GetBool()),
     w_(json["w"].GetInt()),
     h_(json["h"].GetInt()),
     frameType_(json["frameType"].GetInt()),
@@ -101,8 +102,12 @@ Item::Item(const rapidjson::Value &json) :
             ItemProperty property;
             property.name = name;
             property.display_mode = prop["displayMode"].GetInt();
-            for (auto &value : prop["values"])
-                property.values.push_back(value[0].GetString());
+            for (auto &value : prop["values"]) {
+                ItemPropertyValue v;
+                v.str = value[0].GetString();
+                v.type = value[1].GetInt();
+                property.values.push_back(v);
+            }
             text_properties_.push_back(property);
         }
     }
@@ -112,7 +117,10 @@ Item::Item(const rapidjson::Value &json) :
             std::string name = req["name"].GetString();
             std::string value = req["values"][0][0].GetString();
             requirements_[name] = std::atoi(value.c_str());
-            text_requirements_.push_back({ name, value });
+            ItemPropertyValue v;
+            v.str = value;
+            v.type = req["values"][0][1].GetInt();
+            text_requirements_.push_back({ name, v });
         }
     }
 

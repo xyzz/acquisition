@@ -109,9 +109,6 @@ private slots:
 private:
     void UpdateCurrentBucket();
     void UpdateCurrentItem();
-    void UpdateCurrentItemMinimap();
-    void UpdateCurrentItemIcon(const QImage &image);
-    void UpdateCurrentItemProperties();
     void UpdateCurrentBuyout();
     void NewSearch();
     void InitializeLogging();

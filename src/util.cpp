@@ -113,16 +113,6 @@ std::string Util::BuyoutAsText(const Buyout &bo) {
     }
 }
 
-std::string Util::ModListAsString(const ItemMods &list) {
-    std::string mods;
-    bool first = true;
-    for (auto &mod : list) {
-        mods += (first ? "" : "<br>") + mod;
-        first = false;
-    }
-    return mods;
-}
-
 std::string Util::RapidjsonSerialize(const rapidjson::Value &val) {
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

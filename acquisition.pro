@@ -36,6 +36,7 @@ SOURCES += \
     src/items_model.cpp \
     src/itemsmanager.cpp \
     src/itemsmanagerworker.cpp \
+    src/itemtooltip.cpp \
     src/logindialog.cpp \
     src/logpanel.cpp \
     src/main.cpp \
@@ -79,6 +80,7 @@ HEADERS += \
     src/items_model.h \
     src/itemsmanager.h \
     src/itemsmanagerworker.h \
+    src/itemtooltip.h \
     src/logindialog.h \
     src/logpanel.h \
     src/mainwindow.h \
