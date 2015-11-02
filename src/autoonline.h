@@ -34,6 +34,7 @@ public:
     bool enabled() { return enabled_; }
     bool IsUrlSet() { return !url_.empty(); }
     const std::string GetUrl() { return url_; }
+    void SendOnlineUpdate(bool online);
 public slots:
     void Check();
 signals:

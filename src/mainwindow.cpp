@@ -1268,3 +1268,7 @@ void MainWindow::on_refreshItemsButton_clicked() {
 void MainWindow::on_updateShopButton_clicked() {
     app_->shop().SubmitShopToForum();
 }
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    auto_online_.SendOnlineUpdate(false);
+}
