@@ -93,7 +93,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     // Moved this functionality here since we ignore GGG's response anyway.
 //    QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
 //    connect(leagues_reply, SIGNAL(finished()), this, SLOT(OnLeaguesRequestFinished()));
-    leagues_ = QStringList({ "Flashback Event (IC001)", "Flashback Event HC (IC002)", "Standard", "Hardcore" });
+    leagues_ = QStringList({ "Darkshrine (IC003)", "Darkshrine HC (IC004)", "Flashback Event (IC001)", "Flashback Event HC (IC002)", "Standard", "Hardcore" });
 
     ui->leagueComboBox->clear();
     for (const QString &league : leagues_)
