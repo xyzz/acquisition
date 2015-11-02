@@ -144,10 +144,6 @@ void MainWindow::changeEvent(QEvent *event) {
     QMainWindow::changeEvent(event);
 }
 
-void MainWindow::closeEvent(QCloseEvent *event) {
-    QMainWindow::closeEvent(event);
-}
-
 void MainWindow::InitializeLogging() {
     LogPanel *log_panel = new LogPanel(this, ui);
     QsLogging::DestinationPtr log_panel_ptr(log_panel);
@@ -1271,4 +1267,5 @@ void MainWindow::on_updateShopButton_clicked() {
 
 void MainWindow::closeEvent(QCloseEvent *event) {
     auto_online_.SendOnlineUpdate(false);
+    QMainWindow::closeEvent(event);
 }

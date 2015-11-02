@@ -132,7 +132,6 @@ private:
     void UpdateBuyoutWidgets(const Buyout &bo);
     void ExpandCollapse(TreeState state);
     void UpdateOnlineGui();
-    void closeEvent(QCloseEvent*);
 
     std::unique_ptr<Application> app_;
     Ui::MainWindow *ui;
