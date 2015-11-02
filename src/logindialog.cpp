@@ -67,12 +67,15 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
 #if defined(Q_OS_LINUX)
     setWindowIcon(QIcon(":/icons/assets/icon.svg"));
 #endif
+    QStringList leagues = { "Darkshrine (IC003)", "Darkshrine HC (IC004)", "Flashback Event (IC001)", "Flashback Event HC (IC002)", "Standard", "Hardcore" };
+    ui->leagueComboBox->clear();
+    ui->leagueComboBox->addItems(leagues);
+    ui->leagueComboBox->setEnabled(true);
+
     settings_path_ = Filesystem::UserDir() + "/settings.ini";
     LoadSettings();
 
     login_manager_ = std::make_unique<QNetworkAccessManager>();
-    QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
-    connect(leagues_reply, SIGNAL(finished()), this, SLOT(OnLeaguesRequestFinished()));
     connect(ui->proxyCheckBox, SIGNAL(clicked(bool)), this, SLOT(OnProxyCheckBoxClicked(bool)));
     connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(OnLoginButtonClicked()));
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, [&](){
@@ -82,35 +85,6 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
         asked_to_update_ = true;
         UpdateChecker::AskUserToUpdate(this);
     });
-}
-
-void LoginDialog::OnLeaguesRequestFinished() {
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    QByteArray bytes = reply->readAll();
-    rapidjson::Document doc;
-    doc.Parse(bytes.constData());
-
-    leagues_.clear();
-    // ignore actual response completely since it's broken anyway (at the moment of writing!)
-    if (true) {
-        QLOG_ERROR() << "Failed to parse leagues. The output was:";
-        QLOG_ERROR() << QString(bytes);
-
-        // But let's do our best and try to add at least some leagues!
-        // It's in case GGG's API is broken and suddenly starts returning empty pages,
-        // which of course will never happen.
-        leagues_ = { "Flashback Event (IC001)", "Flashback Event HC (IC002)", "Standard", "Hardcore" };
-    } else {
-        for (auto &league : doc)
-            leagues_.push_back(league["id"].GetString());
-    }
-    ui->leagueComboBox->clear();
-    for (auto &league : leagues_)
-        ui->leagueComboBox->addItem(league.c_str());
-    ui->leagueComboBox->setEnabled(true);
-
-    if (saved_league_.size() > 0)
-        ui->leagueComboBox->setCurrentText(saved_league_);
 }
 
 void LoginDialog::OnLoginButtonClicked() {
@@ -254,10 +228,8 @@ void LoginDialog::LoadSettings() {
         ui->loginTabs->setCurrentIndex(LOGIN_SESSIONID);
 
     saved_league_ = settings.value("league", "").toString();
-    if (saved_league_.size() > 0) {
-        ui->leagueComboBox->addItem(saved_league_);
-        ui->leagueComboBox->setEnabled(true);
-    }
+    if (saved_league_.size() > 0)
+        ui->leagueComboBox->setCurrentText(saved_league_);
 
     QNetworkProxyFactory::setUseSystemConfiguration(ui->proxyCheckBox->isChecked());
 }

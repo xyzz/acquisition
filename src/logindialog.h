@@ -44,7 +44,6 @@ public:
     explicit LoginDialog(std::unique_ptr<Application> app);
     ~LoginDialog();
 public slots:
-    void OnLeaguesRequestFinished();
     void OnLoginButtonClicked();
     void OnLoginPageFinished();
     void OnLoggedIn();
