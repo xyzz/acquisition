@@ -138,10 +138,10 @@ void ItemsManager::OnAutoRefreshTimer() {
 void ItemsManager::MigrateBuyouts() {
     int db_version = data_.GetInt("db_version");
     // Don't migrate twice
-    if (db_version != 0)
+    if (db_version == 2)
         return;
     for (auto &item : items_)
         bo_manager_.MigrateItem(*item);
     bo_manager_.Save();
-    data_.SetInt("db_version", 1);
+    data_.SetInt("db_version", 2);
 }

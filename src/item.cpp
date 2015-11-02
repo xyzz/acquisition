@@ -212,24 +212,30 @@ void Item::GenerateMods(const rapidjson::Value &json) {
 }
 
 void Item::CalculateHash(const rapidjson::Value &json) {
-    std::string unique(std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~");
+    std::string unique_old(name_ + "~" + typeLine_ + "~");
+    std::string unique_new(std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~");
+
+    std::string unique_common;
 
     if (json.HasMember("explicitMods"))
         for (auto &mod : json["explicitMods"])
-            unique += std::string(mod.GetString()) + "~";
+            unique_common += std::string(mod.GetString()) + "~";
 
     if (json.HasMember("implicitMods"))
         for (auto &mod : json["implicitMods"])
-            unique += std::string(mod.GetString()) + "~";
+            unique_common += std::string(mod.GetString()) + "~";
 
-    unique += item_unique_properties(json, "properties") + "~";
-    unique += item_unique_properties(json, "additionalProperties") + "~";
+    unique_common += item_unique_properties(json, "properties") + "~";
+    unique_common += item_unique_properties(json, "additionalProperties") + "~";
 
     if (json.HasMember("sockets"))
         for (auto &socket : json["sockets"])
-            unique += std::to_string(socket["group"].GetInt()) + "~" + socket["attr"].GetString() + "~";
+            unique_common += std::to_string(socket["group"].GetInt()) + "~" + socket["attr"].GetString() + "~";
 
-    old_hash_ = Util::Md5(unique);
-    unique += "~" + location_.GetUniqueHash();
-    hash_ = Util::Md5(unique);
+    unique_old += unique_common;
+    unique_new += unique_common;
+
+    old_hash_ = Util::Md5(unique_old);
+    unique_new += "~" + location_.GetUniqueHash();
+    hash_ = Util::Md5(unique_new);
 }
