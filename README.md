@@ -4,7 +4,7 @@ Acquisition is an inventory management tool for [Path of Exile](https://www.path
 
 It is written in C++, uses Qt widget toolkit and runs on Windows and Linux.
 
-You can find screenshots of it in action [here](http://imgur.com/a/So5Mk) or download Windows executables [here](https://github.com/xyzz/acquisition/releases).
+Check the [website](http://get.acquisition.today) for screenshots and video tutorials. You can download Windows setup packages from [the releases page](https://github.com/xyzz/acquisition/releases).
 
 ## Compiling/developing Acquisition
 
