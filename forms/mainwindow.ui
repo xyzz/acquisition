@@ -74,7 +74,7 @@
               <number>0</number>
              </property>
              <property name="sizeConstraint">
-              <enum>QLayout::SetFixedSize</enum>
+              <enum>QLayout::SetDefaultConstraint</enum>
              </property>
              <property name="leftMargin">
               <number>0</number>
