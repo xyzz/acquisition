@@ -19,8 +19,13 @@ public:
     };
 
     explicit ShopTemplateManager(Application *parent);
+
+    void SetSharedItems(bool shared = true) {
+        shared_ = shared;
+    }
+
     void LoadTemplate(const QString &temp) { shopTemplate = temp; }
-    QString Generate(const Items &items);
+    QStringList Generate(const Items &items);
 
     Items FindMatchingItems(const Items &items, QString keyword);
     QString FetchFromKey(const QString &key, const Items &items, QHash<QString, QString> *options);
@@ -34,6 +39,7 @@ private:
     QHash<QString, std::function<bool(const std::shared_ptr<Item>&)> > templateMatchers;
 
     Application* parent_;
+    bool shared_;
 };
 
 #endif // SHOPTEMPLATEMANAGER_H

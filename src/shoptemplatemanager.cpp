@@ -134,9 +134,11 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
 
         // Only select items from your stash unless specified
         if (!options->contains("include.character")) {
-            result = from(result)
-                    .where([](const std::shared_ptr<Item> item) { return item->location().type() == ItemLocationType::STASH; })
-                    .toVector();
+            result = Items::fromStdVector(
+                        from(result.toStdVector())
+                        .where([](const std::shared_ptr<Item> item) { return item->location().type() == ItemLocationType::STASH; })
+                        .toVector()
+                     );
         }
 
         // Recheck
@@ -155,10 +157,10 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
                     header = options->value("header");
                 }
 
-                const std::shared_ptr<Item> first = result.front();
+                const std::shared_ptr<Item> first = result.first();
                 if (parent_->buyout_manager().Exists(*first)) buyout = parent_->buyout_manager().Get(*first);
 
-                bool sameBuyout = from(result).all([this, buyout](const std::shared_ptr<Item> item) {
+                bool sameBuyout = from(result.toStdVector()).all([this, buyout](const std::shared_ptr<Item> item) {
                     Buyout thisBuyout = {};
                     if (parent_->buyout_manager().Exists(*item)) thisBuyout = parent_->buyout_manager().Get(*item);
                     return BuyoutManager::Equal(thisBuyout, buyout);
@@ -189,7 +191,7 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
                 }
 
                 for (QString buyout : itemsMap.uniqueKeys()) {
-                    Items itemList = itemsMap.values(buyout).toVector().toStdVector();
+                    Items itemList = itemsMap.values(buyout).toVector();
                     if (itemList.size() == 0)
                         continue;
                     QString header = buyout;
@@ -225,7 +227,7 @@ QString ShopTemplateManager::FetchFromKey(const QString &key, const Items &items
 }
 
 // The actual generation engine
-QString ShopTemplateManager::Generate(const Items &items) {
+QStringList ShopTemplateManager::Generate(const Items &items) {
     QString temp = shopTemplate;
     {
         QRegularExpression expr("{(?<key>.+?)(?<options>(\\|(.+?))*?)}");
@@ -276,7 +278,10 @@ QString ShopTemplateManager::Generate(const Items &items) {
         }
     }
 
-    return temp;
+    // Now split into chunks
+    QStringList result = {temp};
+
+    return result;
 }
 
 Items ShopTemplateManager::FindMatchingItems(const Items &items, QString keyword) {

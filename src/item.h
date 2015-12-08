@@ -24,6 +24,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <QVector>
 #include "rapidjson/document.h"
 
 #include "itemconstants.h"
@@ -118,4 +119,4 @@ private:
     ModTable mod_table_;
 };
 
-typedef std::vector<std::shared_ptr<Item>> Items;
+typedef QVector<std::shared_ptr<Item>> Items;

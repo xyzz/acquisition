@@ -146,7 +146,7 @@ void CurrencyPane::UpdateItemCounts(const Items &items) {
     for (int i = 0; i < ui->currencyTable->rowCount(); i++) {
         QTableWidgetItem* item = ui->currencyTable->item(i, 0);
         QString header = ui->currencyTable->verticalHeaderItem(i)->text();
-        int count = from(items)
+        int count = from(items.toStdVector())
                 .where([header](std::shared_ptr<Item> item) {return item->typeLine() == header.toStdString();})
                 .sum([](std::shared_ptr<Item> item) {
                     return item->count();
