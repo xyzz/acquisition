@@ -45,7 +45,8 @@ const int POE_MAX_CHAR_IN_POST = 50000;
 Shop::Shop(Application &app)
     : app_(app)
     , templateManager(&app)
-    , submitter_(&app.logged_in_nm()) {
+    , submitter_(&app.logged_in_nm())
+    , shopsNeedUpdate(false) {
     connect(&submitter_, &ShopSubmitter::ShopSubmitted, this, &Shop::OnShopSubmitted);
     connect(&submitter_, &ShopSubmitter::ShopBumped, this, &Shop::OnShopBumped);
     connect(&submitter_, &ShopSubmitter::ShopSubmissionError, this, &Shop::OnShopError);
@@ -68,12 +69,14 @@ void Shop::LoadShops() {
         if (timeout > 0)
             submitter_.SetTimeout(timeout);
 
+        SetShareItems(doc.object().value("shared_items").toBool());
+
         for (QJsonValue val : doc.object().value("shops").toArray()) {
             QJsonObject obj = val.toObject();
             QString id = obj.value("thread_id").toString();
             if (id.isEmpty()) continue;
             QString temp = obj.value("template").toString();
-            AddShop(id, temp);
+            AddShop(id, temp, false);
             ShopData* data = shops_.value(id);
             // populate other data
             int timeT = obj.value("last_submitted").toInt();
@@ -128,6 +131,7 @@ void Shop::SaveShops() {
     mainObject.insert("auto_bump", do_bump_);
     mainObject.insert("bump_interval", bump_interval_);
     mainObject.insert("timeout", submitter_.GetTimeout());
+    mainObject.insert("shared_items", AreItemsShared());
 
     QJsonArray array;
     for (ShopData* data : shops_) {
@@ -148,7 +152,7 @@ void Shop::SaveShops() {
     app_.data_manager().Set("shop_data", data.toStdString());
 }
 
-void Shop::AddShop(const QString &threadId, QString temp) {
+void Shop::AddShop(const QString &threadId, QString temp, bool expire) {
     if (shops_.contains(threadId)) {
         RemoveShop(threadId);
     }
@@ -160,10 +164,10 @@ void Shop::AddShop(const QString &threadId, QString temp) {
     ShopData* data = new ShopData;
     data->threadId = threadId;
     data->shopTemplate = temp;
-    data->requiresUpdate = true;
-
     shops_.insert(threadId, data);
 
+    if (expire)
+        ExpireShopData();
     SaveShops();
 }
 
@@ -174,6 +178,7 @@ void Shop::RemoveShop(const QString &threadId) {
     if (data)
         delete data;
 
+    ExpireShopData();
     SaveShops();
 }
 
@@ -181,8 +186,7 @@ void Shop::CopyToClipboard(const QString &threadId) {
     ShopData* data = shops_.value(threadId);
     if (!data) return;
 
-    if (data->requiresUpdate)
-        Update(threadId);
+    Update();
 
     if (data->shopTemplate.isEmpty() || data->shopData.isEmpty())
         return;
@@ -192,11 +196,8 @@ void Shop::CopyToClipboard(const QString &threadId) {
 }
 
 void Shop::ExpireShopData() {
-    for (QString thread : threadIds()) {
-        ShopData* data = shops_.value(thread);
-        data->requiresUpdate = true;
-    }
-    // QLOG_INFO() << "Shop data expired.";
+    Shop::shopsNeedUpdate = true;
+    QLOG_INFO() << "Shop data expired.";
 }
 
 void Shop::SetAutoUpdate(bool update) {
@@ -214,8 +215,9 @@ void Shop::SetShopTemplate(const QString &threadId, const QString &temp) {
     if (!data) return;
     if (temp != data->shopTemplate) {
         data->shopTemplate = temp;
-        data->requiresUpdate = true;
     }
+
+    ExpireShopData();
     SaveShops();
 }
 
@@ -227,28 +229,52 @@ int Shop::GetTimeout() {
     return submitter_.GetTimeout();
 }
 
-QString Shop::GetShopTemplate(const QString &threadId) {
+const QString Shop::GetShopTemplate(const QString &threadId) {
     ShopData* data = shops_.value(threadId);
     if (!data) return QString();
     return data->shopTemplate;
 }
 
-void Shop::Update(const QString &threadId, bool force) {
-    QList<ShopData*> shopsToUpdate;
-    if (threadId.isEmpty())
-        shopsToUpdate.append(shops_.values());
-    else
-        shopsToUpdate.append(shops_.value(threadId));
+const QString Shop::GetShopTemplate() {
+    return "";
+}
 
-    for (ShopData* shop : shopsToUpdate) {
-        if (!shop || (!shop->requiresUpdate && !force)) {
-            continue;
+void Shop::Update() {
+    // TODO(rory): Base items off a mutable list here
+    QLOG_INFO() << "Update called";
+
+    if (Shop::shopsNeedUpdate) {
+        Items pool = app_.items();
+
+        if (AreItemsShared()) {
+            templateManager.SetSharedItems(true);
+            templateManager.LoadTemplate(GetShopTemplate());
+            QStringList results = templateManager.Generate(pool);
+
+            for (ShopData* shop : shops_.values()) {
+                if (!results.isEmpty()) shop->shopTemplate = results.takeFirst();
+                else shop->shopTemplate = QString();
+            }
         }
-        templateManager.LoadTemplate(shop->shopTemplate);
-        QString result = templateManager.Generate(app_.items());
-        shop->requiresUpdate = false;
-        shop->shopData = result;
+        else {
+            for (ShopData* shop : shops_.values()) {
+                templateManager.SetSharedItems(false);
+                templateManager.LoadTemplate(shop->shopTemplate);
+                QStringList result = templateManager.Generate(pool);
+                if (result.isEmpty()) {
+                    QLOG_WARN() << "No data was returned from the template. Maybe it's empty?";
+                    shop->shopData = QString();
+                }
+                else {
+                    if (result.size() > 1) {
+                        QLOG_WARN() << "The template exceeded the character limit. Your shop will be truncated.";
+                    }
+                    shop->shopData = result.first();
+                }
+            }
+        }
     }
+    Shop::shopsNeedUpdate = false;
 }
 
 void Shop::SubmitShopToForum(const QString &threadId) {
@@ -274,8 +300,7 @@ void Shop::SubmitShopToForum(const QString &threadId) {
             continue;
         }
 
-        if (shop->requiresUpdate)
-            Update(shop->threadId);
+        Update();
 
         // Don't update the shop if it hasn't changed
         std::string currentHash = Util::Md5(shop->shopData.toStdString());

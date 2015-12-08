@@ -21,7 +21,7 @@ TemplateDialog::TemplateDialog(Application *app, const QString &threadId, QWidge
         QString text = ui->plainTextEdit->toPlainText();
         ShopTemplateManager manager(app_);
         manager.LoadTemplate(text);
-        QString result = manager.Generate(app_->items());
+        QString result = manager.Generate(app_->items()).join("\n");
         ui->textBrowser->setPlainText(result);
     });
 
