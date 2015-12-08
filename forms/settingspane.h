@@ -47,6 +47,9 @@ public slots:
     void on_removeTabExclusion_clicked();
     void on_tabExclusionListWidget_itemChanged(QListWidgetItem *item);
 
+private slots:
+    void on_splitTemplateItemsBox_toggled(bool checked);
+
 private:
     void addShopWidget(const QString &id);
     Ui::SettingsPane *ui;

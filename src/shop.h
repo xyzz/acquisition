@@ -39,7 +39,6 @@ struct ShopData {
     QString shopData;
 
     QString shopTemplate;
-    bool requiresUpdate;
 
     QDateTime lastSubmitted;
     QDateTime lastBumped;
@@ -50,7 +49,7 @@ class Shop : public QObject {
     Q_OBJECT
 public:
     explicit Shop(Application &app);
-    void AddShop(const QString &threadId, QString temp = QString());
+    void AddShop(const QString &threadId, QString temp = QString(), bool expire = true);
     void RemoveShop(const QString &threadId);
     void CopyToClipboard(const QString &threadId);
     void ExpireShopData();
@@ -60,9 +59,10 @@ public:
     int GetTimeout();
 
     const QList<QString> threadIds() const { return shops_.uniqueKeys(); }
-    QString GetShopTemplate(const QString &threadId);
+    const QString GetShopTemplate();
+    const QString GetShopTemplate(const QString &threadId);
 
-    void Update(const QString &threadId = QString(), bool force = false);
+    void Update();
     void SubmitShopToForum(const QString &threadId = QString());
 
     void SetAutoUpdate(bool update);
@@ -74,6 +74,15 @@ public:
     void SetBumpInterval(int i) { bump_interval_ = i;}
     void SaveShops();
     void LoadShops();
+
+    void SetShareItems(bool doShare = true) {
+        shopsShareItems = doShare;
+    }
+
+    bool AreItemsShared() {
+        return shopsShareItems;
+    }
+
 public slots:
     void OnShopSubmitted(const QString &threadId);
     void OnShopBumped(const QString &threadId);
@@ -87,11 +96,14 @@ private:
     ShopTemplateManager templateManager;
     ShopSubmitter submitter_;
 
-    QHash<QString, ShopData*> shops_;
+    QMap<QString, ShopData*> shops_;
 
     bool auto_update_;
     bool do_bump_;
     int bump_interval_;
 
     void UpdateState();
+
+    bool shopsNeedUpdate;
+    bool shopsShareItems;
 };

@@ -72,6 +72,9 @@ void SettingsPane::addShopWidget(const QString &id) {
             QString threadId = ui->shopsWidget->item(row, 0)->text();
             showTemplateDialog(threadId);
         });
+        if (row > 0 && app_->shop().AreItemsShared()) {
+            button->setEnabled(false);
+        }
 
         shopThreadIds.insert(row, id);
     }
@@ -333,4 +336,16 @@ void SettingsPane::on_shopTimeoutBox_valueChanged(int val) {
 
 void SettingsPane::on_bumpIntervalBox_valueChanged(int val) {
     app_->shop().SetBumpInterval(val * 60); // BumpInterval is in seconds, val is in minutes
+}
+
+void SettingsPane::on_splitTemplateItemsBox_toggled(bool checked)
+{
+    app_->shop().SetShareItems(checked);
+    // Toggle all but the first template
+    for (int i = 1; i < ui->shopsWidget->rowCount(); i++) {
+        QPushButton* button = qobject_cast<QPushButton*>(ui->shopsWidget->cellWidget(i, 1));
+        if (button) {
+            button->setEnabled(!checked);
+        }
+    }
 }
