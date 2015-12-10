@@ -40,6 +40,7 @@
 #include "application.h"
 #include "buyoutmanager.h"
 #include "currencymanager.h"
+#include "datastore.h"
 #include "filesystem.h"
 #include "filters.h"
 #include "flowlayout.h"
@@ -145,7 +146,7 @@ void MainWindow::InitializeUi() {
 
     ui->horizontalLayout_2->setStretchFactor(scroll_area, 1);
     ui->horizontalLayout_2->setStretchFactor(ui->itemListAndSearchFormLayout, 4);
-    ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 1);
+    ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 2);
 
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
@@ -176,8 +177,29 @@ void MainWindow::InitializeUi() {
     ui->itemNameFirstLine->setAlignment(Qt::AlignCenter);
     ui->itemNameSecondLine->setAlignment(Qt::AlignCenter);
 
+    ui->itemTextTooltip->setStyleSheet("QLabel { background-color: black; color: #7f7f7f; padding: 3px; }");
+
     ui->itemTooltipWidget->hide();
     ui->uploadTooltipButton->hide();
+
+    connect(ui->itemInfoTypeTabs, &QTabWidget::currentChanged, [=](int idx){
+        auto tabs = ui->itemInfoTypeTabs;
+        for (int i = 0; i < tabs->count(); i++)
+            if (i != idx)
+                tabs->widget(i)->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        tabs->widget(idx)->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        tabs->widget(idx)->resize(tabs->widget(idx)->minimumSizeHint());
+        tabs->widget(idx)->adjustSize();
+
+        if (idx == 0)
+            ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 2);
+        else
+            ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 1);
+
+        app_->data().SetInt("preferred_tooltip_type", idx);
+    });
+
+    ui->itemInfoTypeTabs->setCurrentIndex(app_->data().GetInt("preferred_tooltip_type"));
 }
 
 void MainWindow::ExpandCollapse(TreeState state) {

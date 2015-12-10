@@ -131,7 +131,7 @@ static std::vector<std::string> GenerateMods(const Item &item) {
     return out;
 }
 
-static std::string GenerateItemInfo(const Item &item, const std::string &key) {
+static std::string GenerateItemInfo(const Item &item, const std::string &key, bool fancy) {
     std::vector<std::string> sections;
 
     std::string properties_text = GenerateProperties(item);
@@ -156,11 +156,18 @@ static std::string GenerateItemInfo(const Item &item, const std::string &key) {
     std::string text;
     bool first = true;
     for (auto &s : sections) {
-        if (!first)
-            text += "<br><img src=':/tooltip/Separator" + key + ".png'><br>";
+        if (!first) {
+            text += "<br>";
+            if (fancy)
+                text += "<img src=':/tooltip/Separator" + key + ".png'><br>";
+            else
+                text += "<hr>";
+        }
         first = false;
         text += s;
     }
+    if (!fancy)
+        text = ColorPropertyValue(ItemPropertyValue{ item.PrettyName(), 0 }) + "<hr>" + text;
     return "<center>" + text + "</center>";
 }
 
@@ -203,7 +210,8 @@ void GenerateItemTooltip(const Item &item, Ui::MainWindow *ui) {
         frame = 0;
     std::string key = FrameToKey[frame];
 
-    ui->propertiesLabel->setText(GenerateItemInfo(item, key).c_str());
+    ui->propertiesLabel->setText(GenerateItemInfo(item, key, true).c_str());
+    ui->itemTextTooltip->setText(GenerateItemInfo(item, key, false).c_str());
     UpdateMinimap(item, ui);
 
     bool singleline = item.name().empty();
