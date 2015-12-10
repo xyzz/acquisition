@@ -75,7 +75,6 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
                     }
                 }
             }
-            includeNoBuyouts = true;
         }
         else {
             Items pool = items;
