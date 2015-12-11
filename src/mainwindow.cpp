@@ -344,7 +344,7 @@ void MainWindow::InitializeUi() {
             }
         }
     });
-    action = bucket_context_menu_.addAction("Clear All Buyouts");
+    action = bucket_context_menu_.addAction("Clear All Buyouts In Tab");
     connect(action, &QAction::triggered, [this] {
         QPoint pos = ui->treeView->viewport()->mapFromGlobal(bucket_context_menu_.pos());
         QModelIndex index = ui->treeView->indexAt(pos);
