@@ -40,6 +40,7 @@
 
 const int POE_BUMP_DELAY = 3600; // 1 hour per Path of Exile forum rules
 const QString TEMPLATE_MESSAGE = "{everything|group}\n\n[url=https://github.com/Novynn/acquisitionplus/releases]Shop made with Acquisition Plus[/url]";
+const QString EMPTY_SLAVE_MESSAGE = "This multi-shop is currently empty.\n\n[url=https://github.com/Novynn/acquisitionplus/releases]Shop made with Acquisition Plus[/url]";
 
 Shop::Shop(Application &app)
     : app_(app)
@@ -350,7 +351,11 @@ void Shop::SubmitSingleShop(ShopData* shop) {
         shouldBump = shop->lastBumped.isNull() || !shop->lastBumped.isValid() ||
                      shop->lastBumped.secsTo(QDateTime::currentDateTime()) >= BumpInterval();
     }
-    submitter_.BeginShopSubmission(shop->threadId, shop->shopData, shouldBump);
+    QString shopData = shop->shopData;
+    if (shopData.isEmpty() && AreItemsShared()) {
+        shopData = EMPTY_SLAVE_MESSAGE;
+    }
+    submitter_.BeginShopSubmission(shop->threadId, shopData, shouldBump);
     UpdateState();
 }
 
