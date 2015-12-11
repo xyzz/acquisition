@@ -8,6 +8,7 @@
 #include <QDateTime>
 
 using namespace boolinq;
+const int POE_MAX_CHAR_IN_POST = 50000;
 
 ShopTemplateManager::ShopTemplateManager(Application *parent)
     : QObject(parent)
@@ -15,21 +16,21 @@ ShopTemplateManager::ShopTemplateManager(Application *parent)
     LoadTemplateMatchers();
 }
 
-QString ShopTemplateManager::FetchFromEasyKey(const QString &key, QHash<QString, QString>* options) {
-    QString replacement;
-
+QList<ShopTemplateManager::ShopTemplateSection> ShopTemplateManager::FetchFromEasyKey(const QString &key, QHash<QString, QString>* options) {
+    QList<ShopTemplateSection> result;
     if (key == "ign") {
-        replacement = QString::fromStdString(parent_->active_character());
+        result << ShopTemplateSection(QString::fromStdString(parent_->active_character()));
     }
     else if (key == "lastupdated") {
-        replacement = QDateTime::currentDateTime().toString("MMMM dd, yyyy hh:mm A");
+        result << ShopTemplateSection(QDateTime::currentDateTime().toString("MMMM dd, yyyy hh:mm A"));
     }
 
-    return replacement;
+    return result;
 }
 
-void ShopTemplateManager::WriteItems(const Items &items, QString* writer, bool includeBuyoutTag, bool includeNoBuyouts) {
+QStringList ShopTemplateManager::WriteItems(const Items &items, bool includeBuyoutTag, bool includeNoBuyouts) {
     Items sorted = items;
+    QStringList result;
 
     // Sort to ensure that the template matches even if the item order is different.
     std::sort(sorted.begin(), sorted.end(), [](const std::shared_ptr<Item> &first, const std::shared_ptr<Item> &second) -> bool {
@@ -43,27 +44,28 @@ void ShopTemplateManager::WriteItems(const Items &items, QString* writer, bool i
         if (parent_->buyout_manager().Exists(*item)) {
             Buyout bo = parent_->buyout_manager().Get(*item);
 
-            writer->append(QString::fromStdString(item->location().GetForumCode(parent_->league())));
+            QString temp = QString::fromStdString(item->location().GetForumCode(parent_->league()));
             if (includeBuyoutTag)
-                writer->append(BuyoutManager::Generate(bo));
+                temp += BuyoutManager::Generate(bo);
+            result << temp;
         }
         else if (includeNoBuyouts) {
-            writer->append(QString::fromStdString(item->location().GetForumCode(parent_->league())));
+            result << QString::fromStdString(item->location().GetForumCode(parent_->league()));
         }
     }
+    return result;
 }
 
-QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &items, QHash<QString, QString> *options)
-{
-    QString replacement;
+QList<ShopTemplateManager::ShopTemplateSection> ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &items, QHash<QString, QString> *options) {
+    QList<ShopTemplateManager::ShopTemplateSection> result;
     if (items.size() > 0){
-        Items result;
+        Items matchingItems;
 
         bool includeNoBuyouts = options->contains("include.ignored");
         ShopTemplateContainType containType = CONTAIN_TYPE_NONE;
 
         if (key == "everything") {
-            result = items;
+            matchingItems = items;
         }
         else if (key.startsWith("stash:")) {
             int index = key.indexOf(":");
@@ -71,7 +73,7 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
             if (!name.isEmpty()) {
                 for (const std::shared_ptr<Item> &item : items) {
                     if (QString::fromStdString(item->location().GetLabel()).compare(name, Qt::CaseInsensitive) == 0) {
-                        result.push_back(item);
+                        matchingItems.push_back(item);
                     }
                 }
             }
@@ -81,7 +83,7 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
             QStringList keyParts = key.split("+", QString::SkipEmptyParts);
             for (QString part : keyParts) {
                 if (templateMatchers.contains(part)) {
-                    result = FindMatchingItems(pool, part);
+                    matchingItems = FindMatchingItems(pool, part);
                 }
                 else {
                     // todo(novynn): phase these out? Prefer {Normal+Helmet} over {NormalHelmet}
@@ -91,8 +93,8 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
                         if (part.startsWith(rarity)) {
                             QString type = part.mid(rarity.length());
 
-                            result = FindMatchingItems(pool, rarity);
-                            result = FindMatchingItems(result, type);
+                            matchingItems = FindMatchingItems(pool, rarity);
+                            matchingItems = FindMatchingItems(matchingItems, type);
                             matchedRarity = true;
                         }
                     }
@@ -101,7 +103,7 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
 
                     if (part.endsWith("gems")) {
                         if (part == "gems" || part == "allgems") {
-                            result = FindMatchingItems(pool, "gems");
+                            matchingItems = FindMatchingItems(pool, "gems");
                         }
                         else {
                             const QStringList gemTypes = {"AoE", "Attack", "Aura", "Bow", "Cast", "Chaining", "Chaos",
@@ -112,37 +114,32 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
 
                                 // This will never just be first key (?)
                                 QString firstKey = gemType.toLower() + "gems";
-                                result = FindMatchingItems(pool, firstKey);
+                                matchingItems = FindMatchingItems(pool, firstKey);
 
                                 if (part != firstKey) {
                                     // supportlightninggems
                                     QString secondKey = part.mid(gemType.length());
-                                    result = FindMatchingItems(result, secondKey);
+                                    matchingItems = FindMatchingItems(matchingItems, secondKey);
                                 }
                             }
                         }
                     }
                 }
-                pool = result;
+                pool = matchingItems;
             }
         }
 
-        // If no items were returned, bail out now!
-        if (result.size() == 0)
-            return replacement;
-
         // Only select items from your stash unless specified
         if (!options->contains("include.character")) {
-            result = Items::fromStdVector(
-                        from(result.toStdVector())
+            matchingItems = Items::fromStdVector(
+                        from(matchingItems.toStdVector())
                         .where([](const std::shared_ptr<Item> item) { return item->location().type() == ItemLocationType::STASH; })
                         .toVector()
                      );
         }
 
-        // Recheck
-        if (result.size() == 0)
-            return replacement;
+        if (matchingItems.size() == 0)
+            return result;
 
         if (containType == CONTAIN_TYPE_NONE && options->contains("wrap")) containType = CONTAIN_TYPE_WRAP;
         if (containType == CONTAIN_TYPE_NONE && options->contains("group")) containType = CONTAIN_TYPE_GROUP;
@@ -156,10 +153,10 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
                     header = options->value("header");
                 }
 
-                const std::shared_ptr<Item> first = result.first();
+                const std::shared_ptr<Item> first = matchingItems.first();
                 if (parent_->buyout_manager().Exists(*first)) buyout = parent_->buyout_manager().Get(*first);
 
-                bool sameBuyout = from(result.toStdVector()).all([this, buyout](const std::shared_ptr<Item> item) {
+                bool sameBuyout = from(matchingItems.toStdVector()).all([this, buyout](const std::shared_ptr<Item> item) {
                     Buyout thisBuyout = {};
                     if (parent_->buyout_manager().Exists(*item)) thisBuyout = parent_->buyout_manager().Get(*item);
                     return BuyoutManager::Equal(thisBuyout, buyout);
@@ -169,20 +166,16 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
                     header += BuyoutManager::Generate(buyout);
                 }
 
-                QString temp;
-                WriteItems(result, &temp, !sameBuyout, includeNoBuyouts);
-                if (temp.isEmpty())
-                    return replacement;
-
-                replacement += QString("[spoiler=\"%1\"]").arg(header);
-                replacement += temp;
-                replacement += "[/spoiler]";
+                QStringList temp = WriteItems(matchingItems, !sameBuyout, includeNoBuyouts);
+                if (!temp.isEmpty()) {
+                    result << ShopTemplateSection(temp, SECTION_TYPE_SPOILER, header);
+                }
                 break;
             }
             case CONTAIN_TYPE_GROUP: {
                 QMultiMap<QString, std::shared_ptr<Item>> itemsMap;
 
-                for (auto &item : result) {
+                for (auto &item : matchingItems) {
                     Buyout b = {};
                     if (parent_->buyout_manager().Exists(*item))
                         b = parent_->buyout_manager().Get(*item);
@@ -195,39 +188,42 @@ QString ShopTemplateManager::FetchFromItemsKey(const QString &key, const Items &
                         continue;
                     QString header = buyout;
                     if (header.isEmpty()) header = "Offers Accepted";
-                    QString temp;
-                    WriteItems(itemList, &temp, false, includeNoBuyouts);
+                    QStringList temp = WriteItems(itemList, false, includeNoBuyouts);
                     if (temp.isEmpty())
                         continue;
-                    replacement += QString("[spoiler=\"%1\"]").arg(header);
-                    replacement += temp;
-                    replacement += "[/spoiler]";
+
+                    result << ShopTemplateSection(temp, SECTION_TYPE_SPOILER, header);
                 }
                 break;
             }
             default: {
-                WriteItems(result, &replacement, true, includeNoBuyouts);
+                QStringList temp = WriteItems(matchingItems, true, includeNoBuyouts);
+                result << ShopTemplateSection(temp, SECTION_TYPE_NONE);
                 break;
             }
         }
     }
 
-    return replacement;
+    return result;
 }
 
-QString ShopTemplateManager::FetchFromKey(const QString &key, const Items &items, QHash<QString, QString>* options) {
-    QString replacement = FetchFromEasyKey(key, options);
+QList<ShopTemplateManager::ShopTemplateSection> ShopTemplateManager::FetchFromKey(const QString &key, const Items &items, QHash<QString, QString>* options) {
+    QList<ShopTemplateManager::ShopTemplateSection> result = FetchFromEasyKey(key, options);
 
-    if (replacement.isEmpty()) {
-        replacement = FetchFromItemsKey(key, items, options);
+    if (result.isEmpty()) {
+        result = FetchFromItemsKey(key, items, options);
     }
 
-    return replacement;
+    return result;
 }
 
 // The actual generation engine
 QStringList ShopTemplateManager::Generate(const Items &items) {
+    QStringList result;
     QString temp = shopTemplate;
+
+    // Records extractor
+    QList<ShopTemplateRecord> records;
     {
         QRegularExpression expr("{(?<key>.+?)(?<options>(\\|(.+?))*?)}");
         QRegularExpressionMatchIterator matcher = expr.globalMatch(shopTemplate);
@@ -236,7 +232,7 @@ QStringList ShopTemplateManager::Generate(const Items &items) {
             QRegularExpressionMatch match = matcher.next();
             QString key = match.captured("key").toLower();
             int startPos = offset + match.capturedStart();
-            int len = match.capturedLength();
+            const int len = match.capturedLength();
 
             QStringList optionsAndData = match.captured("options").split("|", QString::SkipEmptyParts);
             QHash<QString, QString> options;
@@ -251,34 +247,54 @@ QStringList ShopTemplateManager::Generate(const Items &items) {
                     options.insert(option, data);
                 }
             }
-
-            QString replacement = FetchFromKey(key, items, &options);
-
-            temp.replace(startPos, len, replacement);
-            offset += replacement.length() - len;
+            temp.remove(startPos, len);
+            ShopTemplateRecord record = {key, options, startPos};
+            records << record;
+            offset -= len;
         }
     }
 
-    // Now clean up empty spoiler tags!
-    int matches = -1;
-    while (matches != 0){
-        QRegularExpression expr("\\[spoiler=\\\"(?>.*?\\\"\\])(?>\\s*?\\[\\/spoiler\\]\\n)");
-        QRegularExpressionMatchIterator matcher = expr.globalMatch(temp);
-        int offset = 0;
-        matches = 0;
-        while (matcher.hasNext()) {
-            QRegularExpressionMatch match = matcher.next();
-            int startPos = match.capturedStart() + offset;
-            int length = match.capturedLength();
+    const QString cleanTemplate = temp;
 
-            temp.remove(startPos, length);
-            offset -= length;
-            matches++;
+    // Injector
+    {
+        for (ShopTemplateRecord record : records){
+            QList<ShopTemplateSection> sections = FetchFromKey(record.key, items, &record.options);
+            int indexOffset = 0;
+            int templateOffset = 0;
+            while (!sections.isEmpty()) {
+                ShopTemplateSection replacement = sections.takeFirst();
+                int itemStart = 0;
+                int itemCount = replacement.items();
+                while (itemCount > 0) {
+                    QString text = replacement.generate(itemStart, itemCount);
+                    if (temp.size() + text.size() >= POE_MAX_CHAR_IN_POST) {
+                        itemCount--;
+                        continue;
+                    }
+                    temp.insert(record.templateIndex + indexOffset + templateOffset, text);
+                    templateOffset += text.size();
+
+                    // If we ended up ignoring some items
+                    if (itemStart + itemCount < replacement.items()) {
+                        // We couldn't fit in all the items from last time into the chunk...
+                        result << temp;
+                        // New temp starts from the old templates end
+                        temp = cleanTemplate.mid(record.templateIndex);
+                        indexOffset = -record.templateIndex;
+                        templateOffset = 0;
+                        itemStart += itemCount;
+                        itemCount = replacement.items() - itemStart;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
         }
+        if (!temp.isEmpty())
+            result << temp;
     }
-
-    // Now split into chunks
-    QStringList result = {temp};
 
     return result;
 }
@@ -442,3 +458,36 @@ void ShopTemplateManager::LoadTemplateMatchers() {
 
 }
 
+
+
+ShopTemplateManager::ShopTemplateSection::ShopTemplateSection(QStringList contents, ShopTemplateManager::ShopTemplateSectionType type, QString name)
+    : contents(contents)
+    , type(type)
+    , header()
+    , footer() {
+    if (type == SECTION_TYPE_SPOILER) {
+        header = "[spoiler=\"" + name + "\"]";
+        footer = "[/spoiler]";
+    }
+}
+
+ShopTemplateManager::ShopTemplateSection::ShopTemplateSection(QString content, ShopTemplateManager::ShopTemplateSectionType type, QString name)
+    : ShopTemplateSection(QStringList({content}), type, name) {
+}
+
+
+QString ShopTemplateManager::ShopTemplateSection::generate(int start, int items) {
+    return header + spliced(start, items).join("") + footer;
+}
+
+int ShopTemplateManager::ShopTemplateSection::size(int start, int items) {
+    return header.length() + spliced(start, items).join("").length() + footer.length();
+}
+
+bool ShopTemplateManager::ShopTemplateSection::isEmpty() {
+    return contents.isEmpty();
+}
+
+ShopTemplateManager::ShopTemplateSectionType ShopTemplateManager::ShopTemplateSection::getType() {
+    return type;
+}
