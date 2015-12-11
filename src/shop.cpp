@@ -40,7 +40,6 @@
 
 const int POE_BUMP_DELAY = 3600; // 1 hour per Path of Exile forum rules
 const QString TEMPLATE_MESSAGE = "{everything|group}\n\n[url=https://github.com/Novynn/acquisitionplus/releases]Shop made with Acquisition Plus[/url]";
-const int POE_MAX_CHAR_IN_POST = 50000;
 
 Shop::Shop(Application &app)
     : app_(app)
@@ -215,10 +214,9 @@ void Shop::SetShopTemplate(const QString &threadId, const QString &temp) {
     if (!data) return;
     if (temp != data->shopTemplate) {
         data->shopTemplate = temp;
+        ExpireShopData();
+        SaveShops();
     }
-
-    ExpireShopData();
-    SaveShops();
 }
 
 void Shop::SetTimeout(int timeout) {
@@ -241,7 +239,6 @@ const QString Shop::GetShopTemplate() {
 }
 
 void Shop::Update() {
-    // TODO(rory): Base items off a mutable list here
     QLOG_INFO() << "Update called";
 
     if (Shop::shopsNeedUpdate) {
@@ -253,8 +250,8 @@ void Shop::Update() {
             QStringList results = templateManager.Generate(pool);
 
             for (ShopData* shop : shops_.values()) {
-                if (!results.isEmpty()) shop->shopTemplate = results.takeFirst();
-                else shop->shopTemplate = QString();
+                if (!results.isEmpty()) shop->shopData = results.takeFirst();
+                else shop->shopData = QString();
             }
             QLOG_INFO() << "Shared shop data generated!";
         }
@@ -284,10 +281,14 @@ void Shop::SubmitShopToForum(const QString &threadId) {
     QList<ShopData*> shopsToUpdate;
     QList<ShopData*> shopsToSubmit;
 
-    if (threadId.isEmpty())
+    if (threadId.isEmpty()) {
         shopsToUpdate.append(shops_.values());
-    else
+        QLOG_INFO() << "Submitting shops to forum.";
+    }
+    else {
         shopsToUpdate.append(shops_.value(threadId));
+        QLOG_INFO() << "Submitting shop " << threadId << " to forum.";
+    }
 
     for (ShopData* shop : shopsToUpdate) {
         if (!shop) {
@@ -315,6 +316,7 @@ void Shop::SubmitShopToForum(const QString &threadId) {
     }
 
     if (shopsToSubmit.isEmpty()) {
+        QLOG_INFO() << "No shops were outdated.";
         return;
     }
 

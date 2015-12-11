@@ -77,6 +77,7 @@ public:
 
     void SetShareItems(bool doShare = true) {
         shopsShareItems = doShare;
+        ExpireShopData();
     }
 
     bool AreItemsShared() {
