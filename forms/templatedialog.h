@@ -2,6 +2,7 @@
 #define TEMPLATEDIALOG_H
 
 #include <QDialog>
+#include <QTextBrowser>
 
 class Application;
 
@@ -18,10 +19,14 @@ public:
     QString GetTemplate();
     ~TemplateDialog();
 
+private slots:
+    void on_generateButton_clicked();
+
 private:
     Application* app_;
 
     Ui::TemplateDialog *ui;
+    QList<QTextBrowser*> previews;
 };
 
 #endif // TEMPLATEDIALOG_H

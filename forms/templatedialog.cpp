@@ -17,15 +17,13 @@ TemplateDialog::TemplateDialog(Application *app, const QString &threadId, QWidge
     QString text = app_->shop().GetShopTemplate(threadId);
     ui->plainTextEdit->setPlainText(text);
 
-    connect(ui->plainTextEdit, &QPlainTextEdit::textChanged, [this] {
-        QString text = ui->plainTextEdit->toPlainText();
-        ShopTemplateManager manager(app_);
-        manager.LoadTemplate(text);
-        QString result = manager.Generate(app_->items()).join("\n");
-        ui->textBrowser->setPlainText(result);
-    });
-
     emit ui->plainTextEdit->textChanged();
+    connect(ui->plainTextEdit, &QPlainTextEdit::textChanged, [this] {
+        ui->generateButton->setEnabled(true);
+        ui->previewWidget->setEnabled(false);
+        qDeleteAll(previews);
+        previews.clear();
+    });
 }
 
 QString TemplateDialog::GetTemplate() {
@@ -35,4 +33,20 @@ QString TemplateDialog::GetTemplate() {
 TemplateDialog::~TemplateDialog()
 {
     delete ui;
+}
+
+void TemplateDialog::on_generateButton_clicked() {
+    QString text = ui->plainTextEdit->toPlainText();
+    ShopTemplateManager manager(app_);
+    manager.LoadTemplate(text);
+    QStringList results = manager.Generate(app_->items());
+    for (int i = 0; i < results.size(); i++) {
+        QTextBrowser* preview = new QTextBrowser(ui->previewWidget);
+        ui->previewWidgetLayout->addWidget(preview);
+        previews.append(preview);
+        preview->setPlainText(results.at(i));
+    }
+
+    ui->generateButton->setEnabled(false);
+    ui->previewWidget->setEnabled(true);
 }
