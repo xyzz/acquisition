@@ -32,7 +32,7 @@ void ShopSubmitter::timerEvent(QTimerEvent *event) {
 
 void ShopSubmitter::BeginShopSubmission(const QString &threadId, const QString &shopData, bool bumpAfter) {
     if (threadId.isEmpty() || shopData.isEmpty()) {
-        emit ShopSubmissionError(threadId, "Invalid shop submitted.");
+        emit ShopSubmissionError(threadId, "An empty shop was submitted.");
         return;
     }
 
