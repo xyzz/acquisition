@@ -169,6 +169,7 @@ void SettingsPane::updateFromStorage() {
     ui->bumpShopBox->setChecked(app_->shop().IsBumpEnabled());
     ui->bumpIntervalBox->setValue(app_->shop().BumpInterval() / 60); // BumpInterval is in seconds
     ui->shopTimeoutBox->setValue(app_->shop().GetTimeout() / 1000);
+    ui->splitTemplateItemsBox->setChecked(app_->shop().AreItemsShared());
 
     // Trade
     ui->refreshTradeBox->setChecked(parent_->auto_online_.enabled());
