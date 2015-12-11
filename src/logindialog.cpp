@@ -67,7 +67,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
 #if defined(Q_OS_LINUX)
     setWindowIcon(QIcon(":/icons/assets/icon.svg"));
 #endif
-    QStringList leagues = { "Darkshrine (IC003)", "Darkshrine HC (IC004)", "Flashback Event (IC001)", "Flashback Event HC (IC002)", "Standard", "Hardcore" };
+    QStringList leagues = { "Talisman", "Hardcore Talisman", "Standard", "Hardcore" };
     ui->leagueComboBox->clear();
     ui->leagueComboBox->addItems(leagues);
     ui->leagueComboBox->setEnabled(true);
@@ -159,7 +159,7 @@ void LoginDialog::OnLoggedIn() {
     QByteArray bytes = reply->readAll();
     int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (status != 302) {
-        DisplayError("Failed to log in (invalid password?)");
+        DisplayError("Failed to log in (invalid password or expired session ID? try re-logging with email/password pair or via steam)");
         return;
     }
 
