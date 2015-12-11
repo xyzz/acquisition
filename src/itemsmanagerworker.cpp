@@ -171,6 +171,7 @@ QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, bool tabs) {
     query.addQueryItem("league", league_.c_str());
     query.addQueryItem("tabs", tabs ? "1" : "0");
     query.addQueryItem("tabIndex", QString::number(tab_index));
+    query.addQueryItem("accountName", account_name_.c_str());
 
     QUrl url(kStashItemsUrl);
     url.setQuery(query);

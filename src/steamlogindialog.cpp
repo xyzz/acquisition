@@ -67,6 +67,8 @@ void SteamLoginDialog::Init() {
     connect(ui->webView, SIGNAL(loadFinished(bool)), this, SLOT(OnLoadFinished()));
 }
 
+extern const char* POE_COOKIE_NAME;
+
 void SteamLoginDialog::OnLoadFinished() {
     if (completed_)
         return;
@@ -93,7 +95,7 @@ void SteamLoginDialog::OnLoadFinished() {
         }
 
         for (auto &cookie : cookies)
-            if (cookie.name() == "PHPSESSID")
+            if (cookie.name() == POE_COOKIE_NAME)
                 session_id = QString(cookie.value());
         ui->webView->stop();
 

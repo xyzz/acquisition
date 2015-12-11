@@ -46,7 +46,7 @@ const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
 const char* POE_MAIN_PAGE = "https://www.pathofexile.com/";
 const char* POE_MY_ACCOUNT = "https://www.pathofexile.com/my-account";
-const char* POE_COOKIE_NAME = "PHPSESSID";
+const char* POE_COOKIE_NAME = "POESESSID";
 
 enum {
     LOGIN_PASSWORD,
@@ -184,7 +184,7 @@ void LoginDialog::OnSteamCookieReceived(const QString &cookie) {
 void LoginDialog::LoginWithCookie(const QString &cookie) {
     QNetworkCookie poeCookie(POE_COOKIE_NAME, cookie.toUtf8());
     poeCookie.setPath("/");
-    poeCookie.setDomain("www.pathofexile.com");
+    poeCookie.setDomain(".pathofexile.com");
 
     login_manager_->cookieJar()->insertCookie(poeCookie);
 
