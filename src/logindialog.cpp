@@ -74,7 +74,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
 #endif
     ui->errorLabel->hide();
     ui->errorLabel->setStyleSheet("QLabel { color : red; }");
-    setWindowTitle(QString("Acquisition Plus - Login [") + VERSION_NAME + "]");
+    setWindowTitle(QString("Acquisition Plus - Login [%1]").arg(VERSION_NAME));
 
 #if defined(Q_OS_LINUX)
     setWindowIcon(QIcon(":/icons/assets/icon.svg"));
@@ -93,7 +93,9 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
         UpdateChecker::AskUserToUpdate(this);
     });
 
-    QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
+    QNetworkRequest request = QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL)));
+    request.setHeader(QNetworkRequest::UserAgentHeader, (std::string("Acquisition Plus ") + VERSION_NAME).c_str());
+    QNetworkReply *leagues_reply = login_manager_->get(request);
     connect(leagues_reply, SIGNAL(finished()), this, SLOT(OnLeaguesRequestFinished()));
 
     leagues_ = QStringList({saved_league_, "Standard", "Hardcore" });
