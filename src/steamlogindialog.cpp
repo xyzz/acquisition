@@ -93,7 +93,7 @@ void SteamLoginDialog::OnLoadFinished() {
         }
 
         for (auto &cookie : cookies)
-            if (cookie.name() == "PHPSESSID")
+            if (cookie.name() == "POESESSID")
                 session_id = QString(cookie.value());
         ui->webView->stop();
 

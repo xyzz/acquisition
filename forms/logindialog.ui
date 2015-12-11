@@ -23,7 +23,7 @@
    <item>
     <widget class="QTabWidget" name="loginTabs">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -91,7 +91,7 @@
             </size>
            </property>
            <property name="text">
-            <string>PHPSESSID</string>
+            <string>POESESSID</string>
            </property>
           </widget>
          </item>
