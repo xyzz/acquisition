@@ -33,6 +33,9 @@
 #include <QUrl>
 #include <QUrlQuery>
 #include <iostream>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 #include "QsLog.h"
 
 #include "application.h"
@@ -44,7 +47,7 @@
 #include "util.h"
 #include "version.h"
 
-const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
+const char* POE_LEAGUE_LIST_URL = "http://poe.rory.io/api/v1/leagues";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
 const char* POE_MAIN_PAGE = "https://www.pathofexile.com/news";
 const char* POE_MY_ACCOUNT = "https://www.pathofexile.com/my-account";
@@ -90,11 +93,14 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
         UpdateChecker::AskUserToUpdate(this);
     });
 
-    // Moved this functionality here since we ignore GGG's response anyway.
-//    QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
-//    connect(leagues_reply, SIGNAL(finished()), this, SLOT(OnLeaguesRequestFinished()));
-    leagues_ = QStringList({ "Darkshrine (IC003)", "Darkshrine HC (IC004)", "Flashback Event (IC001)", "Flashback Event HC (IC002)", "Standard", "Hardcore" });
+    QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
+    connect(leagues_reply, SIGNAL(finished()), this, SLOT(OnLeaguesRequestFinished()));
 
+    leagues_ = QStringList({saved_league_, "Standard", "Hardcore" });
+    UpdateLeagues();
+}
+
+void LoginDialog::UpdateLeagues() {
     ui->leagueComboBox->clear();
     for (const QString &league : leagues_)
         ui->leagueComboBox->addItem(league);
@@ -105,35 +111,26 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
 }
 
 void LoginDialog::OnLeaguesRequestFinished() {
-#if 0
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    QByteArray bytes = reply->readAll();
-    rapidjson::Document doc;
-    doc.Parse(bytes.constData());
-
-    leagues_.clear();
-    // ignore actual response completely since it's broken anyway (at the moment of writing!)
-    if (true) {
-        // QLOG_ERROR() << "Failed to parse leagues. The output was:";
-        // QLOG_ERROR() << QString(bytes);
-        QLOG_ERROR() << "Using temporary leagues list, as GGG's response is invalid.";
-
-        // But let's do our best and try to add at least some leagues!
-        // It's in case GGG's API is broken and suddenly starts returning empty pages,
-        // which of course will never happen.
-        leagues_ = { "Warbands", "Tempest", "Standard", "Hardcore" };
-    } else {
-        for (auto &league : doc)
-            leagues_.push_back(league["id"].GetString());
+    int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (reply->error() || status != 200) {
+        DisplayError("Could not retrieve leagues list:\n" + reply->errorString());
+        return;
     }
-    ui->leagueComboBox->clear();
-    for (auto &league : leagues_)
-        ui->leagueComboBox->addItem(league.c_str());
-    ui->leagueComboBox->setEnabled(true);
 
-    if (saved_league_.size() > 0)
-        ui->leagueComboBox->setCurrentText(saved_league_);
-#endif
+    QByteArray bytes = reply->readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(bytes);
+    if (!doc.isNull() && doc.isObject()) {
+        QJsonArray array = doc.object().value("leagues").toArray();
+        if (!array.isEmpty()) {
+            leagues_.clear();
+            for (const QJsonValue &val : array) {
+                leagues_.append(val.toString());
+            }
+            UpdateLeagues();
+        }
+    }
+    reply->deleteLater();
 }
 
 void LoginDialog::OnLoginButtonClicked() {
@@ -165,6 +162,7 @@ void LoginDialog::OnLoginPageFinished() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     if (reply->error()) {
         DisplayError("Network error: " + reply->errorString());
+        reply->deleteLater();
         return;
     }
     switch (ui->loginTabs->currentIndex()) {
@@ -205,6 +203,7 @@ void LoginDialog::OnLoginPageFinished() {
             break;
         }
     }
+    reply->deleteLater();
 }
 
 void LoginDialog::OnLoggedIn() {
@@ -224,6 +223,7 @@ void LoginDialog::OnLoggedIn() {
     // we need one more request to get account name
     QNetworkReply *main_page = login_manager_->get(QNetworkRequest(QUrl(POE_MY_ACCOUNT)));
     connect(main_page, SIGNAL(finished()), this, SLOT(OnMainPageFinished()));
+    reply->deleteLater();
 }
 
 #ifdef WITH_STEAM
@@ -265,6 +265,7 @@ void LoginDialog::OnMainPageFinished() {
     mw = new MainWindow(std::move(app_));
     mw->setWindowTitle(QString("Acquisition Plus - %1").arg(league.c_str()));
     mw->show();
+    reply->deleteLater();
     close();
 }
 

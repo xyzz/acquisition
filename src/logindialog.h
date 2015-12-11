@@ -45,6 +45,7 @@ class LoginDialog : public QDialog {
 public:
     explicit LoginDialog(std::unique_ptr<Application> app);
     ~LoginDialog();
+    void UpdateLeagues();
 public slots:
     void OnLeaguesRequestFinished();
     void OnLoginButtonClicked();
