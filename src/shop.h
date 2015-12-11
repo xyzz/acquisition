@@ -49,6 +49,7 @@ class Shop : public QObject {
     Q_OBJECT
 public:
     explicit Shop(Application &app);
+    ~Shop();
     void AddShop(const QString &threadId, QString temp = QString(), bool expire = true);
     void RemoveShop(const QString &threadId);
     void CopyToClipboard(const QString &threadId);

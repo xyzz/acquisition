@@ -53,6 +53,11 @@ Shop::Shop(Application &app)
     LoadShops();
 }
 
+Shop::~Shop() {
+    qDeleteAll(shops_);
+    shops_.clear();
+}
+
 void Shop::LoadShops() {
     QByteArray data = QByteArray::fromStdString(app_.data_manager().Get("shop_data"));
 
