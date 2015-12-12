@@ -24,12 +24,14 @@
 #include <unordered_map>
 #include <vector>
 
+#include <QStringList>
+
 #include "item.h"
 #include "porting.h"
 #include "util.h"
 
 // Actual list of mods is computed at runtime
-std::vector<std::string> mod_list;
+QStringList mod_string_list;
 
 // These are just summed, and the mod named as the first element of a vector is generated with value equaling the sum.
 // Both implicit and explicit fields are considered.
@@ -90,13 +92,29 @@ const std::vector<std::vector<std::string>> simple_sum = {
     { "#% increased Attack Speed" },
     { "#% increased Cast Speed" },
     { "#% increased Movement Speed" },
+    // Master mods
+    { "+#% to Quality of Socketed Support Gems" },
+    { "-# to Mana Cost of Skills" },
+    { "+# to Level of Socketed Support Gems", "+# to Level of Socketed Gems" },
+    { "Causes Bleeding on Hit" },
+    { "#% increased Life Leeched per second" },
+    { "#% increased Damage" },
+    { "Hits can't be evaded" },
+    { "Area is inhabited by # additional Invasion Boss" },
+    // Master meta-crafting
+    { "Prefixes Cannot Be Changed" },
+    { "Can have multiple Crafted Mods" },
+    { "Cannot roll Attack Mods" },
+    { "Suffixes Cannot Be Changed" },
+    { "Cannot roll Mods with Required Level above #" },
+    { "Cannot roll Caster Mods" },
 };
 
 std::vector<std::unique_ptr<ModGenerator>> mod_generators;
 
 void InitModlist() {
     for (auto &list : simple_sum) {
-        mod_list.push_back(list[0]);
+        mod_string_list.push_back(list[0].c_str());
 
         mod_generators.push_back(std::make_unique<SumModGenerator>(list[0], list));
     }

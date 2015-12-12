@@ -15,6 +15,7 @@ class ItemLocation {
 public:
     ItemLocation();
     explicit ItemLocation(const rapidjson::Value &root);
+    ItemLocation(int tab_id, std::string tab_label); // used by tests
     void ToItemJson(rapidjson::Value *root, rapidjson_allocator &alloc);
     void FromItemJson(const rapidjson::Value &root);
     std::string GetHeader() const;

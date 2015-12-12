@@ -22,6 +22,8 @@
 #include <QObject>
 #include "QsLogDest.h"
 
+#include <vector>
+
 class MainWindow;
 class QPushButton;
 class QTextEdit;
@@ -58,6 +60,6 @@ private:
 
     QPushButton *status_button_;
     QTextEdit *output_;
-    int num_errors_, num_warnings_;
+    std::vector<int> num_messages_;
     LogPanelSignalHandler signal_handler_;
 };

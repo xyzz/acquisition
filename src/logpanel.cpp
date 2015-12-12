@@ -27,13 +27,24 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+struct MessageType {
+    QColor color;
+    std::string desc;
+};
+
+static std::vector<MessageType> message_types{
+    { QColor(), "message" },
+    { QColor(174, 141, 28), "warning" },
+    { QColor(255, 0, 0), "error" }
+};
+
 LogPanel::LogPanel(MainWindow *window, Ui::MainWindow *ui):
     status_button_(new QPushButton),
     output_(new QTextEdit),
-    num_errors_(0),
-    num_warnings_(0),
     signal_handler_(*this)
 {
+    num_messages_.resize(message_types.size());
+
     QFont font("Monospace");
     font.setStyleHint(QFont::TypeWriter);
     output_->setReadOnly(true);
@@ -52,15 +63,15 @@ LogPanel::LogPanel(MainWindow *window, Ui::MainWindow *ui):
 
 void LogPanel::UpdateStatusLabel() {
     QString stylesheet;
-    QString text;
-    if (num_errors_ > 0) {
-        text = QString("%1 error").arg(num_errors_) + (num_errors_ > 1 ? "s" : "");
-        stylesheet = "color: red; font-weight: bold;";
-    } else if (num_warnings_ > 0) {
-        text = QString("%1 warning").arg(num_warnings_) + (num_warnings_ > 1 ? "s" : "");
-        stylesheet = "color: rgb(174, 141, 28); font-weight: bold;";
-    } else {
-        text = "Event Log";
+    QString text = "Event Log";
+    for (int i = num_messages_.size() - 1; i >= 0; --i) {
+        int num = num_messages_[i];
+        auto &type = message_types[i];
+        if (num > 0) {
+            text = QString("%1 " + QString(type.desc.c_str())).arg(num) + (num > 1 ? "s" : "");
+            stylesheet = "font-weight: bold; color: " + type.color.name();
+            break;
+        }
     }
 
     status_button_->setStyleSheet(stylesheet);
@@ -76,18 +87,23 @@ void LogPanel::write(const QString& message, QsLogging::Level level) {
 
 void LogPanel::AddLine(const QString &message, QsLogging::Level level) {
     QColor color;
+    int type;
     switch (level) {
-    case QsLogging::ErrorLevel:
-        color = QColor(255, 0, 0);
-        ++num_errors_;
+    case QsLogging::InfoLevel:
+        type = 0;
         break;
     case QsLogging::WarnLevel:
-        color = QColor(174, 141, 28);
-        ++num_warnings_;
+        type = 1;
+        break;
+    case QsLogging::ErrorLevel:
+        type = 2;
         break;
     default:
         return;
     }
+
+    num_messages_[type]++;
+    color = message_types[type].color;
 
     output_->moveCursor(QTextCursor::End);
     output_->setTextColor(color);
@@ -95,8 +111,8 @@ void LogPanel::AddLine(const QString &message, QsLogging::Level level) {
     output_->ensureCursorVisible();
 
     if (output_->isVisible()) {
-        num_errors_ = 0;
-        num_warnings_ = 0;
+        num_messages_.clear();
+        num_messages_.resize(message_types.size());
     }
     UpdateStatusLabel();
 }
@@ -106,8 +122,8 @@ void LogPanel::ToggleOutputVisibility() {
         output_->hide();
     } else {
         output_->show();
-        num_errors_ = 0;
-        num_warnings_ = 0;
+        num_messages_.clear();
+        num_messages_.resize(message_types.size());
         UpdateStatusLabel();
     }
 }

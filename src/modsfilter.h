@@ -26,6 +26,7 @@
 #include <QSignalMapper>
 #include <vector>
 #include <QComboBox>
+#include <QCompleter>
 #include <QLineEdit>
 #include <QPushButton>
 
@@ -58,6 +59,7 @@ public:
 private:
     ModFilterData data_;
     std::unique_ptr<QComboBox> mod_select_;
+    QCompleter *mod_completer_;
     std::unique_ptr<QLineEdit> min_text_, max_text_;
     std::unique_ptr<QPushButton> delete_button_;
 };

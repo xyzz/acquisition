@@ -14,6 +14,12 @@ ItemLocation::ItemLocation(const rapidjson::Value &root):
     FromItemJson(root);
 }
 
+ItemLocation::ItemLocation(int tab_id, std::string tab_label) :
+    tab_id_(tab_id),
+    tab_label_(tab_label),
+    type_(ItemLocationType::STASH)
+{}
+
 void ItemLocation::FromItemJson(const rapidjson::Value &root) {
     if (root.HasMember("_type")) {
         type_ = static_cast<ItemLocationType>(root["_type"].GetInt());
@@ -72,8 +78,24 @@ std::string ItemLocation::GetHeader() const {
 
 QRectF ItemLocation::GetRect() const {
     QRectF result;
-    result.setX(MINIMAP_SIZE * x_ / INVENTORY_SLOTS);
-    result.setY(MINIMAP_SIZE * y_ / INVENTORY_SLOTS);
+    position itemPos;
+    itemPos.x = x_;
+    itemPos.y = y_;
+
+    if ((!inventory_id_.empty()) && (type_ == ItemLocationType::CHARACTER)) {
+        if (inventory_id_ == "MainInventory") {
+            itemPos.y += POS_MAP.at(inventory_id_).y;
+        } else if (inventory_id_ == "Flask") {
+            itemPos.x += POS_MAP.at(inventory_id_).x;
+            itemPos.y = POS_MAP.at(inventory_id_).y;
+        }
+        else {
+            itemPos = POS_MAP.at(inventory_id_);
+        }
+    }
+
+    result.setX(MINIMAP_SIZE * itemPos.x / INVENTORY_SLOTS);
+    result.setY(MINIMAP_SIZE * itemPos.y / INVENTORY_SLOTS);
     result.setWidth(MINIMAP_SIZE * w_ / INVENTORY_SLOTS);
     result.setHeight(MINIMAP_SIZE * h_ / INVENTORY_SLOTS);
     return result;
