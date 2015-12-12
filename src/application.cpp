@@ -57,7 +57,9 @@ void Application::OnItemsRefreshed(const Items &items, const std::vector<std::st
     tabs_ = tabs;
     shop_->ExpireShopData();
     if (!initial_refresh) {
-        shop_->SubmitShopToForum();
+        if (shop_->IsAutoUpdateEnabled()) {
+            shop_->SubmitShopToForum();
+        }
     }
     else {
         // Fix up invalid hashes... ZZZ
