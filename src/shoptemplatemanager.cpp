@@ -258,10 +258,10 @@ QStringList ShopTemplateManager::Generate(const Items &items) {
 
     // Injector
     {
+        int indexOffset = 0;
         for (ShopTemplateRecord record : records){
             QList<ShopTemplateSection> sections = FetchFromKey(record.key, items, &record.options);
-            int indexOffset = 0;
-            int templateOffset = 0;
+            int templateOffset = record.templateIndex;
             while (!sections.isEmpty()) {
                 ShopTemplateSection replacement = sections.takeFirst();
                 int itemStart = 0;
@@ -272,7 +272,7 @@ QStringList ShopTemplateManager::Generate(const Items &items) {
                         itemCount--;
                         continue;
                     }
-                    temp.insert(record.templateIndex + indexOffset + templateOffset, text);
+                    temp.insert(templateOffset + indexOffset, text);
                     templateOffset += text.size();
 
                     // If we ended up ignoring some items
@@ -291,6 +291,7 @@ QStringList ShopTemplateManager::Generate(const Items &items) {
                     }
                 }
             }
+            indexOffset += (templateOffset - record.templateIndex);
         }
         if (!temp.isEmpty())
             result << temp;
