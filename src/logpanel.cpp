@@ -33,7 +33,7 @@ struct MessageType {
 };
 
 static std::vector<MessageType> message_types{
-    { QColor(), "message" },
+    { QColor(Qt::darkGray), "message" },
     { QColor(174, 141, 28), "warning" },
     { QColor(255, 0, 0), "error" }
 };
