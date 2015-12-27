@@ -440,6 +440,7 @@ void MainWindow::InitializeSearchForm() {
         // Misc
         std::make_unique<DefaultPropertyFilter>(misc_layout, "Quality", 0),
         std::make_unique<SimplePropertyFilter>(misc_layout, "Level"),
+        std::make_unique<SimplePropertyFilter>(misc_layout, "Map Tier"),
         std::make_unique<MTXFilter>(misc_flags_layout, "", "MTX"),
         std::make_unique<AltartFilter>(misc_flags_layout, "", "Alt. art"),
         std::make_unique<ModsFilter>(mods_layout)
