@@ -220,7 +220,7 @@ void Shop::OnEditPageFinished() {
 
     QUrlQuery query;
     query.addQueryItem("forum_thread", hash.c_str());
-    query.addQueryItem("title", title.c_str());
+    query.addQueryItem("title", Util::Decode(title).c_str());
     query.addQueryItem("content", requests_completed_ < shop_data_.size() ? shop_data_[requests_completed_].c_str() : "Empty");
     query.addQueryItem("submit", "Submit");
 
