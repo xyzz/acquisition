@@ -27,6 +27,7 @@
 #include <QLabel>
 #include <QFontMetrics>
 #include <QNetworkReply>
+#include <QTextDocument>
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include <sstream>
@@ -222,4 +223,10 @@ std::string Util::TimeAgoInWords(const QDateTime buyout_time){
     }else{
         return "";
     }
+}
+
+std::string Util::Decode(const std::string &entity) {
+    QTextDocument text;
+    text.setHtml(entity.c_str());
+    return text.toPlainText().toStdString();
 }
