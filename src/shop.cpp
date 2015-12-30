@@ -51,12 +51,6 @@ Shop::Shop(Application &app) :
     shop_template_ = app_.data().Get("shop_template");
     if (shop_template_.empty())
         shop_template_ = kShopTemplateItems;
-
-    connect(&app.items_manager(), &ItemsManager::ItemsRefreshed, [=]() {
-        Update();
-        if (auto_update_)
-            SubmitShopToForum();
-    });
 }
 
 void Shop::SetThread(const std::vector<std::string> &threads) {
