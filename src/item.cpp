@@ -61,8 +61,8 @@ Item::Item(const std::string &name, const ItemLocation &location) :
 {}
 
 Item::Item(const rapidjson::Value &json) :
-    location_(ItemLocation(json)),
     name_(fixup_name(json["name"].GetString())),
+    location_(ItemLocation(json)),
     typeLine_(fixup_name(json["typeLine"].GetString())),
     corrupted_(json["corrupted"].GetBool()),
     identified_(json["identified"].GetBool()),
