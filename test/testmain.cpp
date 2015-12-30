@@ -1,3 +1,5 @@
+#include <clocale>
+#include <QLocale>
 #include <QTest>
 #include <memory>
 
@@ -11,6 +13,9 @@
 
 int test_main() {
     int result = 0;
+
+    QLocale::setDefault(QLocale::C);
+    std::setlocale(LC_ALL, "C");
 
     TEST(TestItem);
     TEST(TestShop);

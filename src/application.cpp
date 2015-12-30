@@ -52,6 +52,7 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
         data_ = std::make_unique<SqliteDataStore>(Filesystem::UserDir() + "/data/" + data_file);
         sensitive_data_ = std::make_unique<SqliteDataStore>(Filesystem::UserDir() + "/sensitive_data/" + data_file);
     }
+
     buyout_manager_ = std::make_unique<BuyoutManager>(*data_);
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);
@@ -63,7 +64,7 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
 
 void Application::OnItemsRefreshed(bool initial_refresh) {
     currency_manager_->Update();
-    shop_->ExpireShopData();
+    shop_->Update();
     if (!initial_refresh && shop_->auto_update())
         shop_->SubmitShopToForum();
 }

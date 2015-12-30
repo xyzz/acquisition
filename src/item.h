@@ -99,8 +99,8 @@ private:
     void GenerateMods(const rapidjson::Value &json);
     void CalculateHash(const rapidjson::Value &json);
 
-    ItemLocation location_;
     std::string name_;
+    ItemLocation location_;
     std::string typeLine_;
     bool corrupted_;
     bool identified_;

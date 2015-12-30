@@ -644,7 +644,7 @@ void MainWindow::on_actionExport_currency_triggered() {
     app_->currency_manager().ExportCurrency();
 }
 
-void MainWindow::closeEvent(QCloseEvent *event) {
+void MainWindow::closeEvent() {
     auto_online_.SendOnlineUpdate(false);
 }
 
