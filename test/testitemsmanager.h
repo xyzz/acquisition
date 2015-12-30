@@ -28,7 +28,7 @@ class TestItemsManager : public QObject
     Q_OBJECT
 private slots:
     void initTestCase();
-    void init();
+    void cleanup();
     void BuyoutForNewItem();
     void BuyoutPropagation();
     void UserSetBuyoutPropagation();
@@ -37,5 +37,5 @@ private slots:
     void MoveItemBoToBo();
     void ItemHashMigration();
 private:
-    Application *app_;
+    Application app_;
 };
