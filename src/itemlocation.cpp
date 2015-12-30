@@ -5,20 +5,23 @@
 #include "rapidjson_util.h"
 
 ItemLocation::ItemLocation():
-    socketed_(false)
+    x_(0), y_(0), w_(0), h_(0),
+    socketed_(false),
+    type_(ItemLocationType::STASH)
 {}
 
 ItemLocation::ItemLocation(const rapidjson::Value &root):
-    socketed_(false)
+    ItemLocation()
 {
     FromItemJson(root);
 }
 
 ItemLocation::ItemLocation(int tab_id, std::string tab_label) :
-    tab_id_(tab_id),
-    tab_label_(tab_label),
-    type_(ItemLocationType::STASH)
-{}
+    ItemLocation()
+{
+    tab_id_ = tab_id;
+    tab_label_ = tab_label;
+}
 
 void ItemLocation::FromItemJson(const rapidjson::Value &root) {
     if (root.HasMember("_type")) {

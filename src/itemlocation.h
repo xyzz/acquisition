@@ -30,11 +30,11 @@ public:
     bool socketed() const { return socketed_; }
     void set_socketed(bool socketed) { socketed_ = socketed; }
 private:
+    int x_, y_, w_, h_;
+    bool socketed_;
     ItemLocationType type_;
     int tab_id_;
     std::string tab_label_;
-    int x_, y_, w_, h_;
     std::string character_;
     std::string inventory_id_;
-    bool socketed_;
 };
