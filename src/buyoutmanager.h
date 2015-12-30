@@ -139,6 +139,8 @@ public:
     void DeleteTab(const std::string &tab);
     bool ExistsTab(const std::string &tab) const;
 
+    void Clear();
+
     void Save();
     void Load();
 

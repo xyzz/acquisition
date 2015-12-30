@@ -77,6 +77,12 @@ void BuyoutManager::DeleteTab(const std::string &tab) {
     tab_buyouts_.erase(tab);
 }
 
+void BuyoutManager::Clear() {
+    save_needed_ = true;
+    buyouts_.clear();
+    tab_buyouts_.clear();
+}
+
 std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyouts) {
     rapidjson::Document doc;
     doc.SetObject();
