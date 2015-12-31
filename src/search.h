@@ -45,13 +45,17 @@ public:
     const std::vector<std::unique_ptr<Bucket>> &buckets() const { return buckets_; }
     QString GetCaption();
     int GetItemsCount();
+    bool IsAnyFilterActive() const;
     // Sets this search as current, will display items in passed QTreeView.
     void Activate(const Items &items, QTreeView *tree);
 private:
+    int UpdateItemCounts(const Items &items);
     std::vector<std::unique_ptr<FilterData>> filters_;
     std::vector<std::unique_ptr<Column>> columns_;
     std::string caption_;
     Items items_;
     std::unique_ptr<ItemsModel> model_;
     std::vector<std::unique_ptr<Bucket>> buckets_;
+    uint unfiltered_item_count_{0};
+    uint filtered_item_count_total_{0};
 };

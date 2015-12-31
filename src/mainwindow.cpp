@@ -352,7 +352,7 @@ void MainWindow::OnSearchFormChange() {
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
     ui->treeView->reset();
 
-    if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
+    if (current_search_->IsAnyFilterActive() && (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS))
         ExpandCollapse(TreeState::kExpand);
     ResizeTreeColumns();
 

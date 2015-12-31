@@ -79,7 +79,7 @@ void Search::ResetForm() {
 
 void Search::FilterItems(const Items &items) {
     items_.clear();
-    for (auto item : items) {
+    for (const auto &item : items) {
         bool matches = true;
         for (auto &filter : filters_)
             if (!filter->Matches(item)) {
@@ -108,14 +108,25 @@ QString Search::GetCaption() {
 }
 
 int Search::GetItemsCount() {
-    int count = 0;
-    for (auto &item : items_)
-        count += item->count();
-    return count;
+    return unfiltered_item_count_;
 }
 
 void Search::Activate(const Items &items, QTreeView *tree) {
     FromForm();
     FilterItems(items);
+    UpdateItemCounts(items);
     tree->setModel(model_.get());
 }
+
+bool Search::IsAnyFilterActive() const {
+    return (items_.size() != unfiltered_item_count_);
+}
+
+int Search::UpdateItemCounts(const Items &items) {
+    unfiltered_item_count_ = items.size();
+
+    filtered_item_count_total_ = 0;
+    for (auto &item : items_)
+        filtered_item_count_total_ += item->count();
+}
+
