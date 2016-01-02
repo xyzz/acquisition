@@ -366,8 +366,7 @@ void MainWindow::OnSearchFormChange() {
 
     if (current_search_->IsAnyFilterActive()) {
         // Policy is to expand all tabs when any search fields are populated
-        if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
-            ExpandCollapse(TreeState::kExpand);
+        ExpandCollapse(TreeState::kExpand);
     } else {
       // Restore view properties if no search fields are populated
        current_search_->RestoreViewProperties();
