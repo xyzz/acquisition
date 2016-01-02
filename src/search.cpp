@@ -127,7 +127,7 @@ void Search::SaveViewProperties() {
     for( int row = 0; row < model_->rowCount(); ++row ) {
         QModelIndex index = model_->index( row, 0, QModelIndex());
         if (view_->isExpanded(index)) {
-             expanded_property_.insert(index.data(Qt::DisplayRole).toString());
+            expanded_property_.insert(index.data(Qt::DisplayRole).toString().remove(QRegularExpression("\\s*\\[.*?\\]")));
         }
     }
 }
@@ -136,7 +136,7 @@ void Search::RestoreViewProperties() {
     if (!expanded_property_.empty()) {
         for( int row = 0; row < model_->rowCount(); ++row ) {
             QModelIndex index = model_->index( row, 0, QModelIndex());
-            if (expanded_property_.contains(index.data(Qt::DisplayRole).toString()))
+            if (expanded_property_.contains(index.data(Qt::DisplayRole).toString().remove(QRegularExpression("\\s*\\[.*?\\]"))))
                 view_->expand(index);
         }
     }
