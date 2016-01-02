@@ -113,6 +113,7 @@ private:
     void UpdateCurrentItem();
     void UpdateCurrentBuyout();
     void NewSearch();
+    void SetCurrentSearch(Search *search);
     void InitializeLogging();
     void InitializeSearchForm();
     void InitializeUi();
@@ -131,6 +132,7 @@ private:
     Bucket current_bucket_;
     std::vector<Search*> searches_;
     Search *current_search_;
+    Search *previous_search_{nullptr};
     QTabBar *tab_bar_;
     std::vector<std::unique_ptr<Filter>> filters_;
     int search_count_;

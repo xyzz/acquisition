@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <vector>
+#include <QSet>
 
 #include "item.h"
 #include "column.h"
@@ -34,7 +35,7 @@ class QTreeView;
 
 class Search {
 public:
-    Search(const BuyoutManager &bo, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters);
+    Search(const BuyoutManager &bo, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view);
     void FilterItems(const Items &items);
     void FromForm();
     void ToForm();
@@ -47,15 +48,21 @@ public:
     int GetItemsCount();
     bool IsAnyFilterActive() const;
     // Sets this search as current, will display items in passed QTreeView.
-    void Activate(const Items &items, QTreeView *tree);
+    void Activate(const Items &items);
+    void RestoreViewProperties();
+    void SaveViewProperties();
+
 private:
-    int UpdateItemCounts(const Items &items);
+    void UpdateItemCounts(const Items &items);
+
     std::vector<std::unique_ptr<FilterData>> filters_;
     std::vector<std::unique_ptr<Column>> columns_;
     std::string caption_;
     Items items_;
+    QTreeView *view_{nullptr};
     std::unique_ptr<ItemsModel> model_;
     std::vector<std::unique_ptr<Bucket>> buckets_;
     uint unfiltered_item_count_{0};
     uint filtered_item_count_total_{0};
+    QSet<QString> expanded_property_;
 };

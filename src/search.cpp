@@ -29,8 +29,10 @@
 #include "filters.h"
 #include "porting.h"
 
-Search::Search(const BuyoutManager &bo_manager, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters) :
+Search::Search(const BuyoutManager &bo_manager, const std::string &caption,
+               const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view) :
     caption_(caption),
+    view_(view),
     model_(std::make_unique<ItemsModel>(bo_manager, *this))
 {
     using move_only = std::unique_ptr<Column>;
@@ -101,6 +103,8 @@ void Search::FilterItems(const Items &items) {
     buckets_.clear();
     for (auto &element : bucketed_tabs)
         buckets_.push_back(std::move(element.second));
+
+    UpdateItemCounts(items);
 }
 
 QString Search::GetCaption() {
@@ -108,21 +112,41 @@ QString Search::GetCaption() {
 }
 
 int Search::GetItemsCount() {
-    return unfiltered_item_count_;
+    return filtered_item_count_total_;
 }
 
-void Search::Activate(const Items &items, QTreeView *tree) {
+void Search::Activate(const Items &items) {
     FromForm();
     FilterItems(items);
-    UpdateItemCounts(items);
-    tree->setModel(model_.get());
+    view_->setModel(model_.get());
+}
+
+void Search::SaveViewProperties() {
+    expanded_property_.clear();
+
+    for( int row = 0; row < model_->rowCount(); ++row ) {
+        QModelIndex index = model_->index( row, 0, QModelIndex());
+        if (view_->isExpanded(index)) {
+             expanded_property_.insert(index.data(Qt::DisplayRole).toString());
+        }
+    }
+}
+
+void Search::RestoreViewProperties() {
+    if (!expanded_property_.empty()) {
+        for( int row = 0; row < model_->rowCount(); ++row ) {
+            QModelIndex index = model_->index( row, 0, QModelIndex());
+            if (expanded_property_.contains(index.data(Qt::DisplayRole).toString()))
+                view_->expand(index);
+        }
+    }
 }
 
 bool Search::IsAnyFilterActive() const {
     return (items_.size() != unfiltered_item_count_);
 }
 
-int Search::UpdateItemCounts(const Items &items) {
+void Search::UpdateItemCounts(const Items &items) {
     unfiltered_item_count_ = items.size();
 
     filtered_item_count_total_ = 0;
