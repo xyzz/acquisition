@@ -29,8 +29,10 @@
 #include "filters.h"
 #include "porting.h"
 
-Search::Search(const BuyoutManager &bo_manager, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters) :
+Search::Search(const BuyoutManager &bo_manager, const std::string &caption,
+               const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view) :
     caption_(caption),
+    view_(view),
     model_(std::make_unique<ItemsModel>(bo_manager, *this))
 {
     using move_only = std::unique_ptr<Column>;
@@ -79,7 +81,7 @@ void Search::ResetForm() {
 
 void Search::FilterItems(const Items &items) {
     items_.clear();
-    for (auto item : items) {
+    for (const auto &item : items) {
         bool matches = true;
         for (auto &filter : filters_)
             if (!filter->Matches(item)) {
@@ -101,6 +103,8 @@ void Search::FilterItems(const Items &items) {
     buckets_.clear();
     for (auto &element : bucketed_tabs)
         buckets_.push_back(std::move(element.second));
+
+    UpdateItemCounts(items);
 }
 
 QString Search::GetCaption() {
@@ -108,14 +112,45 @@ QString Search::GetCaption() {
 }
 
 int Search::GetItemsCount() {
-    int count = 0;
-    for (auto &item : items_)
-        count += item->count();
-    return count;
+    return filtered_item_count_total_;
 }
 
-void Search::Activate(const Items &items, QTreeView *tree) {
+void Search::Activate(const Items &items) {
     FromForm();
     FilterItems(items);
-    tree->setModel(model_.get());
+    view_->setModel(model_.get());
 }
+
+void Search::SaveViewProperties() {
+    expanded_property_.clear();
+
+    for( int row = 0; row < model_->rowCount(); ++row ) {
+        QModelIndex index = model_->index( row, 0, QModelIndex());
+        if (view_->isExpanded(index)) {
+            expanded_property_.insert(index.data(Qt::DisplayRole).toString().remove(QRegularExpression("\\s*\\[.*?\\]")));
+        }
+    }
+}
+
+void Search::RestoreViewProperties() {
+    if (!expanded_property_.empty()) {
+        for( int row = 0; row < model_->rowCount(); ++row ) {
+            QModelIndex index = model_->index( row, 0, QModelIndex());
+            if (expanded_property_.contains(index.data(Qt::DisplayRole).toString().remove(QRegularExpression("\\s*\\[.*?\\]"))))
+                view_->expand(index);
+        }
+    }
+}
+
+bool Search::IsAnyFilterActive() const {
+    return (items_.size() != unfiltered_item_count_);
+}
+
+void Search::UpdateItemCounts(const Items &items) {
+    unfiltered_item_count_ = items.size();
+
+    filtered_item_count_total_ = 0;
+    for (auto &item : items_)
+        filtered_item_count_total_ += item->count();
+}
+

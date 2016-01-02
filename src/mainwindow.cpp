@@ -345,15 +345,32 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
         GenerateItemIcon(*current_item_, image, ui);
 }
 
+void MainWindow::SetCurrentSearch(Search *search) {
+    previous_search_ = current_search_;
+    current_search_ = search;
+}
+
 void MainWindow::OnSearchFormChange() {
     app_->buyout_manager().Save();
-    current_search_->Activate(app_->items_manager().items(), ui->treeView);
+
+    // Save view properties if no search fields are populated
+    if (previous_search_ && !previous_search_->IsAnyFilterActive())
+        previous_search_->SaveViewProperties();
+
+    previous_search_ = current_search_;
+
+    current_search_->Activate(app_->items_manager().items());
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
     ui->treeView->reset();
 
-    if (current_search_->items().size() <= MAX_EXPANDABLE_ITEMS)
+    if (current_search_->IsAnyFilterActive()) {
+        // Policy is to expand all tabs when any search fields are populated
         ExpandCollapse(TreeState::kExpand);
+    } else {
+      // Restore view properties if no search fields are populated
+       current_search_->RestoreViewProperties();
+    }
     ResizeTreeColumns();
 
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
@@ -377,10 +394,10 @@ void MainWindow::OnTabChange(int index) {
     if (static_cast<size_t>(index) == searches_.size()) {
         NewSearch();
     } else {
-        current_search_ = searches_[index];
+        SetCurrentSearch(searches_[index]);
         current_search_->ToForm();
+        OnSearchFormChange();
     }
-    OnSearchFormChange();
 }
 
 void MainWindow::AddSearchGroup(QLayout *layout, const std::string &name="") {
@@ -449,7 +466,8 @@ void MainWindow::InitializeSearchForm() {
 }
 
 void MainWindow::NewSearch() {
-    current_search_ = new Search(app_->buyout_manager(), QString("Search %1").arg(++search_count_).toStdString(), filters_);
+    SetCurrentSearch(new Search(app_->buyout_manager(), QString("Search %1").arg(++search_count_).toStdString(), filters_, ui->treeView));
+
     tab_bar_->setTabText(tab_bar_->count() - 1, current_search_->GetCaption());
     tab_bar_->addTab("+");
     // this can't be done in ctor because it'll call OnSearchFormChange slot
@@ -532,8 +550,11 @@ void MainWindow::UpdateCurrentBuyout() {
 void MainWindow::OnItemsRefreshed() {
     int tab = 0;
     for (auto search : searches_) {
-        search->FilterItems(app_->items_manager().items());
-        tab_bar_->setTabText(tab++, search->GetCaption());
+        // Don't update current search - it will be updated in OnSearchFormChange
+        if (search != current_search_) {
+            search->FilterItems(app_->items_manager().items());
+            tab_bar_->setTabText(tab++, search->GetCaption());
+        }
     }
     OnSearchFormChange();
 }
