@@ -188,8 +188,8 @@ bool Util::MatchMod(const char *match, const char *mod, double *output) {
 
 std::string Util::TimeAgoInWords(const QDateTime buyout_time){
     QDateTime current_date = QDateTime::currentDateTime();
-    qint64 days = buyout_time.daysTo(current_date);
     qint64 secs = buyout_time.secsTo(current_date);
+    qint64 days = secs / 60 / 60 / 24;
     qint64 hours = (secs / 60 / 60) % 24;
     qint64 minutes = (secs / 60) % 60;
 
