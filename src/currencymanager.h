@@ -20,7 +20,7 @@
 #pragma once
 
 #include <QtGui>
-#include <QtWidgets>
+//#include <QtWidgets>
 
 #include "application.h"
 
