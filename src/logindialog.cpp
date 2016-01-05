@@ -204,13 +204,20 @@ void LoginDialog::OnSteamCookieReceived(const QString &cookie) {
 }
 
 void LoginDialog::LoginWithCookie(const QString &cookie) {
+    QNetworkRequest login_req( (QUrl(POE_LOGIN_URL)) ); //Inner parenths to avoid the most vexing parse
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     QNetworkCookie poeCookie(POE_COOKIE_NAME, cookie.toUtf8());
+
     poeCookie.setPath("/");
     poeCookie.setDomain(".pathofexile.com");
 
     login_manager_->cookieJar()->insertCookie(poeCookie);
+#else
+    login_req.setRawHeader((std::string("Cookie: ") + POE_COOKIE_NAME).c_str() , cookie.toUtf8());
+#endif
 
-    QNetworkReply *login_page = login_manager_->get(QNetworkRequest(QUrl(POE_LOGIN_URL)));
+    QNetworkReply *login_page = login_manager_->get(login_req);
     connect(login_page, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
 }
 
@@ -250,8 +257,16 @@ void LoginDialog::LoadSettings() {
         ui->loginTabs->setCurrentIndex(LOGIN_SESSIONID);
 
     saved_league_ = settings.value("league", "").toString();
-    if (saved_league_.size() > 0)
+    if (saved_league_.size() > 0){
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
         ui->leagueComboBox->setCurrentText(saved_league_);
+#else
+        int index = ui->leagueComboBox->findText(saved_league_);
+        if(index >= 0){
+            ui->leagueComboBox->setCurrentIndex(index);
+        }
+#endif
+    }
 
     QNetworkProxyFactory::setUseSystemConfiguration(ui->proxyCheckBox->isChecked());
 }
