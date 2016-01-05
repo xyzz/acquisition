@@ -97,7 +97,7 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
 }
 
 // Some overloads were removed in QT55555
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 using qindexptr = quintptr;
 #else
 using qindexptr = quint32;

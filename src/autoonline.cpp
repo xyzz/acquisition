@@ -102,7 +102,7 @@ void AutoOnline::SendOnlineUpdate(bool online) {
     QByteArray data;
 
 //UserAgentHeader is not available in QT4
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     request.setHeader(QNetworkRequest::UserAgentHeader, (std::string("Acquisition ") + VERSION_NAME).c_str());
 #else
     request.setRawHeader("User-Agent" , (std::string("Acquisition ") + VERSION_NAME).c_str());
