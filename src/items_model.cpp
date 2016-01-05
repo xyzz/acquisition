@@ -96,18 +96,25 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 
+// Some overloads were removed in QT55555
+#if QT_VERSION >= 0x050000
+using qindexptr = quintptr;
+#else
+using qindexptr = quint32;
+#endif
+
 QModelIndex ItemsModel::parent(const QModelIndex &index) const {
     // bucket
     if (index.internalId() == 0)
         return QModelIndex();
     // item
-    return createIndex(index.internalId() - 1, 0, static_cast<quintptr>(0));
+    return createIndex(index.internalId() - 1, 0, static_cast<qindexptr>(0));
 }
 
 QModelIndex ItemsModel::index(int row, int column, const QModelIndex &parent) const {
     // bucket
     if (!parent.isValid())
-        return createIndex(row, column, static_cast<quintptr>(0));
+        return createIndex(row, column, static_cast<qindexptr>(0));
     // item, we pass parent's (bucket's) row through ID parameter
-    return createIndex(row, column, static_cast<quintptr>(parent.row() + 1));
+    return createIndex(row, column, static_cast<qindexptr>(parent.row() + 1));
 }
