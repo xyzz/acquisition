@@ -31,7 +31,11 @@
 #include <QRegExp>
 #include <QSettings>
 #include <QUrl>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QUrlQuery>
+#endif
+
 #include <iostream>
 #include "QsLog.h"
 
@@ -78,13 +82,16 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     login_manager_ = std::make_unique<QNetworkAccessManager>();
     connect(ui->proxyCheckBox, SIGNAL(clicked(bool)), this, SLOT(OnProxyCheckBoxClicked(bool)));
     connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(OnLoginButtonClicked()));
-    connect(&update_checker_, &UpdateChecker::UpdateAvailable, [&](){
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+    connect(&update_checker_, SIGNAL(UpdateChecker::UpdateAvailable), [&](){
         // Only annoy the user once at the login dialog window, even if it's opened for more than an hour
         if (asked_to_update_)
             return;
         asked_to_update_ = true;
         UpdateChecker::AskUserToUpdate(this);
     });
+#endif
 }
 
 void LoginDialog::OnLoginButtonClicked() {
@@ -126,18 +133,33 @@ void LoginDialog::OnLoginPageFinished() {
                 return;
             }
 
+            QUrl url(POE_LOGIN_URL);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
             QUrlQuery query;
             query.addQueryItem("login_email", EncodeSpecialCharacters(ui->emailLineEdit->text()));
             query.addQueryItem("login_password", EncodeSpecialCharacters(ui->passwordLineEdit->text()));
             query.addQueryItem("hash", QString(hash.c_str()));
             query.addQueryItem("login", "Login");
 
-            QUrl url(POE_LOGIN_URL);
             QByteArray data(query.query().toUtf8());
             QNetworkRequest request(url);
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
             QNetworkReply *logged_in = login_manager_->post(request, data);
+#else
+            QUrl params;
+            params.addQueryItem("login_email", EncodeSpecialCharacters(ui->emailLineEdit->text()));
+            params.addQueryItem("login_password", EncodeSpecialCharacters(ui->passwordLineEdit->text()));
+            params.addQueryItem("hash", QString(hash.c_str()));
+            params.addQueryItem("login", "Login");
+
+            QNetworkRequest request(url);
+            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+            QNetworkReply *logged_in = login_manager_->post(request, params.encodedQuery());
+#endif
+
             connect(logged_in, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
+
             break;
         }
         case LOGIN_STEAM: {
