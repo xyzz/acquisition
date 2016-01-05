@@ -9,7 +9,6 @@ win32 {
 
 unix {
     LIBS += -ldl
-    QMAKE_CXXFLAGS += -Wno-inconsistent-missing-override
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -111,7 +110,11 @@ FORMS += \
     forms/logindialog.ui \
     forms/steamlogindialog.ui
 
-CONFIG += c++11
+greaterThan(QT_MAJOR_VERSION, 4){
+    CONFIG += c++11
+} else {
+    QMAKE_CXXFLAGS += -std=c++0x
+}
 
 DEPENDPATH *= $${INCLUDEPATH}
 
