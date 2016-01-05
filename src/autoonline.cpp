@@ -100,7 +100,14 @@ void AutoOnline::SendOnlineUpdate(bool online) {
     }
     QNetworkRequest request(QUrl(url.c_str()));
     QByteArray data;
+
+//UserAgentHeader is not available in QT4
+#if QT_VERSION >= 0x050000
     request.setHeader(QNetworkRequest::UserAgentHeader, (std::string("Acquisition ") + VERSION_NAME).c_str());
+#else
+    request.setRawHeader("User-Agent" , (std::string("Acquisition ") + VERSION_NAME).c_str());
+#endif
+
     nm_.post(request, data);
 }
 
