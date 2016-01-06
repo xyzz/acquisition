@@ -638,8 +638,15 @@ void MainWindow::on_actionUpdate_shop_triggered() {
 
 void MainWindow::on_actionShop_template_triggered() {
     bool ok;
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     QString text = QInputDialog::getMultiLineText(this, "Shop template", "Enter shop template. [items] will be replaced with the list of items you marked for sale.",
         app_->shop().shop_template().c_str(), &ok);
+#else
+    QString text = QInputDialog::getText(this, "Shop template", "Enter shop template. [items] will be replaced with the list of items you marked for sale.",
+        QLineEdit::Normal, app_->shop().shop_template().c_str(), &ok);
+#endif
+
     if (ok && !text.isEmpty())
         app_->shop().SetShopTemplate(text.toStdString());
 }
