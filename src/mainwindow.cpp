@@ -57,6 +57,7 @@
 #include "shop.h"
 #include "util.h"
 #include "verticalscrollarea.h"
+#include "lambda_connect.h"
 
 const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
 
@@ -84,14 +85,12 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     NewSearch();
 
     image_network_manager_ = new QNetworkAccessManager;
-    connect(image_network_manager_, SIGNAL(finished(QNetworkReply*)),
-            this, SLOT(OnImageFetched(QNetworkReply*)));
-
-    connect(&app_->items_manager(), &ItemsManager::ItemsRefreshed, this, &MainWindow::OnItemsRefreshed);
-    connect(&app_->items_manager(), &ItemsManager::StatusUpdate, this, &MainWindow::OnStatusUpdate);
-    connect(&app_->shop(), &Shop::StatusUpdate, this, &MainWindow::OnStatusUpdate);
-    connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
-    connect(&auto_online_, &AutoOnline::Update, this, &MainWindow::OnOnlineUpdate);
+    connect(image_network_manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(OnImageFetched(QNetworkReply*)));
+    connect(&app_->items_manager(), SIGNAL(ItemsManager::ItemsRefreshed), this, SLOT(MainWindow::OnItemsRefreshed));
+    connect(&app_->items_manager(), SIGNAL(ItemsManager::StatusUpdate), this, SLOT(MainWindow::OnStatusUpdate));
+    connect(&app_->shop(), SIGNAL(Shop::StatusUpdate), this, SLOT(MainWindow::OnStatusUpdate));
+    connect(&update_checker_, SIGNAL(UpdateChecker::UpdateAvailable), this, SLOT(MainWindow::OnUpdateAvailable));
+    connect(&auto_online_, SIGNAL(AutoOnline::Update), this, SLOT(MainWindow::OnOnlineUpdate));
 }
 
 void MainWindow::InitializeLogging() {
@@ -152,7 +151,7 @@ void MainWindow::InitializeUi() {
     context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
     context_menu_.addAction("Collapse All", this, SLOT(OnCollapseAll()));
 
-    connect(ui->treeView, &QTreeView::customContextMenuRequested, [&](const QPoint &pos) {
+    lambda_connect(ui->treeView, SIGNAL(QTreeView::customContextMenuRequested), [&](const QPoint &pos) {
         context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
     });
 
@@ -163,7 +162,7 @@ void MainWindow::InitializeUi() {
     update_button_.setFlat(true);
     update_button_.hide();
     statusBar()->addPermanentWidget(&update_button_);
-    connect(&update_button_, &QPushButton::clicked, [=](){
+    lambda_connect(&update_button_, SIGNAL(QPushButton::clicked), [=](){
         UpdateChecker::AskUserToUpdate(this);
     });
     // resize columns when a tab is expanded/collapsed
@@ -182,7 +181,7 @@ void MainWindow::InitializeUi() {
     ui->itemTooltipWidget->hide();
     ui->uploadTooltipButton->hide();
 
-    connect(ui->itemInfoTypeTabs, &QTabWidget::currentChanged, [=](int idx){
+    lambda_connect(ui->itemInfoTypeTabs, SIGNAL(QTabWidget::currentChanged), [=](int idx){
         auto tabs = ui->itemInfoTypeTabs;
         for (int i = 0; i < tabs->count(); i++)
             if (i != idx)
@@ -261,8 +260,14 @@ void MainWindow::OnBuyoutChange() {
             app_->buyout_manager().SetTab(tab, bo);
     }
     app_->items_manager().PropagateTabBuyouts();
+
     // refresh treeView to immediately reflect price changes
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     ui->treeView->model()->layoutChanged();
+#else
+    //TODO FIX THAT
+#endif
+
     ResizeTreeColumns();
 }
 
@@ -687,7 +692,7 @@ void MainWindow::on_uploadTooltipButton_clicked() {
     QByteArray data = "image=" + QUrl::toPercentEncoding(bytes.toBase64());
     QNetworkReply *reply = network_manager_->post(request, data);
     new QReplyTimeout(reply, kImgurUploadTimeout);
-    connect(reply, &QNetworkReply::finished, this, &MainWindow::OnUploadFinished);
+    connect(reply, SIGNAL(QNetworkReply::finished), this, SLOT(MainWindow::OnUploadFinished));
 }
 
 void MainWindow::OnUploadFinished() {

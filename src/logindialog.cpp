@@ -45,6 +45,7 @@
 #include "steamlogindialog.h"
 #include "util.h"
 #include "version.h"
+#include "lambda_connect.h"
 
 const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
@@ -83,15 +84,13 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     connect(ui->proxyCheckBox, SIGNAL(clicked(bool)), this, SLOT(OnProxyCheckBoxClicked(bool)));
     connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(OnLoginButtonClicked()));
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-    connect(&update_checker_, SIGNAL(UpdateChecker::UpdateAvailable), [&](){
+    lambda_connect(&update_checker_, SIGNAL(UpdateChecker::UpdateAvailable), [&](){
         // Only annoy the user once at the login dialog window, even if it's opened for more than an hour
         if (asked_to_update_)
             return;
         asked_to_update_ = true;
         UpdateChecker::AskUserToUpdate(this);
     });
-#endif
 }
 
 void LoginDialog::OnLoginButtonClicked() {
