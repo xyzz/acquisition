@@ -20,7 +20,9 @@
 #include "logindialog.h"
 
 #include <QApplication>
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 #include <QCommandLineParser>
+#endif
 #include <QDir>
 #include <QFontDatabase>
 #include <QLocale>
@@ -69,6 +71,7 @@ int main(int argc, char *argv[])
 
     QFontDatabase::addApplicationFont(":/fonts/Fontin-SmallCaps.ttf");
 
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     QCommandLineParser parser;
     QCommandLineOption option_test("test"), option_data_dir("data-dir", "Where to save Acquisition data.", "data-dir");
     parser.addOption(option_test);
@@ -80,6 +83,9 @@ int main(int argc, char *argv[])
 
     if (parser.isSet(option_data_dir))
         Filesystem::SetUserDir(parser.value(option_data_dir).toStdString());
+#else
+    //TODO Restore this feature
+#endif
 
     QsLogging::Logger& logger = QsLogging::Logger::instance();
     logger.setLoggingLevel(QsLogging::InfoLevel);
