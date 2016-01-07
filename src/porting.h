@@ -26,6 +26,10 @@
 #define PORTABLE
 #endif
 
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+using QRegularExpression = QRegExp;
+#endif
+
 namespace porting {
 std::string DefaultUserDir();
 }
