@@ -31,10 +31,7 @@
 #include <QRegExp>
 #include <QSettings>
 #include <QUrl>
-
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-#include <QUrlQuery>
-#endif
+#include "QUrlQuery.h"
 
 #include <iostream>
 #include "QsLog.h"
@@ -134,28 +131,17 @@ void LoginDialog::OnLoginPageFinished() {
 
             QUrl url(POE_LOGIN_URL);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
             QUrlQuery query;
             query.addQueryItem("login_email", EncodeSpecialCharacters(ui->emailLineEdit->text()));
             query.addQueryItem("login_password", EncodeSpecialCharacters(ui->passwordLineEdit->text()));
             query.addQueryItem("hash", QString(hash.c_str()));
             query.addQueryItem("login", "Login");
 
-            QByteArray data(query.query().toUtf8());
-            QNetworkRequest request(url);
-            request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-            QNetworkReply *logged_in = login_manager_->post(request, data);
-#else
-            QUrl params;
-            params.addQueryItem("login_email", EncodeSpecialCharacters(ui->emailLineEdit->text()));
-            params.addQueryItem("login_password", EncodeSpecialCharacters(ui->passwordLineEdit->text()));
-            params.addQueryItem("hash", QString(hash.c_str()));
-            params.addQueryItem("login", "Login");
+            auto data = query_to_data(query);
 
             QNetworkRequest request(url);
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-            QNetworkReply *logged_in = login_manager_->post(request, params.encodedQuery());
-#endif
+            QNetworkReply *logged_in = login_manager_->post(request, data);
 
             connect(logged_in, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
 

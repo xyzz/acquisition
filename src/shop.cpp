@@ -24,11 +24,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QUrl>
-
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-#include <QUrlQuery>
-#endif
-
+#include "QUrlQuery.h"
 #include "QsLog.h"
 
 #include "application.h"
@@ -220,23 +216,13 @@ void Shop::OnEditPageFinished() {
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     QUrlQuery query;
     query.addQueryItem("forum_thread", hash.c_str());
     query.addQueryItem("title", Util::Decode(title).c_str());
     query.addQueryItem("content", requests_completed_ < shop_data_.size() ? shop_data_[requests_completed_].c_str() : "Empty");
     query.addQueryItem("submit", "Submit");
 
-    QByteArray data(query.query().toUtf8());
-#else
-    QUrl params;
-    params.addQueryItem("forum_thread", hash.c_str());
-    params.addQueryItem("title", Util::Decode(title).c_str());
-    params.addQueryItem("content", requests_completed_ < shop_data_.size() ? shop_data_[requests_completed_].c_str() : "Empty");
-    params.addQueryItem("submit", "Submit");
-
-    auto data = params.encodedQuery();
-#endif
+    auto data = query_to_data(query);
 
     QNetworkReply *submitted = app_.logged_in_nm().post(request, data);
     new QReplyTimeout(submitted, kEditThreadTimeout);

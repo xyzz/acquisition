@@ -27,9 +27,7 @@
 #include "QsLog.h"
 #include <QTimer>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-#include <QUrlQuery>
-#endif
+#include "QUrlQuery.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
@@ -173,19 +171,14 @@ void ItemsManagerWorker::OnCharacterListReceived() {
 QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, bool tabs) {
     QUrl url(kStashItemsUrl);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-    QUrlQuery query;
+    auto& query = prepare_query(url);
+
     query.addQueryItem("league", league_.c_str());
     query.addQueryItem("tabs", tabs ? "1" : "0");
     query.addQueryItem("tabIndex", QString::number(tab_index));
     query.addQueryItem("accountName", account_name_.c_str());
-    url.setQuery(query);
-#else
-    url.addQueryItem("league", league_.c_str());
-    url.addQueryItem("tabs", tabs ? "1" : "0");
-    url.addQueryItem("tabIndex", QString::number(tab_index));
-    url.addQueryItem("accountName", account_name_.c_str());
-#endif
+
+    set_query(query, url);
 
     return QNetworkRequest(url);
 }
@@ -193,15 +186,12 @@ QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, bool tabs) {
 QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name) {
     QUrl url(kCharacterItemsUrl);
 
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-    QUrlQuery query;
+    auto& query = prepare_query(url);
+
     query.addQueryItem("character", name.c_str());
     query.addQueryItem("accountName", account_name_.c_str());
-    url.setQuery(query);
-#else
-    url.addQueryItem("character", name.c_str());
-    url.addQueryItem("accountName", account_name_.c_str());
-#endif
+
+    set_query(query, url);
 
     return QNetworkRequest(url);
 }
