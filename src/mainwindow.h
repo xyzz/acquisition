@@ -88,6 +88,7 @@ public slots:
     void OnStatusUpdate(const CurrentStatusUpdate &status);
     void OnBuyoutChange();
     void ResizeTreeColumns();
+    void TabChanged(int idx);
     void OnExpandAll();
     void OnCollapseAll();
     void OnUpdateAvailable();

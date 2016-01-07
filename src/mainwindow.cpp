@@ -181,22 +181,7 @@ void MainWindow::InitializeUi() {
     ui->itemTooltipWidget->hide();
     ui->uploadTooltipButton->hide();
 
-    lambda_connect(ui->itemInfoTypeTabs, SIGNAL(QTabWidget::currentChanged), [=](int idx){
-        auto tabs = ui->itemInfoTypeTabs;
-        for (int i = 0; i < tabs->count(); i++)
-            if (i != idx)
-                tabs->widget(i)->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        tabs->widget(idx)->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-        tabs->widget(idx)->resize(tabs->widget(idx)->minimumSizeHint());
-        tabs->widget(idx)->adjustSize();
-
-        if (idx == 0)
-            ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 2);
-        else
-            ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 1);
-
-        app_->data().SetInt("preferred_tooltip_type", idx);
-    });
+    connect(ui->itemInfoTypeTabs, SIGNAL(QTabWidget::currentChanged), this, SLOT(TabChanged(int)));
 
     ui->itemInfoTypeTabs->setCurrentIndex(app_->data().GetInt("preferred_tooltip_type"));
 }
@@ -224,6 +209,23 @@ void MainWindow::OnCollapseAll() {
 void MainWindow::ResizeTreeColumns() {
     for (int i = 0; i < ui->treeView->header()->count(); ++i)
         ui->treeView->resizeColumnToContents(i);
+}
+
+void MainWindow::TabChanged(int idx) {
+    auto tabs = ui->itemInfoTypeTabs;
+    for (int i = 0; i < tabs->count(); i++)
+        if (i != idx)
+            tabs->widget(i)->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    tabs->widget(idx)->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    tabs->widget(idx)->resize(tabs->widget(idx)->minimumSizeHint());
+    tabs->widget(idx)->adjustSize();
+
+    if (idx == 0)
+        ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 2);
+    else
+        ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 1);
+
+    app_->data().SetInt("preferred_tooltip_type", idx);
 }
 
 void MainWindow::OnBuyoutChange() {
