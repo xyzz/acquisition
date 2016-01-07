@@ -19,12 +19,12 @@
 
 #pragma once
 
+#include <memory>
+#include <QString>
+
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
 #define PORTABLE
 #endif
-
-#include <memory>
-#include <QString>
 
 namespace porting {
 std::string DefaultUserDir();
