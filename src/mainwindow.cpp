@@ -151,9 +151,7 @@ void MainWindow::InitializeUi() {
     context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
     context_menu_.addAction("Collapse All", this, SLOT(OnCollapseAll()));
 
-    lambda_connect(ui->treeView, SIGNAL(QTreeView::customContextMenuRequested), [&](const QPoint &pos) {
-        context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
-    });
+    connect(ui->treeView, SIGNAL(QTreeView::customContextMenuRequested), this, SLOT(PopupMenu(const QPoint&)));
 
     statusBar()->addPermanentWidget(&online_label_);
     UpdateOnlineGui();
@@ -209,6 +207,10 @@ void MainWindow::OnCollapseAll() {
 void MainWindow::ResizeTreeColumns() {
     for (int i = 0; i < ui->treeView->header()->count(); ++i)
         ui->treeView->resizeColumnToContents(i);
+}
+
+void MainWindow::PopupMenu(const QPoint& pos){
+    context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
 }
 
 void MainWindow::TabChanged(int idx) {

@@ -94,6 +94,8 @@ public slots:
     void OnUpdateAvailable();
     void OnOnlineUpdate(bool online);
     void OnUploadFinished();
+    void PopupMenu(const QPoint& pos);
+
 private slots:
     void on_actionForum_shop_thread_triggered();
     void on_actionCopy_shop_data_to_clipboard_triggered();
