@@ -81,7 +81,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     connect(ui->proxyCheckBox, SIGNAL(clicked(bool)), this, SLOT(OnProxyCheckBoxClicked(bool)));
     connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(OnLoginButtonClicked()));
 
-    lambda_connect(&update_checker_, SIGNAL(UpdateChecker::UpdateAvailable), [&](){
+    lambda_connect(&update_checker_, SIGNAL(UpdateChecker::UpdateAvailable()), [&](){
         // Only annoy the user once at the login dialog window, even if it's opened for more than an hour
         if (asked_to_update_)
             return;
