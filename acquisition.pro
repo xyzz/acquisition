@@ -53,6 +53,7 @@ SOURCES += \
     src/util.cpp \
     src/version.cpp \
     src/verticalscrollarea.cpp \
+    src/lambda_connect.cpp \
     test/testdata.cpp \
     test/testitem.cpp \
     test/testitemsmanager.cpp \
@@ -99,6 +100,7 @@ HEADERS += \
     src/version.h \
     src/version_defines.h \
     src/verticalscrollarea.h \
+    src/lambda_connect.h \
     test/testdata.h \
     test/testitem.h \
     test/testitemsmanager.h \

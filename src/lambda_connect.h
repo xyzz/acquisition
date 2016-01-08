@@ -1,55 +1,35 @@
-#ifndef _LAMBDA_CONNECT_H_
-#define _LAMBDA_CONNECT_H_
-
-//Adapted from https://github.com/caetanus/lambda-connect-qt4
-
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+#pragma once
 
 #include <functional>
 #include <QString>
 #include <QObject>
 
-template<typename Functor>
-class LambdaConnectorHelper : public QObject {
+//Adapted from https://github.com/caetanus/lambda-connect-qt4
+
+#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
+
+class lambda_connector : public QObject {
     Q_OBJECT
 public:
-    LambdaConnectorHelper(QObject *parent, const char* signal, Functor f, Qt::ConnectionType type = Qt::AutoConnection)
-            : QObject(parent), m_signal(signal), m_lambda(f){
-        m_result = QObject::connect(parent, signal, this, SLOT(trigger()), type);
-    }
-
-    bool disconnect(){
-        if (m_result){
-            m_result = QObject::disconnect(parent(),m_signal.toAscii().data(), this, SLOT(trigger()));
-        }
-
-        return m_result;
-    }
-
-    bool connected(){
-        return m_result;
-    }
+    lambda_connector(QObject *parent, const char* signal,
+        const std::function<void()>& f,
+        Qt::ConnectionType type = Qt::AutoConnection);
+    bool disconnect();
+    bool connected();
 
 public slots:
-    void trigger(){
-        m_lambda();
-    }
+    void trigger();
 
 private:
     bool m_result;
     const QString m_signal;
-    Functor m_lambda;
+    std::function<void()> m_lambda;
 };
 
-template<typename Functor>
-LambdaConnectorHelper<Functor>* lambda_connect(QObject *sender, const char *signal, Functor lambda, Qt::ConnectionType type = Qt::AutoConnection){
-    return new LambdaConnectorHelper<Functor>(sender, signal, lambda, type);
-}
+lambda_connector* lambda_connect(QObject *sender, const char *signal, const std::function<void()> &lambda, Qt::ConnectionType type = Qt::AutoConnection);
 
 #else
 
 #define lambda_connect connect
 
 #endif
-
-#endif // _LAMBDA_CONNECT_H_
