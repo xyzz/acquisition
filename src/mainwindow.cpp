@@ -86,11 +86,11 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
 
     image_network_manager_ = new QNetworkAccessManager;
     connect(image_network_manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(OnImageFetched(QNetworkReply*)));
-    connect(&app_->items_manager(), SIGNAL(ItemsManager::ItemsRefreshed()), this, SLOT(MainWindow::OnItemsRefreshed()));
-    connect(&app_->items_manager(), SIGNAL(ItemsManager::StatusUpdate()), this, SLOT(MainWindow::OnStatusUpdate()));
-    connect(&app_->shop(), SIGNAL(Shop::StatusUpdate()), this, SLOT(MainWindow::OnStatusUpdate()));
-    connect(&update_checker_, SIGNAL(UpdateChecker::UpdateAvailable), this, SLOT(MainWindow::OnUpdateAvailable()));
-    connect(&auto_online_, SIGNAL(AutoOnline::Update()), this, SLOT(MainWindow::OnOnlineUpdate()));
+    connect(&app_->items_manager(), SIGNAL(ItemsRefreshed(bool)), this, SLOT(OnItemsRefreshed()));
+    connect(&app_->items_manager(), SIGNAL(StatusUpdate(const CurrentStatusUpdate &)), this, SLOT(OnStatusUpdate(const CurrentStatusUpdate &)));
+    connect(&app_->shop(), SIGNAL(StatusUpdate(const CurrentStatusUpdate &)), this, SLOT(OnStatusUpdate(const CurrentStatusUpdate &)));
+    connect(&update_checker_, SIGNAL(UpdateAvailable()), this, SLOT(OnUpdateAvailable()));
+    connect(&auto_online_, SIGNAL(Update(bool)), this, SLOT(OnOnlineUpdate(bool)));
 }
 
 void MainWindow::InitializeLogging() {
@@ -151,7 +151,7 @@ void MainWindow::InitializeUi() {
     context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
     context_menu_.addAction("Collapse All", this, SLOT(OnCollapseAll()));
 
-    connect(ui->treeView, SIGNAL(QTreeView::customContextMenuRequested()), this, SLOT(PopupMenu(const QPoint&)));
+    connect(ui->treeView, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(PopupMenu(const QPoint&)));
 
     statusBar()->addPermanentWidget(&online_label_);
     UpdateOnlineGui();
@@ -160,7 +160,7 @@ void MainWindow::InitializeUi() {
     update_button_.setFlat(true);
     update_button_.hide();
     statusBar()->addPermanentWidget(&update_button_);
-    lambda_connect(&update_button_, SIGNAL(QPushButton::clicked()), [=](){
+    lambda_connect(&update_button_, SIGNAL(clicked()), [=](){
         UpdateChecker::AskUserToUpdate(this);
     });
     // resize columns when a tab is expanded/collapsed
@@ -179,7 +179,7 @@ void MainWindow::InitializeUi() {
     ui->itemTooltipWidget->hide();
     ui->uploadTooltipButton->hide();
 
-    connect(ui->itemInfoTypeTabs, SIGNAL(QTabWidget::currentChanged()), this, SLOT(TabChanged(int)));
+    connect(ui->itemInfoTypeTabs, SIGNAL(currentChanged(int)), this, SLOT(TabChanged(int)));
 
     ui->itemInfoTypeTabs->setCurrentIndex(app_->data().GetInt("preferred_tooltip_type"));
 }
@@ -703,7 +703,7 @@ void MainWindow::on_uploadTooltipButton_clicked() {
     QByteArray data = "image=" + QUrl::toPercentEncoding(bytes.toBase64());
     QNetworkReply *reply = network_manager_->post(request, data);
     new QReplyTimeout(reply, kImgurUploadTimeout);
-    connect(reply, SIGNAL(QNetworkReply::finished()), this, SLOT(MainWindow::OnUploadFinished()));
+    connect(reply, SIGNAL(finished()), this, SLOT(OnUploadFinished()));
 }
 
 void MainWindow::OnUploadFinished() {

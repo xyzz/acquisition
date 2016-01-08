@@ -42,7 +42,7 @@ AutoOnline::AutoOnline(DataStore &data, DataStore &sensitive_data) :
     previous_status_(true)  // set to true to force first refresh
 {
     timer_.setInterval(kOnlineCheckInterval);
-    connect(&timer_, SIGNAL(QTimer::timeout), this, SLOT(AutoOnline::Check));
+    connect(&timer_, SIGNAL(timeout()), this, SLOT(Check()));
     if (enabled_) {
         timer_.start();
         Check();

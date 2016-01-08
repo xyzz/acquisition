@@ -112,7 +112,7 @@ void ItemsManagerWorker::Update() {
 
     // first, download the main page because it's the only way to know which character is selected
     QNetworkReply *main_page = network_manager_.get(QNetworkRequest(QUrl(kMainPage)));
-    connect(main_page, SIGNAL(QNetworkReply::finished()), this, SLOT(ItemsManagerWorker::OnMainPageReceived()));
+    connect(main_page, SIGNAL(finished()), this, SLOT(OnMainPageReceived()));
 }
 
 void ItemsManagerWorker::OnMainPageReceived() {
@@ -126,7 +126,7 @@ void ItemsManagerWorker::OnMainPageReceived() {
 
     // now get character list
     QNetworkReply *characters = network_manager_.get(QNetworkRequest(QUrl(kGetCharactersUrl)));
-    connect(characters, SIGNAL(QNetworkReply::finished()), this, SLOT(ItemsManagerWorker::OnCharacterListReceived()));
+    connect(characters, SIGNAL(finished()), this, SLOT(OnCharacterListReceived()));
 
     reply->deleteLater();
 }
