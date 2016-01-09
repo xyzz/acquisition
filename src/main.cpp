@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
         Filesystem::SetUserDir(parser.value(option_data_dir).toStdString());
 
     QsLogging::Logger& logger = QsLogging::Logger::instance();
-    logger.setLoggingLevel(QsLogging::InfoLevel);
+    logger.setLoggingLevel(QsLogging::TraceLevel);
     const QString sLogPath(QDir(Filesystem::UserDir().c_str()).filePath("log.txt"));
 
     QsLogging::DestinationPtr fileDestination(
