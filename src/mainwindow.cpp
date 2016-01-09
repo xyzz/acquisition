@@ -553,8 +553,9 @@ void MainWindow::OnItemsRefreshed() {
         // Don't update current search - it will be updated in OnSearchFormChange
         if (search != current_search_) {
             search->FilterItems(app_->items_manager().items());
-            tab_bar_->setTabText(tab++, search->GetCaption());
+            tab_bar_->setTabText(tab, search->GetCaption());
         }
+        tab++;
     }
     OnSearchFormChange();
 }
