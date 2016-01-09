@@ -24,7 +24,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QUrl>
-#include <QUrlQuery>
+#include "QUrlQuery.h"
 #include "QsLog.h"
 
 #include "application.h"
@@ -212,15 +212,18 @@ void Shop::OnEditPageFinished() {
         return;
     }
 
+    QUrl url((ShopEditUrl(requests_completed_).c_str()));
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
     QUrlQuery query;
     query.addQueryItem("forum_thread", hash.c_str());
     query.addQueryItem("title", Util::Decode(title).c_str());
     query.addQueryItem("content", requests_completed_ < shop_data_.size() ? shop_data_[requests_completed_].c_str() : "Empty");
     query.addQueryItem("submit", "Submit");
 
-    QByteArray data(query.query().toUtf8());
-    QNetworkRequest request((QUrl(ShopEditUrl(requests_completed_).c_str())));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    auto data = query_to_data(query);
+
     QNetworkReply *submitted = app_.logged_in_nm().post(request, data);
     new QReplyTimeout(submitted, kEditThreadTimeout);
     connect(submitted, SIGNAL(finished()), this, SLOT(OnShopSubmitted()));

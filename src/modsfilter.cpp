@@ -39,7 +39,9 @@ SelectedMod::SelectedMod(const std::string &name, double min, double max, bool m
     mod_select_->addItems(mod_string_list);
     mod_completer_ = new QCompleter(mod_string_list);
     mod_completer_->setCompletionMode(QCompleter::PopupCompletion);
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     mod_completer_->setFilterMode(Qt::MatchContains);
+#endif
     mod_completer_->setCaseSensitivity(Qt::CaseInsensitive);
     mod_select_->setCompleter(mod_completer_);
 
@@ -98,7 +100,7 @@ ModsFilter::ModsFilter(QLayout *parent):
     signal_handler_(*this)
 {
     Initialize(parent);
-    QObject::connect(&signal_handler_, SIGNAL(SearchFormChanged()), 
+    QObject::connect(&signal_handler_, SIGNAL(SearchFormChanged()),
         parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
 }
 

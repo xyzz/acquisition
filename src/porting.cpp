@@ -20,8 +20,10 @@
 
 #include <QApplication>
 #include <QDir>
-#include <QStandardPaths>
 #include <QString>
+#ifndef PORTABLE
+#include <QStandardPaths>
+#endif
 
 // This namespace should contain platform-dependant functions.
 

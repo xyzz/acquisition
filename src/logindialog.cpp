@@ -31,7 +31,8 @@
 #include <QRegExp>
 #include <QSettings>
 #include <QUrl>
-#include <QUrlQuery>
+#include "QUrlQuery.h"
+
 #include <iostream>
 #include "QsLog.h"
 
@@ -41,6 +42,7 @@
 #include "steamlogindialog.h"
 #include "util.h"
 #include "version.h"
+#include "lambda_connect.h"
 
 const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
@@ -78,7 +80,8 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
     login_manager_ = std::make_unique<QNetworkAccessManager>();
     connect(ui->proxyCheckBox, SIGNAL(clicked(bool)), this, SLOT(OnProxyCheckBoxClicked(bool)));
     connect(ui->loginButton, SIGNAL(clicked()), this, SLOT(OnLoginButtonClicked()));
-    connect(&update_checker_, &UpdateChecker::UpdateAvailable, [&](){
+
+    lambda_connect(&update_checker_, SIGNAL(UpdateAvailable()), [&](){
         // Only annoy the user once at the login dialog window, even if it's opened for more than an hour
         if (asked_to_update_)
             return;
@@ -126,18 +129,22 @@ void LoginDialog::OnLoginPageFinished() {
                 return;
             }
 
+            QUrl url(POE_LOGIN_URL);
+
             QUrlQuery query;
             query.addQueryItem("login_email", EncodeSpecialCharacters(ui->emailLineEdit->text()));
             query.addQueryItem("login_password", EncodeSpecialCharacters(ui->passwordLineEdit->text()));
             query.addQueryItem("hash", QString(hash.c_str()));
             query.addQueryItem("login", "Login");
 
-            QUrl url(POE_LOGIN_URL);
-            QByteArray data(query.query().toUtf8());
+            auto data = query_to_data(query);
+
             QNetworkRequest request(url);
             request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
             QNetworkReply *logged_in = login_manager_->post(request, data);
+
             connect(logged_in, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
+
             break;
         }
         case LOGIN_STEAM: {
@@ -182,13 +189,20 @@ void LoginDialog::OnSteamCookieReceived(const QString &cookie) {
 }
 
 void LoginDialog::LoginWithCookie(const QString &cookie) {
+    QNetworkRequest login_req( (QUrl(POE_LOGIN_URL)) ); //Inner parenths to avoid the most vexing parse
+
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     QNetworkCookie poeCookie(POE_COOKIE_NAME, cookie.toUtf8());
+
     poeCookie.setPath("/");
     poeCookie.setDomain(".pathofexile.com");
 
     login_manager_->cookieJar()->insertCookie(poeCookie);
+#else
+    login_req.setRawHeader((std::string("Cookie: ") + POE_COOKIE_NAME).c_str() , cookie.toUtf8());
+#endif
 
-    QNetworkReply *login_page = login_manager_->get(QNetworkRequest(QUrl(POE_LOGIN_URL)));
+    QNetworkReply *login_page = login_manager_->get(login_req);
     connect(login_page, SIGNAL(finished()), this, SLOT(OnLoggedIn()));
 }
 
@@ -228,8 +242,16 @@ void LoginDialog::LoadSettings() {
         ui->loginTabs->setCurrentIndex(LOGIN_SESSIONID);
 
     saved_league_ = settings.value("league", "").toString();
-    if (saved_league_.size() > 0)
+    if (saved_league_.size() > 0){
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
         ui->leagueComboBox->setCurrentText(saved_league_);
+#else
+        int index = ui->leagueComboBox->findText(saved_league_);
+        if(index >= 0){
+            ui->leagueComboBox->setCurrentIndex(index);
+        }
+#endif
+    }
 
     QNetworkProxyFactory::setUseSystemConfiguration(ui->proxyCheckBox->isChecked());
 }

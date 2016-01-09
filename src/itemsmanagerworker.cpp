@@ -26,7 +26,9 @@
 #include <QSignalMapper>
 #include "QsLog.h"
 #include <QTimer>
-#include <QUrlQuery>
+
+#include "QUrlQuery.h"
+
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 
@@ -110,7 +112,7 @@ void ItemsManagerWorker::Update() {
 
     // first, download the main page because it's the only way to know which character is selected
     QNetworkReply *main_page = network_manager_.get(QNetworkRequest(QUrl(kMainPage)));
-    connect(main_page, &QNetworkReply::finished, this, &ItemsManagerWorker::OnMainPageReceived);
+    connect(main_page, SIGNAL(finished()), this, SLOT(OnMainPageReceived()));
 }
 
 void ItemsManagerWorker::OnMainPageReceived() {
@@ -124,7 +126,7 @@ void ItemsManagerWorker::OnMainPageReceived() {
 
     // now get character list
     QNetworkReply *characters = network_manager_.get(QNetworkRequest(QUrl(kGetCharactersUrl)));
-    connect(characters, &QNetworkReply::finished, this, &ItemsManagerWorker::OnCharacterListReceived);
+    connect(characters, SIGNAL(finished()), this, SLOT(OnCharacterListReceived()));
 
     reply->deleteLater();
 }
@@ -167,24 +169,30 @@ void ItemsManagerWorker::OnCharacterListReceived() {
 }
 
 QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, bool tabs) {
-    QUrlQuery query;
+    QUrl url(kStashItemsUrl);
+
+    auto& query = prepare_query(url);
+
     query.addQueryItem("league", league_.c_str());
     query.addQueryItem("tabs", tabs ? "1" : "0");
     query.addQueryItem("tabIndex", QString::number(tab_index));
     query.addQueryItem("accountName", account_name_.c_str());
 
-    QUrl url(kStashItemsUrl);
-    url.setQuery(query);
+    set_query(query, url);
+
     return QNetworkRequest(url);
 }
 
 QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name) {
-    QUrlQuery query;
+    QUrl url(kCharacterItemsUrl);
+
+    auto& query = prepare_query(url);
+
     query.addQueryItem("character", name.c_str());
     query.addQueryItem("accountName", account_name_.c_str());
 
-    QUrl url(kCharacterItemsUrl);
-    url.setQuery(query);
+    set_query(query, url);
+
     return QNetworkRequest(url);
 }
 

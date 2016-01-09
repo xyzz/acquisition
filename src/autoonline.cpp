@@ -42,7 +42,7 @@ AutoOnline::AutoOnline(DataStore &data, DataStore &sensitive_data) :
     previous_status_(true)  // set to true to force first refresh
 {
     timer_.setInterval(kOnlineCheckInterval);
-    connect(&timer_, &QTimer::timeout, this, &AutoOnline::Check);
+    connect(&timer_, SIGNAL(timeout()), this, SLOT(Check()));
     if (enabled_) {
         timer_.start();
         Check();
@@ -100,7 +100,14 @@ void AutoOnline::SendOnlineUpdate(bool online) {
     }
     QNetworkRequest request(QUrl(url.c_str()));
     QByteArray data;
+
+//UserAgentHeader is not available in QT4
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
     request.setHeader(QNetworkRequest::UserAgentHeader, (std::string("Acquisition ") + VERSION_NAME).c_str());
+#else
+    request.setRawHeader("User-Agent" , (std::string("Acquisition ") + VERSION_NAME).c_str());
+#endif
+
     nm_.post(request, data);
 }
 

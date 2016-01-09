@@ -25,7 +25,6 @@
 #include <QNetworkCookie>
 #include <QNetworkCookieJar>
 #include <QNetworkRequest>
-#include <QUrlQuery>
 #include <QFile>
 #include <QSettings>
 

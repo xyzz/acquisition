@@ -9,10 +9,10 @@ win32 {
 
 unix {
     LIBS += -ldl
-    QMAKE_CXXFLAGS += -Wno-inconsistent-missing-override
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+lessThan(QT_MAJOR_VERSION, 5): QT += webkit
 
 include(deps/QsLog/QsLog.pri)
 
@@ -53,6 +53,7 @@ SOURCES += \
     src/util.cpp \
     src/version.cpp \
     src/verticalscrollarea.cpp \
+    src/lambda_connect.cpp \
     test/testdata.cpp \
     test/testitem.cpp \
     test/testitemsmanager.cpp \
@@ -99,6 +100,7 @@ HEADERS += \
     src/version.h \
     src/version_defines.h \
     src/verticalscrollarea.h \
+    src/lambda_connect.h \
     test/testdata.h \
     test/testitem.h \
     test/testitemsmanager.h \
@@ -111,7 +113,11 @@ FORMS += \
     forms/logindialog.ui \
     forms/steamlogindialog.ui
 
-CONFIG += c++11
+greaterThan(QT_MAJOR_VERSION, 4){
+    CONFIG += c++11
+} else {
+    QMAKE_CXXFLAGS += -std=c++0x
+}
 
 DEPENDPATH *= $${INCLUDEPATH}
 

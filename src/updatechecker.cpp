@@ -33,13 +33,13 @@ const int kUpdateCheckInterval = 60 * 60 * 1000;
 UpdateChecker::UpdateChecker() {
     timer_.setInterval(kUpdateCheckInterval);
     timer_.start();
-    connect(&timer_, &QTimer::timeout, this, &UpdateChecker::CheckForUpdates);
+    connect(&timer_, SIGNAL(timeout()), this, SLOT(CheckForUpdates()));
     CheckForUpdates();
 }
 
 void UpdateChecker::CheckForUpdates() {
     QNetworkReply *version_check = nm_.get(QNetworkRequest(QUrl(UPDATE_CHECK_URL)));
-    connect(version_check, &QNetworkReply::finished, this, &UpdateChecker::OnUpdateCheckCompleted);
+    connect(version_check, SIGNAL(finished()), this, SLOT(OnUpdateCheckCompleted()));
 }
 
 void UpdateChecker::OnUpdateCheckCompleted() {

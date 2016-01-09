@@ -57,7 +57,7 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);
     currency_manager_ = std::make_unique<CurrencyManager>(*this);
-    connect(items_manager_.get(), &ItemsManager::ItemsRefreshed, this, &Application::OnItemsRefreshed);
+    connect(items_manager_.get(), SIGNAL(ItemsRefreshed(bool)), this, SLOT(OnItemsRefreshed(bool)));
     items_manager_->Start();
     items_manager_->Update();
 }
