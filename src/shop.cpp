@@ -197,7 +197,10 @@ void Shop::OnEditPageFinished() {
     std::string page(bytes.constData(), bytes.size());
     std::string hash = Util::GetCsrfToken(page, "forum_thread");
     if (hash.empty()) {
-        QLOG_ERROR() << "Can't update shop -- cannot extract CSRF token from the page. Check if thread ID is valid.";
+        QLOG_ERROR() << "Can't update shop -- cannot extract CSRF token from the page. Check if thread ID is valid."
+            << "If you're using Steam to login make sure you use the same login method (steam or login/password) in Acquisition, Path of Exile website and Path of Exile game client."
+            << "For example, if you created a shop thread while using Steam to log into the website and then logged into Acquisition with login/password it will not work."
+            << "In this case you should either recreate your shop thread or use a correct login method in Acquisition.";
         submitting_ = false;
         return;
     }
