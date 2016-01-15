@@ -588,7 +588,7 @@ void MainWindow::UpdateShopMenu() {
 void MainWindow::UpdateOnlineGui() {
     online_label_.setVisible(auto_online_.enabled());
     ui->actionAutomatically_refresh_online_status->setChecked(auto_online_.enabled());
-    std::string action_label = "control.poe.xyz.is URL...";
+    std::string action_label = "control.poe.trade URL...";
     if (auto_online_.IsUrlSet())
         action_label += " [******]";
     ui->actionControl_poe_xyz_is_URL->setText(action_label.c_str());
@@ -646,8 +646,8 @@ void MainWindow::on_actionAutomatically_update_shop_triggered() {
 
 void MainWindow::on_actionControl_poe_xyz_is_URL_triggered() {
     bool ok;
-    QString url = QInputDialog::getText(this, "control.poe.xyz.is URL",
-        "Copy and paste your whole control.poe.xyz.is URL here",
+    QString url = QInputDialog::getText(this, "control.poe.trade URL",
+        "Copy and paste your whole control.poe.trade URL here",
         QLineEdit::Normal, "", &ok);
     if (ok && !url.isEmpty())
         auto_online_.SetUrl(url.toStdString());

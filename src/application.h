@@ -56,7 +56,7 @@ private:
     std::string league_;
     std::string email_;
     std::unique_ptr<DataStore> data_;
-    // stores sensitive data that you'd rather not share, like control.poe.xyz.is secret URL
+    // stores sensitive data that you'd rather not share, like control.poe.trade secret URL
     std::unique_ptr<DataStore> sensitive_data_;
     std::unique_ptr<BuyoutManager> buyout_manager_;
     std::unique_ptr<Shop> shop_;

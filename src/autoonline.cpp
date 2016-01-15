@@ -115,10 +115,14 @@ void AutoOnline::Check() {
     emit Update(running);
 }
 
-const std::string url_valid_prefix = "http://control.poe.xyz.is/";
+const std::vector<std::string> url_valid_prefixes = { "http://control.poe.xyz.is/", "http://control.poe.trade/" };
 
 void AutoOnline::SetUrl(const std::string &url) {
-    if (url.compare(0, url_valid_prefix.size(), url_valid_prefix)) {
+    bool prefix_is_valid = false;
+    for (auto &valid_prefix : url_valid_prefixes) {
+        prefix_is_valid |= url.compare(0, valid_prefix.size(), valid_prefix) == 0;
+    }
+    if (!prefix_is_valid) {
         QLOG_WARN() << "Online URL is probably invalid.";
     }
     url_ = url;

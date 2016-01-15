@@ -238,7 +238,7 @@ void Shop::OnShopSubmitted() {
     }
 
     // now let's hope that shop was submitted successfully and notify poe.trade
-    QNetworkRequest request(QUrl(("http://verify.xyz.is/" + threads_[requests_completed_] + "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").c_str()));
+    QNetworkRequest request(QUrl(("http://verify.poe.trade/" + threads_[requests_completed_] + "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").c_str()));
     app_.logged_in_nm().get(request);
 
     ++requests_completed_;
