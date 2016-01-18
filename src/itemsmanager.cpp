@@ -55,6 +55,7 @@ void ItemsManager::Start() {
     worker_ = std::make_unique<ItemsManagerWorker>(app_, thread_.get());
     connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
     connect(this, SIGNAL(UpdateSignal()), worker_.get(), SLOT(Update()));
+    connect(this, SIGNAL(FlushCacheSignal()), worker_.get(), SLOT(FlushCache()));
     connect(worker_.get(), &ItemsManagerWorker::StatusUpdate, this, &ItemsManager::OnStatusUpdate);
     connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>, bool)));
     worker_->moveToThread(thread_.get());

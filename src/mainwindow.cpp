@@ -621,6 +621,8 @@ void MainWindow::on_actionItems_refresh_interval_triggered() {
 }
 
 void MainWindow::on_actionRefresh_triggered() {
+    // Flushing everything before triggering update guarantees we'll fetch fresh data for all tabs
+    app_->items_manager().FlushCache();
     app_->items_manager().Update();
 }
 

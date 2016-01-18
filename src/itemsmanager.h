@@ -45,6 +45,7 @@ public:
     // Creates and starts the worker
     void Start();
     void Update();
+    void FlushCache() { emit FlushCacheSignal(); }
     void SetAutoUpdateInterval(int minutes);
     void SetAutoUpdate(bool update);
     int auto_update_interval() const { return auto_update_interval_; }
@@ -60,6 +61,7 @@ public slots:
     void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
 signals:
     void UpdateSignal();
+    void FlushCacheSignal();
     void ItemsRefreshed(bool initial_refresh);
     void StatusUpdate(const CurrentStatusUpdate &status);
 private:

@@ -34,6 +34,7 @@
 #include "datastore.h"
 #include "util.h"
 #include "currencymanager.h"
+#include "tabcache.h"
 #include "mainwindow.h"
 const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-stash-items";
 const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
@@ -45,9 +46,11 @@ ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     signal_mapper_(nullptr),
     league_(app.league()),
     updating_(false),
+    tab_cache_(new TabCache()),
     account_name_(app.email())
 {
     QUrl poe(kMainPage);
+    network_manager_.setCache(tab_cache_);
     network_manager_.cookieJar()->setCookiesFromUrl(app.logged_in_nm().cookieJar()->cookiesForUrl(poe), poe);
     network_manager_.moveToThread(thread);
 }
@@ -109,7 +112,7 @@ void ItemsManagerWorker::Update() {
     selected_character_ = "";
 
     // first, download the main page because it's the only way to know which character is selected
-    QNetworkReply *main_page = network_manager_.get(QNetworkRequest(QUrl(kMainPage)));
+    QNetworkReply *main_page = network_manager_.get(Request(QUrl(kMainPage), TabCache::Refresh));
     connect(main_page, &QNetworkReply::finished, this, &ItemsManagerWorker::OnMainPageReceived);
 }
 
@@ -123,7 +126,7 @@ void ItemsManagerWorker::OnMainPageReceived() {
     }
 
     // now get character list
-    QNetworkReply *characters = network_manager_.get(QNetworkRequest(QUrl(kGetCharactersUrl)));
+    QNetworkReply *characters = network_manager_.get(Request(QUrl(kGetCharactersUrl), TabCache::Refresh));
     connect(characters, &QNetworkReply::finished, this, &ItemsManagerWorker::OnCharacterListReceived);
 
     reply->deleteLater();
@@ -175,7 +178,11 @@ QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, bool tabs) {
 
     QUrl url(kStashItemsUrl);
     url.setQuery(query);
-    return QNetworkRequest(url);
+
+    TabCache::Flags flags;
+    if (tabs) flags |= TabCache::Refresh;
+
+    return Request(url, flags);
 }
 
 QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name) {
@@ -185,7 +192,7 @@ QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name
 
     QUrl url(kCharacterItemsUrl);
     url.setQuery(query);
-    return QNetworkRequest(url);
+    return Request(url, TabCache::Refresh);
 }
 
 void ItemsManagerWorker::QueueRequest(const QNetworkRequest &request, const ItemLocation &location) {
@@ -291,7 +298,15 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     }
 
     ItemsReply reply = replies_[request_id];
-    QLOG_DEBUG() << "Received a reply for" << reply.request.location.GetHeader().c_str();
+
+    bool cache_status = reply.network_reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool();
+
+    if (cache_status) {
+        QLOG_DEBUG() << "Received a cached reply for" << reply.request.location.GetHeader().c_str();
+    } else {
+        QLOG_DEBUG() << "Received a reply for" << reply.request.location.GetHeader().c_str();
+    }
+
     QByteArray bytes = reply.network_reply->readAll();
     rapidjson::Document doc;
     doc.Parse(bytes.constData());

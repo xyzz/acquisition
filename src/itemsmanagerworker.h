@@ -26,6 +26,7 @@
 
 #include "item.h"
 #include "mainwindow.h"
+#include "tabcache.h"
 
 class Application;
 class DataStore;
@@ -67,6 +68,7 @@ public slots:
     */
     void FetchItems(int limit = kThrottleRequests);
     void PreserveSelectedCharacter();
+    void FlushCache() { tab_cache_->clear(); }
 signals:
     void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
     void StatusUpdate(const CurrentStatusUpdate &status);
@@ -75,6 +77,8 @@ private:
     QNetworkRequest MakeCharacterRequest(const std::string &name);
     void QueueRequest(const QNetworkRequest &request, const ItemLocation &location);
     void ParseItems(rapidjson::Value *value_ptr, const ItemLocation &base_location, rapidjson_allocator &alloc);
+
+    QNetworkRequest Request(QUrl url, TabCache::Flags flags = TabCache::None) { return tab_cache_->Request(url, flags); }
 
     DataStore &data_;
     QNetworkAccessManager network_manager_;
@@ -94,5 +98,6 @@ private:
     int queue_id_;
     std::string selected_character_;
 
+    TabCache *tab_cache_;
     std::string account_name_;
 };
