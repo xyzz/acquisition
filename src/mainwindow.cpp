@@ -313,7 +313,7 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e) {
             // middle button pressed on a tab
             int index = tab_bar_->tabAt(mouse_event->pos());
             // remove tab and Search if it's not "+"
-            if (index < tab_bar_->count() - 1) {
+            if (index >= 0 && index < tab_bar_->count() - 1) {
                 tab_bar_->removeTab(index);
                 delete searches_[index];
                 searches_.erase(searches_.begin() + index);
