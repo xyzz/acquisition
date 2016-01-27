@@ -272,10 +272,11 @@ void ItemsManagerWorker::OnFirstTabReceived() {
     if (exclusionDoc.IsArray()) {
         for (auto &excl : exclusionDoc) {
             QRegularExpression expr(excl.GetString());
-            if (expr.isValid()) expressions.append(expr);
+            if (!expr.pattern().isEmpty() && expr.isValid()) expressions.append(expr);
         }
     }
 
+    int tabsParsed = 0;
     tabs_.clear();
     for (auto &tab : doc["tabs"]) {
         std::string label = tab["n"].GetString();
@@ -289,15 +290,23 @@ void ItemsManagerWorker::OnFirstTabReceived() {
         }
 
         if (!skip) {
-
             tabs_.push_back(label);
-            if (index > 0) {
-                ItemLocation location;
-                location.set_type(ItemLocationType::STASH);
-                location.set_tab_id(index);
-                location.set_tab_label(label);
-                if (!tab.HasMember("hidden") || !tab["hidden"].GetBool())
-                    QueueRequest(MakeTabRequest(index), location);
+            ItemLocation location;
+            location.set_type(ItemLocationType::STASH);
+            location.set_tab_id(index);
+            location.set_tab_label(label);
+
+            if (index == 0) {
+                // We already have this tab (it's the first one we get).
+                // Parse the items now that we have them
+                if (!doc["tabs"][0].HasMember("hidden") || !doc["tabs"][0]["hidden"].GetBool()) {
+                    ParseItems(&doc["items"], location, doc.GetAllocator());
+                    ++tabsParsed;
+                }
+            }
+            else if (!tab.HasMember("hidden") || !tab["hidden"].GetBool()) {
+                // If it's not hidden, then we need to download
+                QueueRequest(MakeTabRequest(index), location);
             }
         }
         ++index;
@@ -310,16 +319,10 @@ void ItemsManagerWorker::OnFirstTabReceived() {
         return;
     }
 
-    ItemLocation first_tab_location;
-    first_tab_location.set_type(ItemLocationType::STASH);
-    first_tab_location.set_tab_id(0);
-    first_tab_location.set_tab_label(tabs_[0]);
-    if (!doc["tabs"][0].HasMember("hidden") || !doc["tabs"][0]["hidden"].GetBool())
-        ParseItems(&doc["items"], first_tab_location, doc.GetAllocator());
-
-    total_needed_ = queue_.size() + 1;
-    total_completed_ = 1;
-    FetchItems(kThrottleRequests - 1);
+    // tabsParsed will be 1 if the first tab was included in the initial download
+    total_needed_ = queue_.size() + tabsParsed;
+    total_completed_ = tabsParsed;
+    FetchItems(kThrottleRequests - tabsParsed);
 
     connect(signal_mapper_, SIGNAL(mapped(int)), this, SLOT(OnTabReceived(int)));
     reply->deleteLater();
