@@ -189,7 +189,7 @@ void Search::SaveColumnsPosition(QHeaderView* view) {
     }
 }
 
-void Search::LoadState(const QVariantHash &data) {
+void Search::LoadState(const QVariantMap &data) {
     caption_ = data.value("caption").toString().toStdString();
     hiddenBuckets_ = data.value("hidden_buckets").toStringList();
     showHiddenBuckets_ = data.value("show_hidden").toBool();
@@ -201,7 +201,7 @@ void Search::LoadState(const QVariantHash &data) {
     }
 
     columnsMap_.clear();
-    QMap<QString, QVariant> columnMap = data.value("columns_map").toMap();
+    QVariantMap columnMap = data.value("columns_map").toMap();
     for (QString key : columnMap.keys()) {
         int i = key.toInt();
         int val = columnMap.value(key).toInt();
@@ -209,24 +209,24 @@ void Search::LoadState(const QVariantHash &data) {
     }
 }
 
-QVariantHash Search::SaveState() {
-    QVariantHash hash;
-    hash.insert("caption", QString::fromStdString(caption_));
-    hash.insert("hidden_buckets", hiddenBuckets_);
-    hash.insert("show_hidden", showHiddenBuckets_);
-    hash.insert("expanded", expandedHashs_);
+QVariantMap Search::SaveState() {
+    QVariantMap map;
+    map.insert("caption", QString::fromStdString(caption_));
+    map.insert("hidden_buckets", hiddenBuckets_);
+    map.insert("show_hidden", showHiddenBuckets_);
+    map.insert("expanded", expandedHashs_);
 
     QStringList items;
     for (int item : hiddenColumns_) {
         items.append(QString::number(item));
     }
-    hash.insert("hidden_columns", items);
+    map.insert("hidden_columns", items);
 
-    QMap<QString, QVariant> variantMap;
+    QVariantMap variantMap;
     for (int i : columnsMap_.keys()) {
         int j = columnsMap_.value(i);
         variantMap.insert(QString::number(i), QVariant(j));
     }
-    hash.insert("columns_map", variantMap);
-    return hash;
+    map.insert("columns_map", variantMap);
+    return map;
 }

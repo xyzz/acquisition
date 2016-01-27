@@ -61,8 +61,8 @@ public:
     bool IsColumnHidden(int logicalIndex) { return hiddenColumns_.contains(logicalIndex); }
     void RemoveHiddenColumn(int logicalIndex)  { hiddenColumns_.removeAll(logicalIndex); }
 
-    void LoadState(const QVariantHash &data);
-    QVariantHash SaveState();
+    void LoadState(const QVariantMap &data);
+    QVariantMap SaveState();
     void SaveColumnsPosition(QHeaderView *view);
 private:
     std::vector<std::unique_ptr<FilterData>> filters_;

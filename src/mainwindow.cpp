@@ -827,7 +827,7 @@ void MainWindow::LoadSearches() {
     for (QJsonValue val : array) {
         QJsonObject obj = val.toObject();
         Search* search = NewSearch();
-        search->LoadState(obj.toVariantHash());
+        search->LoadState(obj.toVariantMap());
     }
     tab_bar_->setCurrentIndex(0);
     OnTabChange(0);
@@ -839,8 +839,8 @@ void MainWindow::SaveSearches() {
 
     for (Search* search : searches_) {
         search->SaveColumnsPosition(ui->treeView->header());
-        QVariantHash hash = search->SaveState();
-        array.append(QJsonObject::fromVariantHash(hash));
+        QVariantMap hash = search->SaveState();
+        array.append(QJsonObject::fromVariantMap(hash));
     }
 
     doc.setArray(array);
