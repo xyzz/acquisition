@@ -4,6 +4,7 @@
 #include <QAbstractNetworkCache>
 #include <QNetworkDiskCache>
 #include <QIODevice>
+#include <set>
 
 class TabCache : public QNetworkDiskCache
 {
@@ -16,18 +17,34 @@ public:
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
+    enum Policy {
+        DefaultCache,
+        ManualCache,
+        AlwaysCache,
+        NeverCache
+    };
+
 public:
     TabCache(QObject * parent = 0);
+
     ~TabCache() {};
 
-    QNetworkRequest Request(const QUrl & url, Flags flags = None);
+    QNetworkRequest Request(const QUrl & url, const std::string &tab_name, Flags flags = None);
+    void AddManualRefresh(const std::string &tab_name);
 
     QIODevice *prepare(const QNetworkCacheMetaData &metaData);
 
 private:
     const int kCacheExpireInDays{7};
-    const int kMaxCacheSize{10*1024*1024}; // 10MB
+
+    std::set<std::string> manual_refresh_;
+    Policy cache_policy_{DefaultCache};
+
+public slots:
+    void OnPolicyUpdate(Policy policy);
+    void OnItemsRefreshed();
 };
 
+Q_DECLARE_METATYPE(TabCache::Policy)
 Q_DECLARE_OPERATORS_FOR_FLAGS(TabCache::Flags)
 

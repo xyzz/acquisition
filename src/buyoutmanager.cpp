@@ -77,10 +77,35 @@ void BuyoutManager::DeleteTab(const std::string &tab) {
     tab_buyouts_.erase(tab);
 }
 
+void BuyoutManager::SetRefreshChecked(const std::string &tab, bool value) {
+    save_needed_ = true;
+    refresh_checked_[tab] = value;
+}
+
+bool BuyoutManager::GetRefreshChecked(const std::string &tab) const {
+    auto it = refresh_checked_.find(tab);
+    bool refresh_checked = (it != refresh_checked_.end()) ? it->second : (false);
+    return (refresh_checked || GetRefreshLocked(tab));
+}
+
+bool BuyoutManager::GetRefreshLocked(const std::string &tab) const {
+    return refresh_locked_.count(tab);
+}
+
+void BuyoutManager::SetRefreshLocked(const std::string &tab) {
+    refresh_locked_.insert(tab);
+}
+
+void BuyoutManager::ClearRefreshLocks() {
+    refresh_locked_.clear();
+}
+
 void BuyoutManager::Clear() {
     save_needed_ = true;
     buyouts_.clear();
     tab_buyouts_.clear();
+    refresh_locked_.clear();
+    refresh_checked_.clear();
 }
 
 std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyouts) {

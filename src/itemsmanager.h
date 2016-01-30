@@ -24,6 +24,7 @@
 
 #include "item.h"
 #include "itemsmanagerworker.h"
+#include "tabcache.h"
 
 struct CurrentStatusUpdate;
 class QThread;
@@ -44,7 +45,7 @@ public:
     ~ItemsManager();
     // Creates and starts the worker
     void Start();
-    void Update();
+    void Update(TabCache::Policy policy = TabCache::DefaultCache, const std::set<std::string>& tab_names = std::set<std::string>());
     void FlushCache() { emit FlushCacheSignal(); }
     void SetAutoUpdateInterval(int minutes);
     void SetAutoUpdate(bool update);
@@ -60,7 +61,7 @@ public slots:
     void OnStatusUpdate(const CurrentStatusUpdate &status);
     void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
 signals:
-    void UpdateSignal();
+    void UpdateSignal(TabCache::Policy policy = TabCache::DefaultCache, const std::set<std::string>& tab_names = std::set<std::string>());
     void FlushCacheSignal();
     void ItemsRefreshed(bool initial_refresh);
     void StatusUpdate(const CurrentStatusUpdate &status);

@@ -149,6 +149,9 @@ void MainWindow::InitializeUi() {
     ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 2);
 
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    context_menu_.addAction("Refresh Selected", this, SLOT(OnRefreshSelected()));
+    context_menu_.addSeparator();
     context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
     context_menu_.addAction("Collapse All", this, SLOT(OnCollapseAll()));
 
@@ -220,6 +223,19 @@ void MainWindow::OnExpandAll() {
 
 void MainWindow::OnCollapseAll() {
     ExpandCollapse(TreeState::kCollapse);
+}
+
+void MainWindow::OnRefreshSelected() {
+    // Get names of tabs to refresh
+    std::set<std::string> tabs;
+    for (auto const &index: ui->treeView->selectionModel()->selectedIndexes()) {
+        // Fetch tab names per index
+        //auto tab_index = index.parent().isValid() ? index.parent():index;
+        //auto tab_name = current_search_->buckets()[tab_index.row()]->location().GetUniqueHash();
+        tabs.insert(current_search_->GetUniqueTabName(index));
+    }
+
+    app_->items_manager().Update(TabCache::ManualCache, tabs);
 }
 
 void MainWindow::ResizeTreeColumns() {
@@ -621,8 +637,11 @@ void MainWindow::on_actionItems_refresh_interval_triggered() {
 }
 
 void MainWindow::on_actionRefresh_triggered() {
-    // Flushing everything before triggering update guarantees we'll fetch fresh data for all tabs
-    app_->items_manager().FlushCache();
+    // NeverCache policy forces refresh of all requests
+    app_->items_manager().Update(TabCache::NeverCache);
+}
+
+void MainWindow::on_actionRefresh_selected_triggered() {
     app_->items_manager().Update();
 }
 

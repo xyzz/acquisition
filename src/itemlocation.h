@@ -22,6 +22,7 @@ public:
     QRectF GetRect() const;
     std::string GetForumCode(const std::string &league) const;
     std::string GetUniqueHash() const;
+    bool IsValid() const;
     bool operator<(const ItemLocation &other) const;
     void set_type(const ItemLocationType type) { type_ = type; }
     void set_character(const std::string &character) { character_ = character; }
@@ -33,7 +34,7 @@ private:
     int x_, y_, w_, h_;
     bool socketed_;
     ItemLocationType type_;
-    int tab_id_;
+    int tab_id_{0};
     std::string tab_label_;
     std::string character_;
     std::string inventory_id_;

@@ -26,16 +26,18 @@
 
 #include "item.h"
 #include "mainwindow.h"
-#include "tabcache.h"
 
 class Application;
 class DataStore;
 class QNetworkReply;
 class QSignalMapper;
 class QTimer;
+class BuyoutManager;
+class TabCache;
 
 const int kThrottleRequests = 45;
 const int kThrottleSleep = 60;
+const int kMaxCacheSize = (10*1024*1024); // 10MB
 
 struct ItemsRequest {
     int id;
@@ -55,7 +57,7 @@ public:
     ~ItemsManagerWorker();
 public slots:
     void Init();
-    void Update();
+    void Update(TabCache::Policy policy, const std::set<std::string> &tab_names = std::set<std::string>());
 public slots:
     void OnMainPageReceived();
     void OnCharacterListReceived();
@@ -73,13 +75,13 @@ signals:
     void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
     void StatusUpdate(const CurrentStatusUpdate &status);
 private:
-    QNetworkRequest MakeTabRequest(int tab_index, bool tabs = false);
-    QNetworkRequest MakeCharacterRequest(const std::string &name);
+
+    QNetworkRequest MakeTabRequest(int tab_index, const ItemLocation &location, bool tabs = false);
+    QNetworkRequest MakeCharacterRequest(const std::string &name, const ItemLocation &location);
     void QueueRequest(const QNetworkRequest &request, const ItemLocation &location);
     void ParseItems(rapidjson::Value *value_ptr, const ItemLocation &base_location, rapidjson_allocator &alloc);
 
-    QNetworkRequest Request(QUrl url, TabCache::Flags flags = TabCache::None) { return tab_cache_->Request(url, flags); }
-
+    QNetworkRequest Request(QUrl url, const ItemLocation &location, TabCache::Flags flags = TabCache::None);
     DataStore &data_;
     QNetworkAccessManager network_manager_;
     QSignalMapper *signal_mapper_;
@@ -98,6 +100,7 @@ private:
     int queue_id_;
     std::string selected_character_;
 
-    TabCache *tab_cache_;
+    TabCache *tab_cache_{new TabCache()};
+    const BuyoutManager &bo_manager_;
     std::string account_name_;
 };

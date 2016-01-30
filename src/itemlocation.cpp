@@ -114,7 +114,15 @@ std::string ItemLocation::GetForumCode(const std::string &league) const {
     }
 }
 
+bool ItemLocation::IsValid() const {
+    return ( (!tab_label_.empty() && type_ == ItemLocationType::STASH)
+            ||(!character_.empty() && type_ == ItemLocationType::CHARACTER));
+}
+
 std::string ItemLocation::GetUniqueHash() const {
+    if (!IsValid())
+        return "";
+
     if (type_ == ItemLocationType::STASH)
         return "stash:" + tab_label_;
     else

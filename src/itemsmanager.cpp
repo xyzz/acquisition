@@ -54,7 +54,7 @@ void ItemsManager::Start() {
     thread_ = std::make_unique<QThread>();
     worker_ = std::make_unique<ItemsManagerWorker>(app_, thread_.get());
     connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
-    connect(this, SIGNAL(UpdateSignal()), worker_.get(), SLOT(Update()));
+    connect(this, SIGNAL(UpdateSignal(TabCache::Policy, const std::set<std::string> &)), worker_.get(), SLOT(Update(TabCache::Policy, const std::set<std::string> &)));
     connect(this, SIGNAL(FlushCacheSignal()), worker_.get(), SLOT(FlushCache()));
     connect(worker_.get(), &ItemsManagerWorker::StatusUpdate, this, &ItemsManager::OnStatusUpdate);
     connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>, bool)));
@@ -67,9 +67,10 @@ void ItemsManager::OnStatusUpdate(const CurrentStatusUpdate &status) {
 }
 
 void ItemsManager::PropagateTabBuyouts() {
+    auto &bo = app_.buyout_manager();
+    bo.ClearRefreshLocks();
     for (auto &item_ptr : items_) {
         auto &item = *item_ptr;
-        auto &bo = app_.buyout_manager();
         std::string hash = item.location().GetUniqueHash();
         bool item_bo_exists = bo.Exists(item);
         bool tab_bo_exists = bo.ExistsTab(hash);
@@ -79,6 +80,14 @@ void ItemsManager::PropagateTabBuyouts() {
             item_bo = bo.Get(item);
         if (tab_bo_exists)
             tab_bo = bo.GetTab(hash);
+
+        // If *any* bo's are set on an item or the tab then lock the refresh state to
+        // be ON.  I think this is intuitive, that users generally want to auto-refresh
+        // tabs they are selling from and it prevents those tabs from going stale and
+        // posting possible stale data to forumns.
+        if (tab_bo_exists || item_bo_exists) {
+            bo.SetRefreshLocked(hash);
+        }
 
         // The logic below is quite complicated and probably should be simplified.
         // One day.
@@ -111,8 +120,8 @@ void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::s
     emit ItemsRefreshed(initial_refresh);
 }
 
-void ItemsManager::Update() {
-    emit UpdateSignal();
+void ItemsManager::Update(TabCache::Policy policy, const std::set<std::string> &tab_names) {
+    emit UpdateSignal(policy, tab_names);
 }
 
 void ItemsManager::SetAutoUpdate(bool update) {

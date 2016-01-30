@@ -251,7 +251,7 @@
      <x>0</x>
      <y>0</y>
      <width>867</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuShop">
@@ -266,9 +266,11 @@
    </widget>
    <widget class="QMenu" name="menuItems">
     <property name="title">
-     <string>Items</string>
+     <string>Tabs</string>
     </property>
+    <addaction name="actionRefresh_selected"/>
     <addaction name="actionRefresh"/>
+    <addaction name="separator"/>
     <addaction name="actionAutomatically_refresh_items"/>
     <addaction name="actionItems_refresh_interval"/>
    </widget>
@@ -310,17 +312,17 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Automatically refresh items</string>
+    <string>Auto refresh checked tabs</string>
    </property>
   </action>
   <action name="actionItems_refresh_interval">
    <property name="text">
-    <string>Items refresh interval...</string>
+    <string>Auto refresh interval...</string>
    </property>
   </action>
   <action name="actionRefresh">
    <property name="text">
-    <string>Refresh</string>
+    <string>Refresh all tabs</string>
    </property>
   </action>
   <action name="actionUpdate_shop">
@@ -365,6 +367,11 @@
   <action name="actionExport_currency">
    <property name="text">
     <string>Export to CSV...</string>
+   </property>
+  </action>
+  <action name="actionRefresh_selected">
+   <property name="text">
+    <string>Refresh checked tabs</string>
    </property>
   </action>
  </widget>

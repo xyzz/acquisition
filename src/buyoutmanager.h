@@ -21,6 +21,7 @@
 
 #include "item.h"
 #include <QDateTime>
+#include <set>
 
 enum Currency {
     CURRENCY_NONE,
@@ -139,6 +140,13 @@ public:
     void DeleteTab(const std::string &tab);
     bool ExistsTab(const std::string &tab) const;
 
+    void SetRefreshChecked(const std::string &tab, bool value);
+    bool GetRefreshChecked(const std::string &tab) const;
+
+    bool GetRefreshLocked(const std::string &tab) const;
+    void SetRefreshLocked(const std::string &tab);
+    void ClearRefreshLocks();
+
     void Clear();
 
     void Save();
@@ -152,6 +160,8 @@ private:
     DataStore &data_;
     std::map<std::string, Buyout> buyouts_;
     std::map<std::string, Buyout> tab_buyouts_;
+    std::map<std::string, bool> refresh_checked_;
+    std::set<std::string> refresh_locked_;
     bool save_needed_;
 };
 

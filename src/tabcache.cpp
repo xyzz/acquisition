@@ -1,6 +1,6 @@
 #include "tabcache.h"
 #include "QsLog.h"
-#include "filesystem.h"
+
 #include <QDir>
 #include <QDateTime>
 
@@ -56,24 +56,67 @@
 TabCache::TabCache(QObject* parent)
     :QNetworkDiskCache(parent)
 {
-    QDir cache_path{std::string{Filesystem::UserDir() + "/tabcache"}.c_str()};
-
-    QLOG_DEBUG() << "Cache directory: " << cache_path.path();
-
-    setCacheDirectory(cache_path.path());
-    setMaximumCacheSize(kMaxCacheSize);
 }
 
-QNetworkRequest TabCache::Request(const QUrl &url, Flags flags) {
+QNetworkRequest TabCache::Request(const QUrl &url, const std::string &tab_name, Flags flags) {
     QNetworkRequest request{url};
 
-    // Evict this request from the cache if refresh is requested
-    if (flags.testFlag(Refresh))
-        remove(url);
+    // The cache policy exists so it can override normal behavior for a given refresh.
+    // Based on the current policy we may ignore refresh requests, or force refreshes
+    // even if none was specifed with 'flags'.
+    switch (cache_policy_) {
+    case DefaultCache:
+        // This is the default policy, where we honor cache policy as specified by 'flags'
+        // Evict this request from the cache if refresh is requested
+        if (flags.testFlag(Refresh))
+            remove(url);
+        break;
+    case AlwaysCache:
+        // By default we always try to hit in the cache, so this policy just allows
+        // the normal cache mechanism to do its job and it will basically grab everything
+        // from the cache that is available for all network requests
+        break;
+    case NeverCache:
+        // We've already fully flushed the cache in SetPolicy, so nothing to do here.
+        break;
+    case ManualCache:
+        // The case involves refreshing only an explicitily specified set of named tabs, customers
+        // use SetManualRefresh to indicate what set of tabs to refresh before triggering a refresh
+        // all other network requests will come from the cache if available
+        if (!tab_name.empty() && manual_refresh_.count(tab_name))
+            remove(url);
+        break;
+    default:
+        QLOG_ERROR() << "TabCache::Request Failed to handle all cache policy cases";
+        break;
+    };
 
+    // At this point we've evicted any request that should be refreshed, so we always
+    // tell the 'real' request to prefer but not require the entry be in the cache.
+    // If it is not in the cache it will be fetched from the network regardless.
     request.setAttribute(QNetworkRequest::CacheSaveControlAttribute, QNetworkRequest::PreferCache);
 
     return request;
+}
+
+
+void TabCache::OnPolicyUpdate(Policy policy) {
+    // Handle NeverCache policy here, basically just flush cache.
+    if (policy == NeverCache)
+        clear();
+
+    cache_policy_ = policy;
+}
+
+void TabCache::AddManualRefresh(const std::string &tab_name) {
+    if (!tab_name.empty())
+        manual_refresh_.insert(tab_name);
+}
+
+
+void TabCache::OnItemsRefreshed() {
+    // Clear any manually set tabs here
+    manual_refresh_.clear();
 }
 
 QIODevice *TabCache::prepare(const QNetworkCacheMetaData &metaData) {
@@ -88,7 +131,7 @@ QIODevice *TabCache::prepare(const QNetworkCacheMetaData &metaData) {
     local.setSaveToDisk(true);
 
     // Need to set some reasonable length of time in which our cache entries
-    // will expire.
+    // will expire.  It's possible we'll want to allow users to customize this.
     local.setExpirationDate(QDateTime().currentDateTime().addDays(kCacheExpireInDays));
 
     QNetworkCacheMetaData::RawHeaderList headers;

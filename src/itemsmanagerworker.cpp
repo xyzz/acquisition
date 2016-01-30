@@ -36,6 +36,9 @@
 #include "currencymanager.h"
 #include "tabcache.h"
 #include "mainwindow.h"
+#include "buyoutmanager.h"
+#include "filesystem.h"
+
 const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-stash-items";
 const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
 const char *kGetCharactersUrl = "https://www.pathofexile.com/character-window/get-characters";
@@ -46,13 +49,24 @@ ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     signal_mapper_(nullptr),
     league_(app.league()),
     updating_(false),
-    tab_cache_(new TabCache()),
+    bo_manager_(app.buyout_manager()),
     account_name_(app.email())
 {
     QUrl poe(kMainPage);
+
+    QDir cache_path{std::string{Filesystem::UserDir() + "/tabcache/" + account_name_ + "/" + league_}.c_str()};
+
+    QLOG_DEBUG() << "Cache directory: " << cache_path.path();
+
+    tab_cache_->setCacheDirectory(cache_path.path());
+    tab_cache_->setMaximumCacheSize(kMaxCacheSize);
+
+    // setCache takes ownership of tab_cache ptr so we don't need to destruct it
     network_manager_.setCache(tab_cache_);
     network_manager_.cookieJar()->setCookiesFromUrl(app.logged_in_nm().cookieJar()->cookiesForUrl(poe), poe);
     network_manager_.moveToThread(thread);
+
+    connect(this, SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)), tab_cache_, SLOT(OnItemsRefreshed()));
 }
 
 ItemsManagerWorker::~ItemsManagerWorker() {
@@ -87,14 +101,22 @@ void ItemsManagerWorker::Init() {
             tabs_.push_back(tab["n"].GetString());
         }
     }
+
     emit ItemsRefreshed(items_, tabs_, true);
 }
 
-void ItemsManagerWorker::Update() {
+void ItemsManagerWorker::Update(TabCache::Policy policy, const std::set<std::string> &tab_names) {
     if (updating_) {
         QLOG_WARN() << "ItemsManagerWorker::Update called while updating";
         return;
     }
+
+    if (policy == TabCache::ManualCache) {
+        for (auto const &tab: tab_names)
+            tab_cache_->AddManualRefresh(tab);
+    }
+
+    tab_cache_->OnPolicyUpdate(policy);
 
     QLOG_DEBUG() << "Updating stash tabs";
     updating_ = true;
@@ -112,7 +134,7 @@ void ItemsManagerWorker::Update() {
     selected_character_ = "";
 
     // first, download the main page because it's the only way to know which character is selected
-    QNetworkReply *main_page = network_manager_.get(Request(QUrl(kMainPage), TabCache::Refresh));
+    QNetworkReply *main_page = network_manager_.get(Request(QUrl(kMainPage), ItemLocation(), TabCache::Refresh));
     connect(main_page, &QNetworkReply::finished, this, &ItemsManagerWorker::OnMainPageReceived);
 }
 
@@ -126,7 +148,7 @@ void ItemsManagerWorker::OnMainPageReceived() {
     }
 
     // now get character list
-    QNetworkReply *characters = network_manager_.get(Request(QUrl(kGetCharactersUrl), TabCache::Refresh));
+    QNetworkReply *characters = network_manager_.get(Request(QUrl(kGetCharactersUrl), ItemLocation(), TabCache::Refresh));
     connect(characters, &QNetworkReply::finished, this, &ItemsManagerWorker::OnCharacterListReceived);
 
     reply->deleteLater();
@@ -159,17 +181,17 @@ void ItemsManagerWorker::OnCharacterListReceived() {
             ItemLocation location;
             location.set_type(ItemLocationType::CHARACTER);
             location.set_character(name);
-            QueueRequest(MakeCharacterRequest(name), location);
+            QueueRequest(MakeCharacterRequest(name, location), location);
         }
     }
 
     // now get first tab and tab list
-    QNetworkReply *first_tab = network_manager_.get(MakeTabRequest(0, true));
+    QNetworkReply *first_tab = network_manager_.get(MakeTabRequest(0, ItemLocation(), true));
     connect(first_tab, SIGNAL(finished()), this, SLOT(OnFirstTabReceived()));
     reply->deleteLater();
 }
 
-QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, bool tabs) {
+QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, const ItemLocation &location, bool tabs) {
     QUrlQuery query;
     query.addQueryItem("league", league_.c_str());
     query.addQueryItem("tabs", tabs ? "1" : "0");
@@ -182,17 +204,29 @@ QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, bool tabs) {
     TabCache::Flags flags;
     if (tabs) flags |= TabCache::Refresh;
 
-    return Request(url, flags);
+    if (!location.IsValid() || bo_manager_.GetRefreshChecked(location.GetUniqueHash()))
+        flags |= TabCache::Refresh;
+
+    return Request(url, location, flags);
 }
 
-QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name) {
+QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name, const ItemLocation &location) {
     QUrlQuery query;
     query.addQueryItem("character", name.c_str());
     query.addQueryItem("accountName", account_name_.c_str());
 
     QUrl url(kCharacterItemsUrl);
     url.setQuery(query);
-    return Request(url, TabCache::Refresh);
+
+    TabCache::Flags flags;
+    if (!location.IsValid() || bo_manager_.GetRefreshChecked(location.GetUniqueHash()))
+        flags |= TabCache::Refresh;
+
+    return Request(url, location, flags);
+}
+
+QNetworkRequest ItemsManagerWorker::Request(QUrl url, const ItemLocation &location, TabCache::Flags flags) {
+    return tab_cache_->Request(url, location.GetUniqueHash(), flags);
 }
 
 void ItemsManagerWorker::QueueRequest(const QNetworkRequest &request, const ItemLocation &location) {
@@ -258,7 +292,7 @@ void ItemsManagerWorker::OnFirstTabReceived() {
             location.set_tab_id(index);
             location.set_tab_label(label);
             if (!tab.HasMember("hidden") || !tab["hidden"].GetBool())
-                QueueRequest(MakeTabRequest(index), location);
+                QueueRequest(MakeTabRequest(index, location), location);
         }
         ++index;
     }
@@ -377,5 +411,5 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 void ItemsManagerWorker::PreserveSelectedCharacter() {
     if (selected_character_.empty())
         return;
-    network_manager_.get(MakeCharacterRequest(selected_character_));
+    network_manager_.get(MakeCharacterRequest(selected_character_, ItemLocation()));
 }

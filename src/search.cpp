@@ -29,7 +29,7 @@
 #include "filters.h"
 #include "porting.h"
 
-Search::Search(const BuyoutManager &bo_manager, const std::string &caption,
+Search::Search(BuyoutManager &bo_manager, const std::string &caption,
                const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view) :
     caption_(caption),
     view_(view),
@@ -109,6 +109,11 @@ void Search::FilterItems(const Items &items) {
 
 QString Search::GetCaption() {
     return QString("%1 [%2]").arg(caption_.c_str()).arg(GetItemsCount());
+}
+
+std::string Search::GetUniqueTabName(const QModelIndex & index) {
+    auto tab_index = index.parent().isValid() ? index.parent():index;
+    return buckets_[tab_index.row()]->location().GetUniqueHash();
 }
 
 int Search::GetItemsCount() {

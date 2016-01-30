@@ -32,10 +32,11 @@ class Filter;
 class FilterData;
 class ItemsModel;
 class QTreeView;
+class QModelIndex;
 
 class Search {
 public:
-    Search(const BuyoutManager &bo, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view);
+    Search(BuyoutManager &bo, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view);
     void FilterItems(const Items &items);
     void FromForm();
     void ToForm();
@@ -51,6 +52,7 @@ public:
     void Activate(const Items &items);
     void RestoreViewProperties();
     void SaveViewProperties();
+    std::string GetUniqueTabName(const QModelIndex & index);
 
 private:
     void UpdateItemCounts(const Items &items);

@@ -26,7 +26,7 @@
 #include "search.h"
 #include "util.h"
 
-ItemsModel::ItemsModel(const BuyoutManager &bo_manager, const Search &search) :
+ItemsModel::ItemsModel(BuyoutManager &bo_manager, const Search &search) :
     bo_manager_(bo_manager),
     search_(search)
 {
@@ -78,8 +78,16 @@ QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, 
 QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     // Bucket title
     if (index.internalId() == 0) {
-        if (role == Qt::DisplayRole && index.column() == 0) {
-            const ItemLocation &location = search_.buckets()[index.row()]->location();
+        if (index.column() > 0)
+            return QVariant();
+
+        const ItemLocation &location = search_.buckets()[index.row()]->location();
+        if ( role == Qt::CheckStateRole) {
+            if (bo_manager_.GetRefreshLocked(location.GetUniqueHash()))
+                return Qt::PartiallyChecked;
+            return ( bo_manager_.GetRefreshChecked(location.GetUniqueHash()) ? Qt::Checked : Qt::Unchecked );
+        }
+        if (role == Qt::DisplayRole) {
             QString title(location.GetHeader().c_str());
             if (bo_manager_.ExistsTab(location.GetUniqueHash()))
                 title += QString(" [%1]").arg(Util::BuyoutAsText(bo_manager_.GetTab(location.GetUniqueHash())).c_str());
@@ -94,6 +102,33 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     else if (role == Qt::ForegroundRole)
         return column->color(item);
     return QVariant();
+}
+
+Qt::ItemFlags ItemsModel::flags(const QModelIndex &index) const
+{
+    if (!index.isValid())
+        return 0;
+
+    Qt::ItemFlags flags = QAbstractItemModel::flags(index);
+
+    if ( index.column() == 0 && index.internalId() == 0) {
+        const ItemLocation &location = search_.buckets()[index.row()]->location();
+        flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+        if (!bo_manager_.GetRefreshLocked(location.GetUniqueHash())) {
+            flags |= Qt::ItemIsUserCheckable | Qt::ItemIsEditable;
+        }
+    }
+    return flags;
+}
+
+bool ItemsModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+    if (role == Qt::CheckStateRole) {
+        const ItemLocation &location = search_.buckets()[index.row()]->location();
+        bo_manager_.SetRefreshChecked(location.GetUniqueHash(), value.toBool());
+        emit dataChanged(index,index);
+        return true;
+    }
+    return false;
 }
 
 QModelIndex ItemsModel::parent(const QModelIndex &index) const {
