@@ -105,7 +105,7 @@ void ItemsManagerWorker::Init() {
     emit ItemsRefreshed(items_, tabs_, true);
 }
 
-void ItemsManagerWorker::Update(TabCache::Policy policy, const std::set<std::string> &tab_names) {
+void ItemsManagerWorker::Update(TabCache::Policy policy, const std::vector<ItemLocation> &tab_names) {
     if (updating_) {
         QLOG_WARN() << "ItemsManagerWorker::Update called while updating";
         return;
@@ -204,7 +204,7 @@ QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, const ItemLoca
     TabCache::Flags flags;
     if (tabs) flags |= TabCache::Refresh;
 
-    if (!location.IsValid() || bo_manager_.GetRefreshChecked(location.GetUniqueHash()))
+    if (!location.IsValid() || bo_manager_.GetRefreshChecked(location))
         flags |= TabCache::Refresh;
 
     return Request(url, location, flags);
@@ -219,14 +219,14 @@ QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name
     url.setQuery(query);
 
     TabCache::Flags flags;
-    if (!location.IsValid() || bo_manager_.GetRefreshChecked(location.GetUniqueHash()))
+    if (!location.IsValid() || bo_manager_.GetRefreshChecked(location))
         flags |= TabCache::Refresh;
 
     return Request(url, location, flags);
 }
 
 QNetworkRequest ItemsManagerWorker::Request(QUrl url, const ItemLocation &location, TabCache::Flags flags) {
-    return tab_cache_->Request(url, location.GetUniqueHash(), flags);
+    return tab_cache_->Request(url, location, flags);
 }
 
 void ItemsManagerWorker::QueueRequest(const QNetworkRequest &request, const ItemLocation &location) {

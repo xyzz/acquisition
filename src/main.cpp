@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<CurrentStatusUpdate>("CurrentStatusUpdate");
     qRegisterMetaType<Items>("Items");
     qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-    qRegisterMetaType<std::set<std::string>>("std::set<std::string>");
+    qRegisterMetaType<std::vector<ItemLocation>>("std::vector<ItemLocation>");
     qRegisterMetaType<QsLogging::Level>("QsLogging::Level");
     qRegisterMetaType<TabCache::Policy>("TabCache::Policy");
 

@@ -83,9 +83,9 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
 
         const ItemLocation &location = search_.buckets()[index.row()]->location();
         if ( role == Qt::CheckStateRole) {
-            if (bo_manager_.GetRefreshLocked(location.GetUniqueHash()))
+            if (bo_manager_.GetRefreshLocked(location))
                 return Qt::PartiallyChecked;
-            return ( bo_manager_.GetRefreshChecked(location.GetUniqueHash()) ? Qt::Checked : Qt::Unchecked );
+            return ( bo_manager_.GetRefreshChecked(location) ? Qt::Checked : Qt::Unchecked );
         }
         if (role == Qt::DisplayRole) {
             QString title(location.GetHeader().c_str());
@@ -114,7 +114,7 @@ Qt::ItemFlags ItemsModel::flags(const QModelIndex &index) const
     if ( index.column() == 0 && index.internalId() == 0) {
         const ItemLocation &location = search_.buckets()[index.row()]->location();
         flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
-        if (!bo_manager_.GetRefreshLocked(location.GetUniqueHash())) {
+        if (!bo_manager_.GetRefreshLocked(location)) {
             flags |= Qt::ItemIsUserCheckable | Qt::ItemIsEditable;
         }
     }
@@ -124,7 +124,7 @@ Qt::ItemFlags ItemsModel::flags(const QModelIndex &index) const
 bool ItemsModel::setData(const QModelIndex &index, const QVariant &value, int role) {
     if (role == Qt::CheckStateRole) {
         const ItemLocation &location = search_.buckets()[index.row()]->location();
-        bo_manager_.SetRefreshChecked(location.GetUniqueHash(), value.toBool());
+        bo_manager_.SetRefreshChecked(location, value.toBool());
         emit dataChanged(index,index);
         return true;
     }

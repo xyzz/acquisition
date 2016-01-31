@@ -57,7 +57,7 @@ public:
     ~ItemsManagerWorker();
 public slots:
     void Init();
-    void Update(TabCache::Policy policy, const std::set<std::string> &tab_names = std::set<std::string>());
+    void Update(TabCache::Policy policy, const std::vector<ItemLocation> &tab_names = std::vector<ItemLocation>());
 public slots:
     void OnMainPageReceived();
     void OnCharacterListReceived();
@@ -70,7 +70,6 @@ public slots:
     */
     void FetchItems(int limit = kThrottleRequests);
     void PreserveSelectedCharacter();
-    void FlushCache() { tab_cache_->clear(); }
 signals:
     void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
     void StatusUpdate(const CurrentStatusUpdate &status);

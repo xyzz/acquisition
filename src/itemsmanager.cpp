@@ -54,8 +54,7 @@ void ItemsManager::Start() {
     thread_ = std::make_unique<QThread>();
     worker_ = std::make_unique<ItemsManagerWorker>(app_, thread_.get());
     connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
-    connect(this, SIGNAL(UpdateSignal(TabCache::Policy, const std::set<std::string> &)), worker_.get(), SLOT(Update(TabCache::Policy, const std::set<std::string> &)));
-    connect(this, SIGNAL(FlushCacheSignal()), worker_.get(), SLOT(FlushCache()));
+    connect(this, SIGNAL(UpdateSignal(TabCache::Policy, const std::vector<ItemLocation> &)), worker_.get(), SLOT(Update(TabCache::Policy, const std::vector<ItemLocation> &)));
     connect(worker_.get(), &ItemsManagerWorker::StatusUpdate, this, &ItemsManager::OnStatusUpdate);
     connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>, bool)));
     worker_->moveToThread(thread_.get());
@@ -86,7 +85,7 @@ void ItemsManager::PropagateTabBuyouts() {
         // tabs they are selling from and it prevents those tabs from going stale and
         // posting possible stale data to forumns.
         if (tab_bo_exists || item_bo_exists) {
-            bo.SetRefreshLocked(hash);
+            bo.SetRefreshLocked(item.location());
         }
 
         // The logic below is quite complicated and probably should be simplified.
@@ -120,8 +119,8 @@ void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::s
     emit ItemsRefreshed(initial_refresh);
 }
 
-void ItemsManager::Update(TabCache::Policy policy, const std::set<std::string> &tab_names) {
-    emit UpdateSignal(policy, tab_names);
+void ItemsManager::Update(TabCache::Policy policy, const std::vector<ItemLocation> &locations) {
+    emit UpdateSignal(policy, locations);
 }
 
 void ItemsManager::SetAutoUpdate(bool update) {

@@ -1,5 +1,6 @@
 #include "tabcache.h"
 #include "QsLog.h"
+#include "itemlocation.h"
 
 #include <QDir>
 #include <QDateTime>
@@ -58,7 +59,7 @@ TabCache::TabCache(QObject* parent)
 {
 }
 
-QNetworkRequest TabCache::Request(const QUrl &url, const std::string &tab_name, Flags flags) {
+QNetworkRequest TabCache::Request(const QUrl &url, const ItemLocation &location, Flags flags) {
     QNetworkRequest request{url};
 
     // The cache policy exists so it can override normal behavior for a given refresh.
@@ -83,7 +84,7 @@ QNetworkRequest TabCache::Request(const QUrl &url, const std::string &tab_name, 
         // The case involves refreshing only an explicitily specified set of named tabs, customers
         // use SetManualRefresh to indicate what set of tabs to refresh before triggering a refresh
         // all other network requests will come from the cache if available
-        if (!tab_name.empty() && manual_refresh_.count(tab_name))
+        if (location.IsValid() && manual_refresh_.count(location.GetUniqueHash()))
             remove(url);
         break;
     default:
@@ -108,9 +109,9 @@ void TabCache::OnPolicyUpdate(Policy policy) {
     cache_policy_ = policy;
 }
 
-void TabCache::AddManualRefresh(const std::string &tab_name) {
-    if (!tab_name.empty())
-        manual_refresh_.insert(tab_name);
+void TabCache::AddManualRefresh( const ItemLocation &location) {
+    if (location.IsValid())
+        manual_refresh_.insert(location.GetUniqueHash());
 }
 
 

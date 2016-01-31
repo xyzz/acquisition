@@ -52,7 +52,7 @@ public:
     void Activate(const Items &items);
     void RestoreViewProperties();
     void SaveViewProperties();
-    std::string GetUniqueTabName(const QModelIndex & index);
+    ItemLocation GetTabLocation(const QModelIndex & index);
 
 private:
     void UpdateItemCounts(const Items &items);

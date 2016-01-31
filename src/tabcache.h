@@ -6,6 +6,8 @@
 #include <QIODevice>
 #include <set>
 
+class ItemLocation;
+
 class TabCache : public QNetworkDiskCache
 {
     Q_OBJECT
@@ -29,8 +31,8 @@ public:
 
     ~TabCache() {};
 
-    QNetworkRequest Request(const QUrl & url, const std::string &tab_name, Flags flags = None);
-    void AddManualRefresh(const std::string &tab_name);
+    QNetworkRequest Request(const QUrl & url, const ItemLocation &loc, Flags flags = None);
+    void AddManualRefresh(const ItemLocation &loc);
 
     QIODevice *prepare(const QNetworkCacheMetaData &metaData);
 

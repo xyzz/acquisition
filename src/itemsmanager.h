@@ -45,8 +45,7 @@ public:
     ~ItemsManager();
     // Creates and starts the worker
     void Start();
-    void Update(TabCache::Policy policy = TabCache::DefaultCache, const std::set<std::string>& tab_names = std::set<std::string>());
-    void FlushCache() { emit FlushCacheSignal(); }
+    void Update(TabCache::Policy policy = TabCache::DefaultCache, const std::vector<ItemLocation>& tab_names = std::vector<ItemLocation>());
     void SetAutoUpdateInterval(int minutes);
     void SetAutoUpdate(bool update);
     int auto_update_interval() const { return auto_update_interval_; }
@@ -61,8 +60,7 @@ public slots:
     void OnStatusUpdate(const CurrentStatusUpdate &status);
     void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
 signals:
-    void UpdateSignal(TabCache::Policy policy = TabCache::DefaultCache, const std::set<std::string>& tab_names = std::set<std::string>());
-    void FlushCacheSignal();
+    void UpdateSignal(TabCache::Policy policy = TabCache::DefaultCache, const std::vector<ItemLocation>& tab_names = std::vector<ItemLocation>());
     void ItemsRefreshed(bool initial_refresh);
     void StatusUpdate(const CurrentStatusUpdate &status);
 private:

@@ -227,15 +227,15 @@ void MainWindow::OnCollapseAll() {
 
 void MainWindow::OnRefreshSelected() {
     // Get names of tabs to refresh
-    std::set<std::string> tabs;
+    std::vector<ItemLocation> locations;
     for (auto const &index: ui->treeView->selectionModel()->selectedIndexes()) {
         // Fetch tab names per index
         //auto tab_index = index.parent().isValid() ? index.parent():index;
         //auto tab_name = current_search_->buckets()[tab_index.row()]->location().GetUniqueHash();
-        tabs.insert(current_search_->GetUniqueTabName(index));
+        locations.push_back(current_search_->GetTabLocation(index));
     }
 
-    app_->items_manager().Update(TabCache::ManualCache, tabs);
+    app_->items_manager().Update(TabCache::ManualCache, locations);
 }
 
 void MainWindow::ResizeTreeColumns() {

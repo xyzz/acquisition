@@ -111,9 +111,9 @@ QString Search::GetCaption() {
     return QString("%1 [%2]").arg(caption_.c_str()).arg(GetItemsCount());
 }
 
-std::string Search::GetUniqueTabName(const QModelIndex & index) {
+ItemLocation Search::GetTabLocation(const QModelIndex & index) {
     auto tab_index = index.parent().isValid() ? index.parent():index;
-    return buckets_[tab_index.row()]->location().GetUniqueHash();
+    return buckets_[tab_index.row()]->location();
 }
 
 int Search::GetItemsCount() {
