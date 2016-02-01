@@ -80,21 +80,21 @@ void BuyoutManager::DeleteTab(const std::string &tab) {
 
 void BuyoutManager::SetRefreshChecked(const ItemLocation &loc, bool value) {
     save_needed_ = true;
-    refresh_checked_[loc.GetHeader()] = value;
+    refresh_checked_[loc.GetUniqueHash()] = value;
 }
 
 bool BuyoutManager::GetRefreshChecked(const ItemLocation &loc) const {
-    auto it = refresh_checked_.find(loc.GetHeader());
+    auto it = refresh_checked_.find(loc.GetUniqueHash());
     bool refresh_checked = (it != refresh_checked_.end()) ? it->second : (false);
     return (refresh_checked || GetRefreshLocked(loc));
 }
 
 bool BuyoutManager::GetRefreshLocked(const ItemLocation &loc) const {
-    return refresh_locked_.count(loc.GetHeader());
+    return refresh_locked_.count(loc.GetUniqueHash());
 }
 
 void BuyoutManager::SetRefreshLocked(const ItemLocation &loc) {
-    refresh_locked_.insert(loc.GetHeader());
+    refresh_locked_.insert(loc.GetUniqueHash());
 }
 
 void BuyoutManager::ClearRefreshLocks() {
