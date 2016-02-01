@@ -81,7 +81,7 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
         if (index.column() > 0)
             return QVariant();
 
-        const ItemLocation &location = search_.buckets()[index.row()]->location();
+        const ItemLocation &location = search_.GetTabLocation(index);
         if ( role == Qt::CheckStateRole) {
             if (bo_manager_.GetRefreshLocked(location))
                 return Qt::PartiallyChecked;
@@ -112,7 +112,7 @@ Qt::ItemFlags ItemsModel::flags(const QModelIndex &index) const
     Qt::ItemFlags flags = QAbstractItemModel::flags(index);
 
     if ( index.column() == 0 && index.internalId() == 0) {
-        const ItemLocation &location = search_.buckets()[index.row()]->location();
+        const ItemLocation &location = search_.GetTabLocation(index);
         flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
         if (!bo_manager_.GetRefreshLocked(location)) {
             flags |= Qt::ItemIsUserCheckable | Qt::ItemIsEditable;
@@ -123,7 +123,7 @@ Qt::ItemFlags ItemsModel::flags(const QModelIndex &index) const
 
 bool ItemsModel::setData(const QModelIndex &index, const QVariant &value, int role) {
     if (role == Qt::CheckStateRole) {
-        const ItemLocation &location = search_.buckets()[index.row()]->location();
+        const ItemLocation &location = search_.GetTabLocation(index);
         bo_manager_.SetRefreshChecked(location, value.toBool());
         emit dataChanged(index,index);
         return true;

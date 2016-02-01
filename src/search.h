@@ -52,7 +52,7 @@ public:
     void Activate(const Items &items);
     void RestoreViewProperties();
     void SaveViewProperties();
-    ItemLocation GetTabLocation(const QModelIndex & index);
+    ItemLocation GetTabLocation(const QModelIndex & index) const;
 
 private:
     void UpdateItemCounts(const Items &items);

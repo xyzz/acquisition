@@ -230,8 +230,6 @@ void MainWindow::OnRefreshSelected() {
     std::vector<ItemLocation> locations;
     for (auto const &index: ui->treeView->selectionModel()->selectedIndexes()) {
         // Fetch tab names per index
-        //auto tab_index = index.parent().isValid() ? index.parent():index;
-        //auto tab_name = current_search_->buckets()[tab_index.row()]->location().GetUniqueHash();
         locations.push_back(current_search_->GetTabLocation(index));
     }
 
