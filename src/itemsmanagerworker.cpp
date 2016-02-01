@@ -259,6 +259,7 @@ void ItemsManagerWorker::FetchItems(int limit) {
     QLOG_DEBUG() << "Created" << count << "requests:" << tab_titles.c_str();
     requests_needed_ = count;
     requests_completed_ = 0;
+    cached_requests_completed_ = 0;
 }
 
 void ItemsManagerWorker::OnFirstTabReceived() {
@@ -337,6 +338,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 
     if (cache_status) {
         QLOG_DEBUG() << "Received a cached reply for" << reply.request.location.GetHeader().c_str();
+        ++cached_requests_completed_;
     } else {
         QLOG_DEBUG() << "Received a reply for" << reply.request.location.GetHeader().c_str();
     }
@@ -367,8 +369,15 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     bool throttled = false;
     if (requests_completed_ == requests_needed_ && queue_.size() > 0) {
         throttled = true;
-        QLOG_DEBUG() << "Sleeping one minute to prevent throttling.";
-        QTimer::singleShot(kThrottleSleep * 1000, this, SLOT(FetchItems()));
+        if (cached_requests_completed_ > 0) {
+            // We basically don't want cached requests to count against throttle limit
+            // so if we did get any cached requests fetch up to that number without a
+            // large delay
+            QTimer::singleShot(1, [&]() { FetchItems(cached_requests_completed_); });
+        } else {
+            QLOG_DEBUG() << "Sleeping one minute to prevent throttling.";
+            QTimer::singleShot(kThrottleSleep * 1000, this, SLOT(FetchItems()));
+        }
     }
     CurrentStatusUpdate status = CurrentStatusUpdate();
     status.state = throttled ? ProgramState::ItemsPaused : ProgramState::ItemsReceive;
