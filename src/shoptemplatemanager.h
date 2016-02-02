@@ -6,6 +6,10 @@
 #include "application.h"
 #include "item.h"
 
+#if defined _MSC_VER && _MSC_VER >= 1900
+    #include <functional>
+#endif
+
 // Using Procurement-style templates
 class ShopTemplateManager : public QObject
 {
