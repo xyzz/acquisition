@@ -115,7 +115,7 @@ Qt::ItemFlags ItemsModel::flags(const QModelIndex &index) const
         const ItemLocation &location = search_.GetTabLocation(index);
         flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
         if (!bo_manager_.GetRefreshLocked(location)) {
-            flags |= Qt::ItemIsUserCheckable | Qt::ItemIsEditable;
+            flags |= Qt::ItemIsUserCheckable;
         }
     }
     return flags;
@@ -125,7 +125,18 @@ bool ItemsModel::setData(const QModelIndex &index, const QVariant &value, int ro
     if (role == Qt::CheckStateRole) {
         const ItemLocation &location = search_.GetTabLocation(index);
         bo_manager_.SetRefreshChecked(location, value.toBool());
-        emit dataChanged(index,index);
+
+        // It's possible that our tabs can have the same name.  Right now we don't have a
+        // way to differentiate these tabs so indicate dataChanged event for each tab with
+        // the same name as the current checked tab so the 'check' is properly updated in
+        // the layout
+        std::string target_hash = location.GetUniqueHash();
+        for (int i = 0; i < columnCount(); ++i) {
+            auto match_index = this->index(i);
+            if (search_.GetTabLocation(match_index).GetUniqueHash() == target_hash)
+                emit dataChanged(match_index,match_index);
+        }
+
         return true;
     }
     return false;

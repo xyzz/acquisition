@@ -84,7 +84,7 @@ void ItemsManager::PropagateTabBuyouts() {
         // be ON.  I think this is intuitive, that users generally want to auto-refresh
         // tabs they are selling from and it prevents those tabs from going stale and
         // posting possible stale data to forumns.
-        if (tab_bo_exists || item_bo_exists) {
+        if (tab_bo_exists || (item_bo_exists && !item_bo.inherited)) {
             bo.SetRefreshLocked(item.location());
         }
 

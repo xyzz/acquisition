@@ -78,11 +78,11 @@ QNetworkRequest TabCache::Request(const QUrl &url, const ItemLocation &location,
         // from the cache that is available for all network requests
         break;
     case NeverCache:
-        // We've already fully flushed the cache in SetPolicy, so nothing to do here.
+        // We've already fully flushed the cache in OnPolicyUpdate, so nothing to do here.
         break;
     case ManualCache:
         // The case involves refreshing only an explicitily specified set of named tabs, customers
-        // use SetManualRefresh to indicate what set of tabs to refresh before triggering a refresh
+        // use AddManualRefresh to indicate what set of tabs to refresh before triggering a refresh
         // all other network requests will come from the cache if available
         if (location.IsValid() && manual_refresh_.count(location.GetUniqueHash()))
             remove(url);

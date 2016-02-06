@@ -85,7 +85,7 @@ void BuyoutManager::SetRefreshChecked(const ItemLocation &loc, bool value) {
 
 bool BuyoutManager::GetRefreshChecked(const ItemLocation &loc) const {
     auto it = refresh_checked_.find(loc.GetUniqueHash());
-    bool refresh_checked = (it != refresh_checked_.end()) ? it->second : (false);
+    bool refresh_checked = (it != refresh_checked_.end()) ? it->second : true;
     return (refresh_checked || GetRefreshLocked(loc));
 }
 
