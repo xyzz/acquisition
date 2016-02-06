@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     QLocale::setDefault(QLocale::C);
     std::setlocale(LC_ALL, "C");
 
-#if defined(CRASHRPT) && !defined(DEBUG)
+#if defined(CRASHRPT) && !defined(_DEBUG)
     CR_INSTALL_INFOW info;
     memset(&info, 0, sizeof(CR_INSTALL_INFOW));
     info.cb = sizeof(CR_INSTALL_INFOW);

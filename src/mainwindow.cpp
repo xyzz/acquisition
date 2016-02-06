@@ -98,6 +98,14 @@ void MainWindow::InitializeLogging() {
     LogPanel *log_panel = new LogPanel(this, ui);
     QsLogging::DestinationPtr log_panel_ptr(log_panel);
     QsLogging::Logger::instance().addDestination(log_panel_ptr);
+
+    // display warnings here so it's more visible
+#if defined(Q_OS_WIN) && !defined(CRASHRPT) && !defined(_DEBUG)
+    QLOG_ERROR() << "Maintainer: Windows release build without CRASHRPT.";
+#endif
+#if defined(_DEBUG)
+    QLOG_ERROR() << "Maintainer: This is a debug build.";
+#endif
 }
 
 void MainWindow::InitializeUi() {
