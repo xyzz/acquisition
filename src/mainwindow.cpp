@@ -303,13 +303,13 @@ void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
     switch (status.state) {
     case ProgramState::ItemsReceive:
     case ProgramState::ItemsPaused:
-        title = QString("Receiving stash data, %1/%2").arg(status.progress).arg(status.total);
+        title = QString("Receiving stash data, %1/%2 [%3 from cache]").arg(status.progress).arg(status.total).arg(status.cached);
         if (status.state == ProgramState::ItemsPaused)
             title += " (throttled, sleeping 60 seconds)";
         need_progress = true;
         break;
     case ProgramState::ItemsCompleted:
-        title = "Received all tabs";
+        title = QString("Received %1 tabs [%2 from cache]").arg(status.total).arg(status.cached);
         break;
     case ProgramState::ShopSubmitting:
         title = QString("Sending your shops to the forum, %1/%2").arg(status.progress).arg(status.total);

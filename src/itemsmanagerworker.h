@@ -88,7 +88,7 @@ private:
     std::queue<ItemsRequest> queue_;
     std::map<int, ItemsReply> replies_;
     Items items_;
-    int total_completed_, total_needed_;
+    int total_completed_, total_needed_, total_cached_;
     int requests_completed_, requests_needed_;
     int cached_requests_completed_{0};
     

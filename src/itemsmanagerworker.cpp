@@ -306,6 +306,8 @@ void ItemsManagerWorker::OnFirstTabReceived() {
 
     total_needed_ = queue_.size() + 1;
     total_completed_ = 1;
+    total_cached_ = reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool() ? 1:0;
+
     FetchItems(kThrottleRequests - 1);
 
     connect(signal_mapper_, SIGNAL(mapped(int)), this, SLOT(OnTabReceived(int)));
@@ -338,6 +340,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     if (cache_status) {
         QLOG_DEBUG() << "Received a cached reply for" << reply.request.location.GetHeader().c_str();
         ++cached_requests_completed_;
+        ++total_cached_;
     } else {
         QLOG_DEBUG() << "Received a reply for" << reply.request.location.GetHeader().c_str();
     }
@@ -371,13 +374,13 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 
     bool throttled = false;
     if (requests_completed_ == requests_needed_ && queue_.size() > 0) {
-        throttled = true;
         if (cached_requests_completed_ > 0) {
             // We basically don't want cached requests to count against throttle limit
             // so if we did get any cached requests fetch up to that number without a
             // large delay
             QTimer::singleShot(1, [&]() { FetchItems(cached_requests_completed_); });
         } else {
+            throttled = true;
             QLOG_DEBUG() << "Sleeping one minute to prevent throttling.";
             QTimer::singleShot(kThrottleSleep * 1000, this, SLOT(FetchItems()));
         }
@@ -386,6 +389,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     status.state = throttled ? ProgramState::ItemsPaused : ProgramState::ItemsReceive;
     status.progress = total_completed_;
     status.total = total_needed_;
+    status.cached = total_cached_;
     if (total_completed_ == total_needed_)
         status.state = ProgramState::ItemsCompleted;
     emit StatusUpdate(status);

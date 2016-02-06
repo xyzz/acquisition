@@ -71,7 +71,7 @@ enum class ProgramState {
 
 struct CurrentStatusUpdate {
     ProgramState state;
-    int progress, total;
+    int progress, total, cached;
 };
 
 class MainWindow : public QMainWindow {
