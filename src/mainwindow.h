@@ -91,6 +91,8 @@ public slots:
     void ResizeTreeColumns();
     void OnExpandAll();
     void OnCollapseAll();
+    void OnCheckAll();
+    void OnUncheckAll();
     void OnRefreshSelected();
     void OnUpdateAvailable();
     void OnOnlineUpdate(bool online);

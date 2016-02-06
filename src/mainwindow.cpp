@@ -152,6 +152,9 @@ void MainWindow::InitializeUi() {
 
     context_menu_.addAction("Refresh Selected", this, SLOT(OnRefreshSelected()));
     context_menu_.addSeparator();
+    context_menu_.addAction("Check All", this, SLOT(OnCheckAll()));
+    context_menu_.addAction("Uncheck All", this, SLOT(OnUncheckAll()));
+    context_menu_.addSeparator();
     context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
     context_menu_.addAction("Collapse All", this, SLOT(OnCollapseAll()));
 
@@ -223,6 +226,20 @@ void MainWindow::OnExpandAll() {
 
 void MainWindow::OnCollapseAll() {
     ExpandCollapse(TreeState::kCollapse);
+}
+
+void MainWindow::OnCheckAll() {
+    auto & bo = app_->buyout_manager();
+    for (auto const & bucket: current_search_->buckets())
+        bo.SetRefreshChecked(bucket->location(), true);
+    ui->treeView->model()->layoutChanged();
+}
+
+void MainWindow::OnUncheckAll() {
+    auto & bo = app_->buyout_manager();
+    for (auto const & bucket: current_search_->buckets())
+        bo.SetRefreshChecked(bucket->location(), false);
+     ui->treeView->model()->layoutChanged();
 }
 
 void MainWindow::OnRefreshSelected() {

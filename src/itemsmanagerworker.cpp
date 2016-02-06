@@ -357,8 +357,12 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     }
 
     // re-queue a failed request
-    if (error)
+    if (error) {
+        // We can 'cache' error response document so make sure we remove it
+        // before reque
+        tab_cache_->remove(reply.request.network_request.url());
         QueueRequest(reply.request.network_request, reply.request.location);
+    }
 
     ++requests_completed_;
 
