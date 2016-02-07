@@ -28,11 +28,13 @@
 #include "column.h"
 #include "filters.h"
 #include "porting.h"
+#include "QsLog.h"
 
 Search::Search(BuyoutManager &bo_manager, const std::string &caption,
                const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view) :
     caption_(caption),
     view_(view),
+    bo_manager_(bo_manager),
     model_(std::make_unique<ItemsModel>(bo_manager, *this))
 {
     using move_only = std::unique_ptr<Column>;
@@ -98,6 +100,16 @@ void Search::FilterItems(const Items &items) {
         if (!bucketed_tabs.count(location))
             bucketed_tabs[location] = std::make_unique<Bucket>(location);
         bucketed_tabs[location]->AddItem(item);
+    }
+
+    // We need to add empty tabs here as there are no items to force their addition
+    // But only do so if no filters are active as we want to hide empty tabs when
+    // filtering
+    if (!IsAnyFilterActive()) {
+        for (auto &location: bo_manager_.GetStashTabLocations())
+            if (!bucketed_tabs.count(location)) {
+                bucketed_tabs[location] = std::make_unique<Bucket>(location);
+            }
     }
 
     buckets_.clear();

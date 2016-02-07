@@ -62,6 +62,7 @@ private:
     std::string caption_;
     Items items_;
     QTreeView *view_{nullptr};
+    BuyoutManager &bo_manager_;
     std::unique_ptr<ItemsModel> model_;
     std::vector<std::unique_ptr<Bucket>> buckets_;
     uint unfiltered_item_count_{0};

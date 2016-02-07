@@ -107,6 +107,7 @@ void BuyoutManager::Clear() {
     tab_buyouts_.clear();
     refresh_locked_.clear();
     refresh_checked_.clear();
+    tabs_.clear();
 }
 
 std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyouts) {
@@ -226,6 +227,13 @@ void BuyoutManager::Load() {
     Deserialize(data_.Get("buyouts"), &buyouts_);
     Deserialize(data_.Get("tab_buyouts"), &tab_buyouts_);
     Deserialize(data_.Get("refresh_checked_state"), refresh_checked_);
+}
+void BuyoutManager::SetStashTabLocations(const std::vector<ItemLocation> &tabs) {
+    tabs_ = tabs;
+}
+
+const std::vector<ItemLocation> BuyoutManager::GetStashTabLocations() const {
+    return tabs_;
 }
 
 void BuyoutManager::MigrateItem(const Item &item) {

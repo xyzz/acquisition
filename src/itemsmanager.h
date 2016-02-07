@@ -51,14 +51,13 @@ public:
     int auto_update_interval() const { return auto_update_interval_; }
     bool auto_update() const { return auto_update_; }
     const Items &items() const { return items_; }
-    const std::vector<std::string> &tabs() const { return tabs_; }
     void PropagateTabBuyouts();
 public slots:
     // called by auto_update_timer_
     void OnAutoRefreshTimer();
     // Used to glue Worker's signals to MainWindow
     void OnStatusUpdate(const CurrentStatusUpdate &status);
-    void OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
+    void OnItemsRefreshed(const Items &items, const std::vector<ItemLocation> &tabs, bool initial_refresh);
 signals:
     void UpdateSignal(TabCache::Policy policy = TabCache::DefaultCache, const std::vector<ItemLocation>& tab_names = std::vector<ItemLocation>());
     void ItemsRefreshed(bool initial_refresh);
@@ -78,5 +77,4 @@ private:
     Shop &shop_;
     Application &app_;
     Items items_;
-    std::vector<std::string> tabs_;
 };

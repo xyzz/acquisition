@@ -56,7 +56,7 @@ void ItemsManager::Start() {
     connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
     connect(this, SIGNAL(UpdateSignal(TabCache::Policy, const std::vector<ItemLocation> &)), worker_.get(), SLOT(Update(TabCache::Policy, const std::vector<ItemLocation> &)));
     connect(worker_.get(), &ItemsManagerWorker::StatusUpdate, this, &ItemsManager::OnStatusUpdate);
-    connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>, bool)));
+    connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<ItemLocation>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<ItemLocation>, bool)));
     worker_->moveToThread(thread_.get());
     thread_->start();
 }
@@ -110,9 +110,10 @@ void ItemsManager::PropagateTabBuyouts() {
     }
 }
 
-void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh) {
+void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<ItemLocation> &tabs, bool initial_refresh) {
     items_ = items;
-    tabs_ = tabs;
+
+    bo_manager_.SetStashTabLocations(tabs);
     MigrateBuyouts();
     PropagateTabBuyouts();
 

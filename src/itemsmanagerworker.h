@@ -71,7 +71,7 @@ public slots:
     void FetchItems(int limit = kThrottleRequests);
     void PreserveSelectedCharacter();
 signals:
-    void ItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh);
+    void ItemsRefreshed(const Items &items, const std::vector<ItemLocation> &tabs, bool initial_refresh);
     void StatusUpdate(const CurrentStatusUpdate &status);
 private:
 
@@ -84,7 +84,7 @@ private:
     DataStore &data_;
     QNetworkAccessManager network_manager_;
     QSignalMapper *signal_mapper_;
-    std::vector<std::string> tabs_;
+    std::vector<ItemLocation> tabs_;
     std::queue<ItemsRequest> queue_;
     std::map<int, ItemsReply> replies_;
     Items items_;
@@ -100,6 +100,7 @@ private:
     int queue_id_;
     std::string selected_character_;
 
+    int first_fetch_tab_{1};
     TabCache *tab_cache_{new TabCache()};
     const BuyoutManager &bo_manager_;
     std::string account_name_;

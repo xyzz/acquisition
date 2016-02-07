@@ -15,7 +15,7 @@ class ItemLocation {
 public:
     ItemLocation();
     explicit ItemLocation(const rapidjson::Value &root);
-    ItemLocation(int tab_id, std::string tab_label); // used by tests
+    ItemLocation(int tab_id, std::string name, ItemLocationType = ItemLocationType::STASH);
     void ToItemJson(rapidjson::Value *root, rapidjson_allocator &alloc);
     void FromItemJson(const rapidjson::Value &root);
     std::string GetHeader() const;
@@ -30,6 +30,7 @@ public:
     void set_tab_label(const std::string &tab_label) { tab_label_ = tab_label; }
     bool socketed() const { return socketed_; }
     void set_socketed(bool socketed) { socketed_ = socketed; }
+    int get_tab_id() const { return tab_id_; }
 private:
     int x_, y_, w_, h_;
     bool socketed_;

@@ -66,7 +66,7 @@ ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     network_manager_.cookieJar()->setCookiesFromUrl(app.logged_in_nm().cookieJar()->cookiesForUrl(poe), poe);
     network_manager_.moveToThread(thread);
 
-    connect(this, SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)), tab_cache_, SLOT(OnItemsRefreshed()));
+    connect(this, SIGNAL(ItemsRefreshed(Items, std::vector<ItemLocation>, bool)), tab_cache_, SLOT(OnItemsRefreshed()));
 }
 
 ItemsManagerWorker::~ItemsManagerWorker() {
@@ -98,7 +98,10 @@ void ItemsManagerWorker::Init() {
                 QLOG_ERROR() << "Malformed tabs data:" << tabs.c_str() << "Tab doesn't contain its name (field 'n').";
                 continue;
             }
-            tabs_.push_back(tab["n"].GetString());
+            auto index = tab["i"].GetInt();
+            // Index 0 is 'hidden' so we don't want to display
+            if (index != 0)
+                tabs_.push_back(ItemLocation(index, tab["n"].GetString()));
         }
     }
     emit ItemsRefreshed(items_, tabs_, true);
@@ -184,8 +187,18 @@ void ItemsManagerWorker::OnCharacterListReceived() {
         }
     }
 
-    // now get first tab and tab list
-    QNetworkReply *first_tab = network_manager_.get(MakeTabRequest(0, ItemLocation(), true));
+    // Fetch a single tab and also request tabs list.  We can fetch any tab here with tabs list
+    // appended, so prefer one that the user has already 'checked'.  Default to index '1' which is
+    // first user visible tab.
+    first_fetch_tab_ = 1;
+    for (auto const &tab : tabs_) {
+        if (bo_manager_.GetRefreshChecked(tab)) {
+            first_fetch_tab_ = tab.get_tab_id();
+            break;
+        }
+    }
+
+    QNetworkReply *first_tab = network_manager_.get(MakeTabRequest(first_fetch_tab_, ItemLocation(), true));
     connect(first_tab, SIGNAL(finished()), this, SLOT(OnFirstTabReceived()));
     reply->deleteLater();
 }
@@ -267,7 +280,6 @@ void ItemsManagerWorker::OnFirstTabReceived() {
     rapidjson::Document doc;
     doc.Parse(bytes.constData());
 
-    int index = 0;
     if (!doc.IsObject()) {
         QLOG_ERROR() << "Can't even fetch first tab. Failed to update items.";
         updating_ = false;
@@ -283,26 +295,25 @@ void ItemsManagerWorker::OnFirstTabReceived() {
 
     QLOG_DEBUG() << "Received tabs list, there are" << doc["tabs"].Size() << "tabs";
     tabs_.clear();
+
+    // Create tab location objects
     for (auto &tab : doc["tabs"]) {
         std::string label = tab["n"].GetString();
-        tabs_.push_back(label);
-        if (index > 0) {
-            ItemLocation location;
-            location.set_type(ItemLocationType::STASH);
-            location.set_tab_id(index);
-            location.set_tab_label(label);
-            if (!tab.HasMember("hidden") || !tab["hidden"].GetBool())
-                QueueRequest(MakeTabRequest(index, location), location);
-        }
-        ++index;
+        auto index = tab["i"].GetInt();
+        // Ignore hidden locations
+        if (!doc["tabs"][index].HasMember("hidden") || !doc["tabs"][index]["hidden"].GetBool())
+            tabs_.push_back(ItemLocation(index, label, ItemLocationType::STASH));
     }
 
-    ItemLocation first_tab_location;
-    first_tab_location.set_type(ItemLocationType::STASH);
-    first_tab_location.set_tab_id(0);
-    first_tab_location.set_tab_label(tabs_[0]);
-    if (!doc["tabs"][0].HasMember("hidden") || !doc["tabs"][0]["hidden"].GetBool())
-        ParseItems(&doc["items"], first_tab_location, doc.GetAllocator());
+    // Immediately parse items received from this tab (first_fetch_tab_) and Queue requests for the others
+    for (auto const &tab: tabs_) {
+        auto index = tab.get_tab_id();
+        if (index == first_fetch_tab_) {
+            ParseItems(&doc["items"], tab, doc.GetAllocator());
+        } else {
+            QueueRequest(MakeTabRequest(index, tab), tab);
+        }
+    }
 
     total_needed_ = queue_.size() + 1;
     total_completed_ = 1;
