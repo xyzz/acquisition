@@ -93,6 +93,8 @@ public slots:
     void OnCollapseAll();
     void OnCheckAll();
     void OnUncheckAll();
+    void OnCheckSelected() { CheckSelected(true); };
+    void OnUncheckSelected() { CheckSelected(false); };
     void OnRefreshSelected();
     void OnUpdateAvailable();
     void OnOnlineUpdate(bool online);
@@ -130,6 +132,7 @@ private:
     void ExpandCollapse(TreeState state);
     void UpdateOnlineGui();
     void closeEvent();
+    void CheckSelected(bool value);
 
     std::unique_ptr<Application> app_;
     Ui::MainWindow *ui;
