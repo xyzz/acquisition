@@ -94,6 +94,8 @@ void Search::FilterItems(const Items &items) {
             items_.push_back(item);
     }
 
+    UpdateItemCounts(items);
+
     std::map<ItemLocation, std::unique_ptr<Bucket>> bucketed_tabs;
     for (const auto &item : items_) {
         ItemLocation location = item->location();
@@ -115,8 +117,6 @@ void Search::FilterItems(const Items &items) {
     buckets_.clear();
     for (auto &element : bucketed_tabs)
         buckets_.push_back(std::move(element.second));
-
-    UpdateItemCounts(items);
 }
 
 QString Search::GetCaption() {
