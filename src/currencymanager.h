@@ -23,12 +23,60 @@
 #include <QtWidgets>
 
 #include "application.h"
+#include "buyoutmanager.h"
+struct CurrencyRatio {
+    Currency curr1;
+    Currency curr2;
+    double value1;
+    double value2;
+    CurrencyRatio() :
+        curr1(CURRENCY_NONE),
+        curr2(CURRENCY_NONE),
+        value1(0),
+        value2(0)
+    {}
+    CurrencyRatio(Currency c1, Currency c2, double v1, double v2) :
+        curr1(c1),
+        curr2(c2),
+        value1(v1),
+        value2(v2)
+    {}
+};
 
 struct CurrencyItem {
     int count;
+    Currency currency;
     std::string name;
-    double exalt;
-    double base;
+    CurrencyRatio exalt;
+    CurrencyRatio chaos;
+    CurrencyItem(int co, Currency curr, double chaos_ratio, double exalt_ratio) {
+        count = co;
+        currency = curr;
+        name = CurrencyAsString[curr];
+        chaos = CurrencyRatio(currency, CURRENCY_CHAOS_ORB, chaos_ratio, 1);
+        exalt = CurrencyRatio(currency, CURRENCY_EXALTED_ORB, exalt_ratio, 1);
+    }
+
+};
+
+class CurrencyDialog;
+class CurrencyWidget : public QWidget
+{
+    Q_OBJECT
+public slots:
+    void Update();
+public:
+    CurrencyWidget(std::shared_ptr<CurrencyItem> currency);
+    //Visual stuff
+    QLabel *name_;
+    QDoubleSpinBox *chaos_ratio_;
+    QDoubleSpinBox *chaos_value_;
+    QDoubleSpinBox *exalt_ratio_;
+    QDoubleSpinBox *exalt_value_;
+
+private:
+    //Data
+    std::shared_ptr<CurrencyItem> currency_;
 };
 
 // For now we just serialize/deserialize 'value' inside CurrencyManager
@@ -63,19 +111,17 @@ public:
     CurrencyDialog(CurrencyManager &manager);
 public slots:
     void Update();
+    void UpdateTotalValue();
 private:
     CurrencyManager &currency_manager_;
+    std::vector<CurrencyWidget*> currencies_widgets_;
+
     QGridLayout *layout_;
-    std::vector<QLabel *> names_;
-    std::vector<QDoubleSpinBox *> values_;
-    std::vector<QDoubleSpinBox *> base_values_;
-    QDoubleSpinBox *total_value_;
+    QDoubleSpinBox *total_exalt_value_;
+    QDoubleSpinBox *total_chaos_value_;
     QDoubleSpinBox *total_wisdom_value_;
     QSignalMapper *mapper;
-    void UpdateTotalExaltedValue();
     void UpdateTotalWisdomValue();
-private slots:
-    void OnBaseValueChanged(int index);
 };
 
 class CurrencyManager : public QWidget
@@ -87,9 +133,10 @@ public:
     void ClearCurrency();
     // Called in itemmanagerworker::ParseItem
     void ParseSingleItem(const Item &item);
-    void UpdateBaseValue(int ind, double value);
-    const std::vector<CurrencyItem> &currencies() const { return currencies_;}
+    //void UpdateBaseValue(int ind, double value);
+    const std::vector<std::shared_ptr<CurrencyItem>> &currencies() const { return currencies_;}
     double TotalExaltedValue();
+    double TotalChaosValue();
     int TotalWisdomValue();
     void DisplayCurrency();
     void Update();
@@ -99,16 +146,19 @@ public:
 private:
     Application &app_;
     DataStore &data_;
-    std::vector<CurrencyItem> currencies_;
+    std::vector<std::shared_ptr<CurrencyItem>> currencies_;
     // We only need the "count" of a CurrencyItem so int will be enough
     std::vector<int> wisdoms_;
-    std::unique_ptr<CurrencyDialog> dialog_;
-    // database interaction
+    std::shared_ptr<CurrencyDialog> dialog_;
+    // Used only the first time we launch the app
+    void FirstInitCurrency();
+    //Migrate from old storage (csv-like serializing) to new one (using json)
+    void MigrateCurrency();
     void InitCurrency();
-    void LoadCurrency();
-    void SaveCurrencyBase();
+    void SaveCurrencyItems();
+    std::string Serialize(const std::vector<std::shared_ptr<CurrencyItem>> &currencies);
+    void Deserialize(const std::string &data, std::vector<std::shared_ptr<CurrencyItem>> *currencies);
 
 public slots:
-    void UpdateExaltedValue();
     void SaveCurrencyValue();
 };
