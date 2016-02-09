@@ -58,17 +58,42 @@ struct CurrencyItem {
     }
 
 };
+struct CurrencyLabels {
+    QLabel *name;
+    QLabel *count;
+    QLabel *chaos_ratio;
+    QLabel *chaos_value;
+    QLabel *exalt_ratio;
+    QLabel *exalt_value;
+    QLabel *exalt_total;
+    QLabel *chaos_total;
+    QLabel *wisdom_total;
+    CurrencyLabels() {
+        name = new QLabel("Name");
+        count = new QLabel("Count");
+        chaos_ratio = new QLabel("Amount a chaos Orb can buy");
+        chaos_value = new QLabel("Value in Chaos Orb");
+        exalt_ratio = new QLabel("Amount an Exalted Orb can buy");
+        exalt_value = new QLabel("Value in Exalted Orb");
+        exalt_total = new QLabel("Total Exalted Orbs");
+        chaos_total = new QLabel("Total Chaos Orbs");
+        wisdom_total = new QLabel("Total Scrolls of Wisdom");
+    }
 
+};
 class CurrencyDialog;
 class CurrencyWidget : public QWidget
 {
     Q_OBJECT
 public slots:
     void Update();
+    void UpdateVisual(bool show_chaos, bool show_exalt);
+    bool isNone() const { return currency_->currency==CURRENCY_NONE;}
 public:
     CurrencyWidget(std::shared_ptr<CurrencyItem> currency);
     //Visual stuff
     QLabel *name_;
+    QLabel *count_;
     QDoubleSpinBox *chaos_ratio_;
     QDoubleSpinBox *chaos_value_;
     QDoubleSpinBox *exalt_ratio_;
@@ -108,21 +133,28 @@ class CurrencyDialog : public QDialog
 {
     Q_OBJECT
 public:
-    CurrencyDialog(CurrencyManager &manager);
+    CurrencyDialog(CurrencyManager &manager, bool showChaos, bool showExalt);
+    bool showChaos() const { return show_chaos_->isChecked();}
+    bool showExalt() const { return show_exalt_->isChecked();}
+
 public slots:
     void Update();
+    void UpdateVisual();
     void UpdateTotalValue();
 private:
     CurrencyManager &currency_manager_;
     std::vector<CurrencyWidget*> currencies_widgets_;
-
+    CurrencyLabels *headers_;
     QGridLayout *layout_;
     QDoubleSpinBox *total_exalt_value_;
     QDoubleSpinBox *total_chaos_value_;
     QDoubleSpinBox *total_wisdom_value_;
-    QSignalMapper *mapper;
+    QCheckBox *show_chaos_;
+    QCheckBox *show_exalt_;
+    QGridLayout* GenerateGrid(bool show_chaos, bool show_exalt);
     void UpdateTotalWisdomValue();
 };
+
 
 class CurrencyManager : public QWidget
 {
@@ -158,7 +190,7 @@ private:
     void SaveCurrencyItems();
     std::string Serialize(const std::vector<std::shared_ptr<CurrencyItem>> &currencies);
     void Deserialize(const std::string &data, std::vector<std::shared_ptr<CurrencyItem>> *currencies);
-
+    void Save();
 public slots:
     void SaveCurrencyValue();
 };
