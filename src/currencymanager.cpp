@@ -285,8 +285,10 @@ void CurrencyWidget::Update() {
     currency_->exalt.value1 = exalt_ratio_->value();
     name_->setText(currency_->name.c_str());
     count_->setText(QString::number(currency_->count));
-    chaos_value_->setValue(currency_->count / currency_->chaos.value1);
-    exalt_value_->setValue(currency_->count / currency_->exalt.value1);
+    if (fabs(currency_->chaos.value1) > EPS)
+        chaos_value_->setValue(currency_->count / currency_->chaos.value1);
+    if (fabs(currency_->exalt.value1) > EPS)
+        exalt_value_->setValue(currency_->count / currency_->exalt.value1);
 }
 
 CurrencyDialog::CurrencyDialog(CurrencyManager& manager, bool show_chaos, bool show_exalt) : currency_manager_(manager) {
@@ -302,23 +304,19 @@ CurrencyDialog::CurrencyDialog(CurrencyManager& manager, bool show_chaos, bool s
         currencies_widgets_.push_back(tmp);
 
     }
-    total_exalt_value_ = new QDoubleSpinBox;
-    total_exalt_value_->setMaximum(100000);
-    total_exalt_value_->setEnabled(false);
+    separator_ = new QFrame;
+    separator_->setFrameShape(QFrame::Shape::HLine);
+    total_exalt_value_ = new QLabel("");
     show_exalt_ = new QCheckBox("show exalt ratio");
     show_exalt_->setChecked(show_exalt);
     connect(show_exalt_, SIGNAL(stateChanged(int)), this, SLOT(UpdateVisual()));
 
-    total_chaos_value_ = new QDoubleSpinBox;
-    total_chaos_value_->setMaximum(100000);
-    total_chaos_value_->setEnabled(false);
+    total_chaos_value_ = new QLabel("");
     show_chaos_ = new QCheckBox("show chaos ratio");
     show_chaos_->setChecked(show_chaos);
     connect(show_chaos_, SIGNAL(stateChanged(int)), this, SLOT(UpdateVisual()));
-    total_wisdom_value_ = new QDoubleSpinBox;
-    total_wisdom_value_->setMaximum(100000);
-    total_wisdom_value_->setEnabled(false);
-    layout_ = new QGridLayout;
+    total_wisdom_value_ = new QLabel("");
+    layout_ = new QVBoxLayout;
     Update();
 
 #if defined(Q_OS_LINUX)
@@ -337,66 +335,83 @@ void CurrencyDialog::Update() {
 
 }
 
-QGridLayout* CurrencyDialog::GenerateGrid(bool show_chaos, bool show_exalt) {
+QVBoxLayout* CurrencyDialog::GenerateLayout(bool show_chaos, bool show_exalt) {
     //Header
-    QGridLayout *layout = new QGridLayout;
-    layout->addWidget(headers_->name, 0, 0);
-    layout->addWidget(headers_->count, 0, 1, 1, -1);
+    QGridLayout *grid = new QGridLayout;
+    grid->addWidget(headers_->name, 0, 0);
+    grid->addWidget(headers_->count, 0, 1);
     int col = 2;
-    //Qt is shit, if we don't hide widget that aren't in the layout, it still display them like shit
-    //Also, if we don't show widget in the layout, if they weren't in it before, it doesn't display them
+    //Qt is shit, if we don't hide widget that aren't in the grid, it still display them like shit
+    //Also, if we don't show widget in the grid, if they weren't in it before, it doesn't display them
     headers_->chaos_value->setVisible(show_chaos);
     headers_->chaos_ratio->setVisible(show_chaos);
     headers_->exalt_value->setVisible(show_exalt);
     headers_->exalt_ratio->setVisible(show_exalt);
 
     if (show_chaos) {
-        layout->addWidget(headers_->chaos_value, 0, col);
-        layout->addWidget(headers_->chaos_ratio, 0, col + 1);
+        grid->addWidget(headers_->chaos_value, 0, col);
+        grid->addWidget(headers_->chaos_ratio, 0, col + 1);
         col += 2;
     }
 
 
     if (show_exalt) {
-        layout->addWidget(headers_->exalt_value, 0, col);
-        layout->addWidget(headers_->exalt_ratio, 0, col +1);
+        grid->addWidget(headers_->exalt_value, 0, col);
+        grid->addWidget(headers_->exalt_ratio, 0, col +1);
     }
     //Main part
     for (auto &item : currencies_widgets_) {
-        int curr_row = layout->rowCount() + 1;
+        int curr_row = grid->rowCount() + 1;
         // To keep every vector the same size, we DO create spinboxes for the empty currency, just don't display them
         if (item->isNone())
             continue;
-        layout->addWidget(item->name_, curr_row, 0);
-        layout->addWidget(item->count_, curr_row, 1, 1, -1);
+        grid->addWidget(item->name_, curr_row, 0);
+        grid->addWidget(item->count_, curr_row, 1, 1, -1);
         int col = 2;
         item->chaos_value_->setVisible(show_chaos);
         item->chaos_ratio_->setVisible(show_chaos);
         item->exalt_value_->setVisible(show_exalt);
         item->exalt_ratio_->setVisible(show_exalt);
         if (show_chaos) {
-            layout->addWidget(item->chaos_value_, curr_row, col);
-            layout->addWidget(item->chaos_ratio_, curr_row, col + 1);
+            grid->addWidget(item->chaos_value_, curr_row, col);
+            grid->addWidget(item->chaos_ratio_, curr_row, col + 1);
             col += 2;
         }
         if (show_exalt) {
-            layout->addWidget(item->exalt_value_, curr_row, col);
-            layout->addWidget(item->exalt_ratio_, curr_row, col + 1);
+            grid->addWidget(item->exalt_value_, curr_row, col);
+            grid->addWidget(item->exalt_ratio_, curr_row, col + 1);
         }
 
 
     }
 
     //Bottom header
-    int curr_row = layout->rowCount() + 1;
-    layout->addWidget(headers_->exalt_total, curr_row, 0);
-    layout->addWidget(total_exalt_value_, curr_row, 1);
-    layout->addWidget(show_exalt_, curr_row , 2);
-    layout->addWidget(headers_->chaos_total, curr_row + 1, 0);
-    layout->addWidget(total_chaos_value_, curr_row + 1, 1);
-    layout->addWidget(show_chaos_, curr_row + 1, 2);
-    layout->addWidget(headers_->wisdom_total, curr_row + 2, 0);
-    layout->addWidget(total_wisdom_value_, curr_row + 2, 1);
+    QGridLayout *bottom = new QGridLayout;
+    //Used to display in the first column the checkbox if we don't display chaos/exalt
+    col = 0;
+    headers_->chaos_total->setVisible(show_chaos);
+    total_chaos_value_->setVisible(show_chaos);
+    if (show_chaos) {
+        bottom->addWidget(headers_->chaos_total,  0, 0);
+        bottom->addWidget(total_chaos_value_, 0, 1);
+        col = 2;
+    }
+    bottom->addWidget(show_chaos_, 0, col);
+    col = 0;
+    headers_->exalt_total->setVisible(show_exalt);
+    total_exalt_value_->setVisible(show_exalt);
+    if (show_exalt) {
+        bottom->addWidget(headers_->exalt_total, 1, 0);
+        bottom->addWidget(total_exalt_value_, 1, 1);
+        col = 2;
+    }
+    bottom->addWidget(show_exalt_, 1 , col);
+    bottom->addWidget(headers_->wisdom_total, 2, 0);
+    bottom->addWidget(total_wisdom_value_, 2, 1);
+    QVBoxLayout *layout = new QVBoxLayout;
+    layout->addLayout(grid);
+    layout->addWidget(separator_);
+    layout->addLayout(bottom);
     return layout;
 
 }
@@ -404,15 +419,16 @@ QGridLayout* CurrencyDialog::GenerateGrid(bool show_chaos, bool show_exalt) {
 void CurrencyDialog::UpdateVisual() {
     //Destroy old layout (because you can't replace a layout, that would be too fun :/)
     delete layout_;
-    layout_ = GenerateGrid(showChaos(), showExalt());
+    layout_ = GenerateLayout(showChaos(), showExalt());
     setLayout(layout_);
+    adjustSize();
 }
 
 void CurrencyDialog::UpdateTotalValue() {
-    total_exalt_value_->setValue(currency_manager_.TotalExaltedValue());
-    total_chaos_value_->setValue(currency_manager_.TotalChaosValue());
+    total_exalt_value_->setText(QString::number(currency_manager_.TotalExaltedValue()));
+    total_chaos_value_->setText(QString::number(currency_manager_.TotalChaosValue()));
 }
 
 void CurrencyDialog::UpdateTotalWisdomValue() {
-    total_wisdom_value_->setValue(currency_manager_.TotalWisdomValue());
+    total_wisdom_value_->setText(QString::number(currency_manager_.TotalWisdomValue()));
 }

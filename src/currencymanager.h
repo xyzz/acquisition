@@ -145,13 +145,14 @@ private:
     CurrencyManager &currency_manager_;
     std::vector<CurrencyWidget*> currencies_widgets_;
     CurrencyLabels *headers_;
-    QGridLayout *layout_;
-    QDoubleSpinBox *total_exalt_value_;
-    QDoubleSpinBox *total_chaos_value_;
-    QDoubleSpinBox *total_wisdom_value_;
+    QVBoxLayout *layout_;
+    QLabel *total_exalt_value_;
+    QLabel *total_chaos_value_;
+    QLabel *total_wisdom_value_;
     QCheckBox *show_chaos_;
     QCheckBox *show_exalt_;
-    QGridLayout* GenerateGrid(bool show_chaos, bool show_exalt);
+    QFrame *separator_;
+    QVBoxLayout* GenerateLayout(bool show_chaos, bool show_exalt);
     void UpdateTotalWisdomValue();
 };
 
