@@ -89,6 +89,7 @@ public:
     const ItemSocketGroup &sockets() const { return sockets_; }
     const std::vector<ItemSocketGroup> &socket_groups() const { return socket_groups_; }
     const ItemLocation &location() const { return location_; }
+    const std::string& json() { return json_; };
     int count() const { return count_; };
     bool has_mtx() const { return has_mtx_; }
     const ModTable &mod_table() const { return mod_table_; }
@@ -115,6 +116,7 @@ private:
     ItemSocketGroup sockets_;
     std::vector<ItemSocketGroup> socket_groups_;
     std::map<std::string, int> requirements_;
+    std::string json_;
     int count_;
     bool has_mtx_;
     std::vector<ItemProperty> text_properties_;

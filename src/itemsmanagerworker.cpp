@@ -27,6 +27,7 @@
 #include "QsLog.h"
 #include <QTimer>
 #include <QUrlQuery>
+#include <algorithm>
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 
@@ -132,7 +133,6 @@ void ItemsManagerWorker::Update(TabCache::Policy policy, const std::vector<ItemL
     replies_.clear();
     items_.clear();
     tabs_as_string_ = "";
-    items_as_string_ = "[ "; // space here is important, see ParseItems and OnTabReceived when all requests are completed
     selected_character_ = "";
 
     // first, download the main page because it's the only way to know which character is selected
@@ -331,7 +331,6 @@ void ItemsManagerWorker::ParseItems(rapidjson::Value *value_ptr, const ItemLocat
         ItemLocation location(base_location);
         location.FromItemJson(item);
         location.ToItemJson(&item, alloc);
-        items_as_string_ += Util::RapidjsonSerialize(item) + ",";
         items_.push_back(std::make_shared<Item>(item));
         location.set_socketed(true);
         ParseItems(&item["socketedItems"], location, alloc);
@@ -411,15 +410,28 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     ParseItems(&doc["items"], reply.request.location, doc.GetAllocator());
 
     if (total_completed_ == total_needed_) {
+        // It's possible that we receive character vs stash tabs out of order, or users
+        // move items around in a tab and we get them in a different order. For
+        // consistency we want to present the tab data in a deterministic way to the rest
+        // of the application.  Especially so we don't try to update shop when nothing actually
+        // changed.  So sort items_ here before emitting and then generate
+        // item list as strings.
+
+        std::sort(begin(items_), end(items_), [](std::shared_ptr<Item> &a, std::shared_ptr<Item> &b){
+            return b->location() < a->location();
+        });
+
+        QStringList tmp;
+        for (auto const &item: items_) {
+            tmp.push_back(item->json().c_str());
+        }
+        auto items_as_string = std::string("[") + tmp.join(",").toStdString() + "]";
+
         // all requests completed
         emit ItemsRefreshed(items_, tabs_, false);
 
-        // since we build items_as_string_ in a hackish way inside ParseItems last character will either be
-        // ' ' when no items were parsed or ',' when at least one item is parsed, and the first character is '['
-        items_as_string_[items_as_string_.size() - 1] = ']';
-
         // DataStore is thread safe so it's ok to call it here
-        data_.Set("items", items_as_string_);
+        data_.Set("items", items_as_string);
         data_.Set("tabs", tabs_as_string_);
 
         updating_ = false;

@@ -92,7 +92,6 @@ private:
     int requests_completed_, requests_needed_;
     int cached_requests_completed_{0};
     
-    std::string items_as_string_;
     std::string tabs_as_string_;
     std::string league_;
     // set to true if updating right now
