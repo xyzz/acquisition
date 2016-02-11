@@ -417,7 +417,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
         // changed.  So sort items_ here before emitting and then generate
         // item list as strings.
 
-        std::sort(begin(items_), end(items_), [](std::shared_ptr<Item> &a, std::shared_ptr<Item> &b){
+        std::sort(begin(items_), end(items_), [](const std::shared_ptr<Item> &a, const std::shared_ptr<Item> &b){
             return b->location() < a->location();
         });
 
