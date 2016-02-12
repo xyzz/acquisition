@@ -62,7 +62,7 @@ void TestItemsManager::BuyoutPropagation() {
     bo.SetTab(first_tab.GetUniqueHash(), buyout);
 
     Items items = { first, second };
-    std::vector<std::string> tabs = { "first", "second" };
+    auto tabs = { first_tab, second_tab };
     app_.items_manager().OnItemsRefreshed(items, tabs, true);
 
     QVERIFY2(bo.Exists(*first), "Item buyout for the first item must exist");
@@ -87,7 +87,7 @@ void TestItemsManager::UserSetBuyoutPropagation() {
     bo.SetTab(first_tab.GetUniqueHash(), tab_buyout);
 
     Items items = { first, second };
-    std::vector<std::string> tabs = { "first" };
+    auto tabs{ first_tab };
     app_.items_manager().OnItemsRefreshed(items, tabs, true);
 
     QVERIFY2(bo.Exists(*first), "Item buyout for the first item must exist");
@@ -116,7 +116,7 @@ void TestItemsManager::MoveItemNoBoToBo() {
     Buyout tab_buyout(456.0, BUYOUT_TYPE_BUYOUT, CURRENCY_CHAOS_ORB, QDateTime::currentDateTime());
     bo.SetTab(second_tab.GetUniqueHash(), tab_buyout);
 
-    std::vector<std::string> tabs = { "first", "second" };
+    auto tabs{ first_tab, second_tab };
     // Put item into the first tab
     app_.items_manager().OnItemsRefreshed({ item_before }, tabs, true);
 
@@ -145,7 +145,7 @@ void TestItemsManager::MoveItemBoToNoBo() {
     Buyout tab_buyout(456.0, BUYOUT_TYPE_BUYOUT, CURRENCY_CHAOS_ORB, QDateTime::currentDateTime());
     bo.SetTab(first_tab.GetUniqueHash(), tab_buyout);
 
-    std::vector<std::string> tabs = { "first", "second" };
+    auto tabs{ first_tab, second_tab };
     // Put item into the first tab
     app_.items_manager().OnItemsRefreshed({ item_before }, tabs, true);
 
@@ -176,7 +176,7 @@ void TestItemsManager::MoveItemBoToBo() {
     bo.SetTab(first_tab.GetUniqueHash(), first_buyout);
     bo.SetTab(second_tab.GetUniqueHash(), second_buyout);
 
-    std::vector<std::string> tabs = { "first", "second" };
+    auto tabs = { first_tab, second_tab };
     // Put item into the first tab
     app_.items_manager().OnItemsRefreshed({ item_before }, tabs, true);
 

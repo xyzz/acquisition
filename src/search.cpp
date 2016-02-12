@@ -28,11 +28,13 @@
 #include "column.h"
 #include "filters.h"
 #include "porting.h"
+#include "QsLog.h"
 
-Search::Search(const BuyoutManager &bo_manager, const std::string &caption,
+Search::Search(BuyoutManager &bo_manager, const std::string &caption,
                const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view) :
     caption_(caption),
     view_(view),
+    bo_manager_(bo_manager),
     model_(std::make_unique<ItemsModel>(bo_manager, *this))
 {
     using move_only = std::unique_ptr<Column>;
@@ -92,6 +94,8 @@ void Search::FilterItems(const Items &items) {
             items_.push_back(item);
     }
 
+    UpdateItemCounts(items);
+
     std::map<ItemLocation, std::unique_ptr<Bucket>> bucketed_tabs;
     for (const auto &item : items_) {
         ItemLocation location = item->location();
@@ -100,15 +104,28 @@ void Search::FilterItems(const Items &items) {
         bucketed_tabs[location]->AddItem(item);
     }
 
+    // We need to add empty tabs here as there are no items to force their addition
+    // But only do so if no filters are active as we want to hide empty tabs when
+    // filtering
+    if (!IsAnyFilterActive()) {
+        for (auto &location: bo_manager_.GetStashTabLocations())
+            if (!bucketed_tabs.count(location)) {
+                bucketed_tabs[location] = std::make_unique<Bucket>(location);
+            }
+    }
+
     buckets_.clear();
     for (auto &element : bucketed_tabs)
         buckets_.push_back(std::move(element.second));
-
-    UpdateItemCounts(items);
 }
 
 QString Search::GetCaption() {
     return QString("%1 [%2]").arg(caption_.c_str()).arg(GetItemsCount());
+}
+
+ItemLocation Search::GetTabLocation(const QModelIndex & index) const {
+    auto tab_index = index.parent().isValid() ? index.parent():index;
+    return buckets_[tab_index.row()]->location();
 }
 
 int Search::GetItemsCount() {

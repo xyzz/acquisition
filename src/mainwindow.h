@@ -36,6 +36,7 @@
 #include "items_model.h"
 #include "porting.h"
 #include "updatechecker.h"
+#include "tabcache.h"
 
 
 class QNetworkAccessManager;
@@ -70,7 +71,7 @@ enum class ProgramState {
 
 struct CurrentStatusUpdate {
     ProgramState state;
-    int progress, total;
+    int progress, total, cached;
 };
 
 class MainWindow : public QMainWindow {
@@ -90,6 +91,11 @@ public slots:
     void ResizeTreeColumns();
     void OnExpandAll();
     void OnCollapseAll();
+    void OnCheckAll();
+    void OnUncheckAll();
+    void OnCheckSelected() { CheckSelected(true); };
+    void OnUncheckSelected() { CheckSelected(false); };
+    void OnRefreshSelected();
     void OnUpdateAvailable();
     void OnOnlineUpdate(bool online);
     void OnUploadFinished();
@@ -98,6 +104,7 @@ private slots:
     void on_actionCopy_shop_data_to_clipboard_triggered();
     void on_actionItems_refresh_interval_triggered();
     void on_actionRefresh_triggered();
+    void on_actionRefresh_selected_triggered();
     void on_actionAutomatically_refresh_items_triggered();
     void on_actionUpdate_shop_triggered();
     void on_actionShop_template_triggered();
@@ -125,6 +132,7 @@ private:
     void ExpandCollapse(TreeState state);
     void UpdateOnlineGui();
     void closeEvent();
+    void CheckSelected(bool value);
 
     std::unique_ptr<Application> app_;
     Ui::MainWindow *ui;

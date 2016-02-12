@@ -49,6 +49,7 @@ SOURCES += \
     src/search.cpp \
     src/shop.cpp \
     src/steamlogindialog.cpp \
+    src/tabcache.cpp \
     src/updatechecker.cpp \
     src/util.cpp \
     src/version.cpp \
@@ -94,6 +95,7 @@ HEADERS += \
     src/selfdestructingreply.h \
     src/shop.h \
     src/steamlogindialog.h \
+    src/tabcache.h \
     src/updatechecker.h \
     src/util.h \
     src/version.h \

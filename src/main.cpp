@@ -37,6 +37,7 @@
 #include "porting.h"
 #include "version.h"
 #include "../test/testmain.h"
+#include "tabcache.h"
 
 #ifdef CRASHRPT
 #include "CrashRpt.h"
@@ -47,7 +48,9 @@ int main(int argc, char *argv[])
     qRegisterMetaType<CurrentStatusUpdate>("CurrentStatusUpdate");
     qRegisterMetaType<Items>("Items");
     qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
+    qRegisterMetaType<std::vector<ItemLocation>>("std::vector<ItemLocation>");
     qRegisterMetaType<QsLogging::Level>("QsLogging::Level");
+    qRegisterMetaType<TabCache::Policy>("TabCache::Policy");
 
     QLocale::setDefault(QLocale::C);
     std::setlocale(LC_ALL, "C");

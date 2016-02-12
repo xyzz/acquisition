@@ -54,9 +54,9 @@ void ItemsManager::Start() {
     thread_ = std::make_unique<QThread>();
     worker_ = std::make_unique<ItemsManagerWorker>(app_, thread_.get());
     connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
-    connect(this, SIGNAL(UpdateSignal()), worker_.get(), SLOT(Update()));
+    connect(this, SIGNAL(UpdateSignal(TabCache::Policy, const std::vector<ItemLocation> &)), worker_.get(), SLOT(Update(TabCache::Policy, const std::vector<ItemLocation> &)));
     connect(worker_.get(), &ItemsManagerWorker::StatusUpdate, this, &ItemsManager::OnStatusUpdate);
-    connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<std::string>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<std::string>, bool)));
+    connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<ItemLocation>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<ItemLocation>, bool)));
     worker_->moveToThread(thread_.get());
     thread_->start();
 }
@@ -66,9 +66,10 @@ void ItemsManager::OnStatusUpdate(const CurrentStatusUpdate &status) {
 }
 
 void ItemsManager::PropagateTabBuyouts() {
+    auto &bo = app_.buyout_manager();
+    bo.ClearRefreshLocks();
     for (auto &item_ptr : items_) {
         auto &item = *item_ptr;
-        auto &bo = app_.buyout_manager();
         std::string hash = item.location().GetUniqueHash();
         bool item_bo_exists = bo.Exists(item);
         bool tab_bo_exists = bo.ExistsTab(hash);
@@ -78,6 +79,14 @@ void ItemsManager::PropagateTabBuyouts() {
             item_bo = bo.Get(item);
         if (tab_bo_exists)
             tab_bo = bo.GetTab(hash);
+
+        // If *any* bo's are set on an item or the tab then lock the refresh state to
+        // be ON.  I think this is intuitive, that users generally want to auto-refresh
+        // tabs they are selling from and it prevents those tabs from going stale and
+        // posting possible stale data to forumns.
+        if (tab_bo_exists || (item_bo_exists && !item_bo.inherited)) {
+            bo.SetRefreshLocked(item.location());
+        }
 
         // The logic below is quite complicated and probably should be simplified.
         // One day.
@@ -101,17 +110,18 @@ void ItemsManager::PropagateTabBuyouts() {
     }
 }
 
-void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<std::string> &tabs, bool initial_refresh) {
+void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<ItemLocation> &tabs, bool initial_refresh) {
     items_ = items;
-    tabs_ = tabs;
+
+    bo_manager_.SetStashTabLocations(tabs);
     MigrateBuyouts();
     PropagateTabBuyouts();
 
     emit ItemsRefreshed(initial_refresh);
 }
 
-void ItemsManager::Update() {
-    emit UpdateSignal();
+void ItemsManager::Update(TabCache::Policy policy, const std::vector<ItemLocation> &locations) {
+    emit UpdateSignal(policy, locations);
 }
 
 void ItemsManager::SetAutoUpdate(bool update) {

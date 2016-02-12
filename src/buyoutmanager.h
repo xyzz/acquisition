@@ -21,6 +21,9 @@
 
 #include "item.h"
 #include <QDateTime>
+#include <set>
+
+class ItemLocation;
 
 enum Currency {
     CURRENCY_NONE,
@@ -139,6 +142,15 @@ public:
     void DeleteTab(const std::string &tab);
     bool ExistsTab(const std::string &tab) const;
 
+    void SetRefreshChecked(const ItemLocation &tab, bool value);
+    bool GetRefreshChecked(const ItemLocation &tab) const;
+
+    bool GetRefreshLocked(const ItemLocation &tab) const;
+    void SetRefreshLocked(const ItemLocation &tab);
+    void ClearRefreshLocks();
+
+    void SetStashTabLocations(const std::vector<ItemLocation> &tabs);
+    const std::vector<ItemLocation> GetStashTabLocations() const;
     void Clear();
 
     void Save();
@@ -149,9 +161,15 @@ private:
     std::string Serialize(const std::map<std::string, Buyout> &buyouts);
     void Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts);
 
+    std::string Serialize(const std::map<std::string, bool> &obj);
+    void Deserialize(const std::string &data, std::map<std::string, bool> &obj);
+
     DataStore &data_;
     std::map<std::string, Buyout> buyouts_;
     std::map<std::string, Buyout> tab_buyouts_;
+    std::map<std::string, bool> refresh_checked_;
+    std::set<std::string> refresh_locked_;
     bool save_needed_;
+    std::vector<ItemLocation> tabs_;
 };
 

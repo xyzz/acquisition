@@ -157,6 +157,15 @@ void MainWindow::InitializeUi() {
     ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 2);
 
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+
+    context_menu_.addAction("Refresh Selected", this, SLOT(OnRefreshSelected()));
+    context_menu_.addAction("Check Selected", this, SLOT(OnCheckSelected()));
+    context_menu_.addAction("Uncheck Selected", this, SLOT(OnUncheckSelected()));
+    context_menu_.addSeparator();
+    context_menu_.addAction("Check All", this, SLOT(OnCheckAll()));
+    context_menu_.addAction("Uncheck All", this, SLOT(OnUncheckAll()));
+    context_menu_.addSeparator();
     context_menu_.addAction("Expand All", this, SLOT(OnExpandAll()));
     context_menu_.addAction("Collapse All", this, SLOT(OnCollapseAll()));
 
@@ -230,6 +239,40 @@ void MainWindow::OnCollapseAll() {
     ExpandCollapse(TreeState::kCollapse);
 }
 
+void MainWindow::OnCheckAll() {
+    auto & bo = app_->buyout_manager();
+    for (auto const & bucket: current_search_->buckets())
+        bo.SetRefreshChecked(bucket->location(), true);
+    ui->treeView->model()->layoutChanged();
+}
+
+void MainWindow::OnUncheckAll() {
+    auto & bo = app_->buyout_manager();
+    for (auto const & bucket: current_search_->buckets())
+        bo.SetRefreshChecked(bucket->location(), false);
+     ui->treeView->model()->layoutChanged();
+}
+
+void MainWindow::OnRefreshSelected() {
+    // Get names of tabs to refresh
+    std::vector<ItemLocation> locations;
+    for (auto const &index: ui->treeView->selectionModel()->selectedIndexes()) {
+        // Fetch tab names per index
+        locations.push_back(current_search_->GetTabLocation(index));
+    }
+
+    app_->items_manager().Update(TabCache::ManualCache, locations);
+}
+
+
+void MainWindow::CheckSelected(bool value) {
+    auto & bo = app_->buyout_manager();
+
+    for (auto const &index: ui->treeView->selectionModel()->selectedIndexes()) {
+        bo.SetRefreshChecked(current_search_->GetTabLocation(index), value);
+    }
+}
+
 void MainWindow::ResizeTreeColumns() {
     for (int i = 0; i < ui->treeView->header()->count(); ++i)
         ui->treeView->resizeColumnToContents(i);
@@ -256,17 +299,21 @@ void MainWindow::OnBuyoutChange() {
     if (ui->buyoutValueLineEdit->text().isEmpty() && (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED))
         return;
 
-    if (current_item_) {
-        if (bo.type == BUYOUT_TYPE_NONE)
-            app_->buyout_manager().Delete(*current_item_);
-        else
-            app_->buyout_manager().Set(*current_item_, bo);
-    } else {
-        std::string tab = current_bucket_.location().GetUniqueHash();
-        if (bo.type == BUYOUT_TYPE_NONE)
-            app_->buyout_manager().DeleteTab(tab);
-        else
-            app_->buyout_manager().SetTab(tab, bo);
+    for (auto const &index: ui->treeView->selectionModel()->selectedIndexes()) {
+        if (!index.parent().isValid()) {
+            auto const &bucket = *current_search_->buckets()[index.row()];
+            auto const &tab = bucket.location().GetUniqueHash();
+            if (bo.type == BUYOUT_TYPE_NONE)
+                app_->buyout_manager().DeleteTab(tab);
+            else
+                app_->buyout_manager().SetTab(tab, bo);
+        } else {
+            auto &item = current_search_->buckets()[index.parent().row()]->items()[index.row()];
+            if (bo.type == BUYOUT_TYPE_NONE)
+                app_->buyout_manager().Delete(*item);
+            else
+                app_->buyout_manager().Set(*item, bo);
+        }
     }
     app_->items_manager().PropagateTabBuyouts();
     // refresh treeView to immediately reflect price changes
@@ -280,13 +327,13 @@ void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
     switch (status.state) {
     case ProgramState::ItemsReceive:
     case ProgramState::ItemsPaused:
-        title = QString("Receiving stash data, %1/%2").arg(status.progress).arg(status.total);
+        title = QString("Receiving stash data, %1/%2 [%3 from cache]").arg(status.progress).arg(status.total).arg(status.cached);
         if (status.state == ProgramState::ItemsPaused)
             title += " (throttled, sleeping 60 seconds)";
         need_progress = true;
         break;
     case ProgramState::ItemsCompleted:
-        title = "Received all tabs";
+        title = QString("Received %1 tabs [%2 from cache]").arg(status.total).arg(status.cached);
         break;
     case ProgramState::ShopSubmitting:
         title = QString("Sending your shops to the forum, %1/%2").arg(status.progress).arg(status.total);
@@ -629,6 +676,11 @@ void MainWindow::on_actionItems_refresh_interval_triggered() {
 }
 
 void MainWindow::on_actionRefresh_triggered() {
+    // NeverCache policy forces refresh of all requests
+    app_->items_manager().Update(TabCache::NeverCache);
+}
+
+void MainWindow::on_actionRefresh_selected_triggered() {
     app_->items_manager().Update();
 }
 

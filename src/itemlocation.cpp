@@ -16,11 +16,15 @@ ItemLocation::ItemLocation(const rapidjson::Value &root):
     FromItemJson(root);
 }
 
-ItemLocation::ItemLocation(int tab_id, std::string tab_label) :
+ItemLocation::ItemLocation(int tab_id, std::string name, ItemLocationType type) :
     ItemLocation()
 {
+    type_ = type;
     tab_id_ = tab_id;
-    tab_label_ = tab_label;
+    if (type_ == ItemLocationType::STASH)
+        tab_label_ = name;
+    else
+        character_ = name;
 }
 
 void ItemLocation::FromItemJson(const rapidjson::Value &root) {
@@ -114,7 +118,15 @@ std::string ItemLocation::GetForumCode(const std::string &league) const {
     }
 }
 
+bool ItemLocation::IsValid() const {
+    return ( (!tab_label_.empty() && type_ == ItemLocationType::STASH)
+            ||(!character_.empty() && type_ == ItemLocationType::CHARACTER));
+}
+
 std::string ItemLocation::GetUniqueHash() const {
+    if (!IsValid())
+        return "";
+
     if (type_ == ItemLocationType::STASH)
         return "stash:" + tab_label_;
     else

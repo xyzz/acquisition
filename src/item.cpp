@@ -73,6 +73,7 @@ Item::Item(const rapidjson::Value &json) :
     sockets_cnt_(0),
     links_cnt_(0),
     sockets_({ 0, 0, 0, 0 }),
+    json_(Util::RapidjsonSerialize(json)),
     has_mtx_(false)
 {
     for (auto &mod_type : ITEM_MOD_TYPES) {

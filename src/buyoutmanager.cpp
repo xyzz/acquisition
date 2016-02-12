@@ -31,6 +31,7 @@
 #include "datastore.h"
 #include "rapidjson_util.h"
 #include "util.h"
+#include "itemlocation.h"
 
 BuyoutManager::BuyoutManager(DataStore &data) :
     data_(data),
@@ -77,10 +78,36 @@ void BuyoutManager::DeleteTab(const std::string &tab) {
     tab_buyouts_.erase(tab);
 }
 
+void BuyoutManager::SetRefreshChecked(const ItemLocation &loc, bool value) {
+    save_needed_ = true;
+    refresh_checked_[loc.GetUniqueHash()] = value;
+}
+
+bool BuyoutManager::GetRefreshChecked(const ItemLocation &loc) const {
+    auto it = refresh_checked_.find(loc.GetUniqueHash());
+    bool refresh_checked = (it != refresh_checked_.end()) ? it->second : true;
+    return (refresh_checked || GetRefreshLocked(loc));
+}
+
+bool BuyoutManager::GetRefreshLocked(const ItemLocation &loc) const {
+    return refresh_locked_.count(loc.GetUniqueHash());
+}
+
+void BuyoutManager::SetRefreshLocked(const ItemLocation &loc) {
+    refresh_locked_.insert(loc.GetUniqueHash());
+}
+
+void BuyoutManager::ClearRefreshLocks() {
+    refresh_locked_.clear();
+}
+
 void BuyoutManager::Clear() {
     save_needed_ = true;
     buyouts_.clear();
     tab_buyouts_.clear();
+    refresh_locked_.clear();
+    refresh_checked_.clear();
+    tabs_.clear();
 }
 
 std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyouts) {
@@ -152,17 +179,61 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
     }
 }
 
+
+std::string BuyoutManager::Serialize(const std::map<std::string, bool> &obj) {
+    rapidjson::Document doc;
+    doc.SetObject();
+    auto &alloc = doc.GetAllocator();
+
+    for (auto &pair : obj) {
+        rapidjson::Value key(pair.first.c_str(), alloc);
+        rapidjson::Value val(pair.second);
+        doc.AddMember(key, val, alloc);
+    }
+    return Util::RapidjsonSerialize(doc);
+}
+
+void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, bool> &obj) {
+    // if data is empty (on first use) we shouldn't make user panic by showing ERROR messages
+    if (data.empty())
+        return;
+
+    rapidjson::Document doc;
+    if (doc.Parse(data.c_str()).HasParseError()) {
+        QLOG_ERROR() << rapidjson::GetParseError_En(doc.GetParseError());
+        return;
+    }
+
+    if (!doc.IsObject())
+        return;
+
+    for (auto itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr) {
+        const auto &val = itr->value.GetBool();
+        const auto &name = itr->name.GetString();
+        obj[name] = val;
+    }
+}
+
 void BuyoutManager::Save() {
     if (!save_needed_)
         return;
     save_needed_ = false;
     data_.Set("buyouts", Serialize(buyouts_));
     data_.Set("tab_buyouts", Serialize(tab_buyouts_));
+    data_.Set("refresh_checked_state", Serialize(refresh_checked_));
 }
 
 void BuyoutManager::Load() {
     Deserialize(data_.Get("buyouts"), &buyouts_);
     Deserialize(data_.Get("tab_buyouts"), &tab_buyouts_);
+    Deserialize(data_.Get("refresh_checked_state"), refresh_checked_);
+}
+void BuyoutManager::SetStashTabLocations(const std::vector<ItemLocation> &tabs) {
+    tabs_ = tabs;
+}
+
+const std::vector<ItemLocation> BuyoutManager::GetStashTabLocations() const {
+    return tabs_;
 }
 
 void BuyoutManager::MigrateItem(const Item &item) {
