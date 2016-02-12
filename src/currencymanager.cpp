@@ -247,6 +247,7 @@ void CurrencyManager::ParseSingleItem(const Item &item) {
 void CurrencyManager::DisplayCurrency() {
 
     dialog_->show();
+    dialog_->UpdateVisual();
 }
 
 
@@ -330,7 +331,8 @@ void CurrencyDialog::Update() {
     }
     UpdateTotalValue();
     UpdateTotalWisdomValue();
-    UpdateVisual();
+    if(isVisible())
+        UpdateVisual();
 
 
 }
