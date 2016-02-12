@@ -22,6 +22,7 @@
 #include <QGroupBox>
 #include <QLineEdit>
 
+#include "buyoutmanager.h"
 #include "filters.h"
 #include "util.h"
 #include "porting.h"
@@ -370,4 +371,13 @@ bool AltartFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) 
         if (item->icon().find(needle) != std::string::npos)
             return true;
     return false;
+}
+
+bool PricedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    if (!data->checked)
+        return true;
+    if (!bm_.Exists(*item))
+        return false;
+    Buyout bo = bm_.Get(*item);
+    return bo.type != BuyoutType::BUYOUT_TYPE_NONE;
 }

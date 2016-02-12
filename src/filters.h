@@ -232,3 +232,14 @@ public:
     using BooleanFilter::BooleanFilter;
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
 };
+
+class PricedFilter : public BooleanFilter {
+public:
+    PricedFilter(QLayout *parent, std::string property, std::string caption, const BuyoutManager &bm) :
+        BooleanFilter(parent, property, caption),
+        bm_(bm)
+    {}
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
+private:
+    const BuyoutManager &bm_;
+};

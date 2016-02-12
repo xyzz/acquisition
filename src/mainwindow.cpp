@@ -515,6 +515,7 @@ void MainWindow::InitializeSearchForm() {
         std::make_unique<SimplePropertyFilter>(misc_layout, "Map Tier"),
         std::make_unique<MTXFilter>(misc_flags_layout, "", "MTX"),
         std::make_unique<AltartFilter>(misc_flags_layout, "", "Alt. art"),
+        std::make_unique<PricedFilter>(misc_flags_layout, "", "Priced", app_->buyout_manager()),
         std::make_unique<ModsFilter>(mods_layout)
     };
     filters_ = std::vector<move_only>(std::make_move_iterator(std::begin(init)), std::make_move_iterator(std::end(init)));
