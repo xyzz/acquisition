@@ -88,16 +88,16 @@ class CurrencyWidget : public QWidget
 public slots:
     void Update();
     void UpdateVisual(bool show_chaos, bool show_exalt);
-    bool isNone() const { return currency_->currency==CURRENCY_NONE;}
+    bool IsNone() const { return currency_->currency==CURRENCY_NONE;}
 public:
     CurrencyWidget(std::shared_ptr<CurrencyItem> currency);
     //Visual stuff
-    QLabel *name_;
-    QLabel *count_;
-    QDoubleSpinBox *chaos_ratio_;
-    QDoubleSpinBox *chaos_value_;
-    QDoubleSpinBox *exalt_ratio_;
-    QDoubleSpinBox *exalt_value_;
+    QLabel *name;
+    QLabel *count;
+    QDoubleSpinBox *chaos_ratio;
+    QDoubleSpinBox *chaos_value;
+    QDoubleSpinBox *exalt_ratio;
+    QDoubleSpinBox *exalt_value;
 
 private:
     //Data
@@ -133,9 +133,9 @@ class CurrencyDialog : public QDialog
 {
     Q_OBJECT
 public:
-    CurrencyDialog(CurrencyManager &manager, bool showChaos, bool showExalt);
-    bool showChaos() const { return show_chaos_->isChecked();}
-    bool showExalt() const { return show_exalt_->isChecked();}
+    CurrencyDialog(CurrencyManager &manager, bool show_chaos, bool show_exalt);
+    bool ShowChaos() const { return show_chaos_->isChecked();}
+    bool ShowExalt() const { return show_exalt_->isChecked();}
 
 public slots:
     void Update();

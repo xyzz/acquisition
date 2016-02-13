@@ -61,8 +61,8 @@ CurrencyManager::~CurrencyManager() {
 void CurrencyManager::Save() {
     SaveCurrencyItems();
     SaveCurrencyValue();
-    data_.SetBool("currency_show_chaos", dialog_->showChaos());
-    data_.SetBool("currency_show_exalt", dialog_->showExalt());
+    data_.SetBool("currency_show_chaos", dialog_->ShowChaos());
+    data_.SetBool("currency_show_exalt", dialog_->ShowExalt());
 
 }
 
@@ -253,42 +253,42 @@ void CurrencyManager::DisplayCurrency() {
 CurrencyWidget::CurrencyWidget(std::shared_ptr<CurrencyItem> currency)  :
     currency_(currency)
 {
-    name_ = new QLabel("");
-    count_ = new QLabel("");
-    chaos_ratio_ = new QDoubleSpinBox;
-    chaos_ratio_->setMaximum(100000);
-    chaos_ratio_->setValue(currency->chaos.value1);
-    chaos_value_ = new QDoubleSpinBox;
-    chaos_value_->setMaximum(100000);
-    chaos_value_->setEnabled(false);
-    exalt_ratio_ = new QDoubleSpinBox;
-    exalt_ratio_->setMaximum(100000);
-    exalt_ratio_->setValue(currency->exalt.value1);
-    exalt_value_ = new QDoubleSpinBox;
-    exalt_value_->setMaximum(100000);
-    exalt_value_->setEnabled(false);
+    name = new QLabel("");
+    count = new QLabel("");
+    chaos_ratio = new QDoubleSpinBox;
+    chaos_ratio->setMaximum(100000);
+    chaos_ratio->setValue(currency->chaos.value1);
+    chaos_value = new QDoubleSpinBox;
+    chaos_value->setMaximum(100000);
+    chaos_value->setEnabled(false);
+    exalt_ratio = new QDoubleSpinBox;
+    exalt_ratio->setMaximum(100000);
+    exalt_ratio->setValue(currency->exalt.value1);
+    exalt_value = new QDoubleSpinBox;
+    exalt_value->setMaximum(100000);
+    exalt_value->setEnabled(false);
     Update();
-    connect(chaos_ratio_, SIGNAL(valueChanged(double)), this, SLOT(Update()));
-    connect(exalt_ratio_, SIGNAL(valueChanged(double)), this, SLOT(Update()));
+    connect(chaos_ratio, SIGNAL(valueChanged(double)), this, SLOT(Update()));
+    connect(exalt_ratio, SIGNAL(valueChanged(double)), this, SLOT(Update()));
 }
 
 void CurrencyWidget::UpdateVisual(bool show_chaos, bool show_exalt) {
 
-    chaos_value_->setVisible(show_chaos);
-    chaos_ratio_->setVisible(show_chaos);
-    exalt_value_->setVisible(show_exalt);
-    exalt_ratio_->setVisible(show_exalt);
+    chaos_value->setVisible(show_chaos);
+    chaos_ratio->setVisible(show_chaos);
+    exalt_value->setVisible(show_exalt);
+    exalt_ratio->setVisible(show_exalt);
 }
 
 void CurrencyWidget::Update() {
-    currency_->chaos.value1 = chaos_ratio_->value();
-    currency_->exalt.value1 = exalt_ratio_->value();
-    name_->setText(currency_->name.c_str());
-    count_->setText(QString::number(currency_->count));
+    currency_->chaos.value1 = chaos_ratio->value();
+    currency_->exalt.value1 = exalt_ratio->value();
+    name->setText(currency_->name.c_str());
+    count->setText(QString::number(currency_->count));
     if (fabs(currency_->chaos.value1) > EPS)
-        chaos_value_->setValue(currency_->count / currency_->chaos.value1);
+        chaos_value->setValue(currency_->count / currency_->chaos.value1);
     if (fabs(currency_->exalt.value1) > EPS)
-        exalt_value_->setValue(currency_->count / currency_->exalt.value1);
+        exalt_value->setValue(currency_->count / currency_->exalt.value1);
 }
 
 CurrencyDialog::CurrencyDialog(CurrencyManager& manager, bool show_chaos, bool show_exalt) : currency_manager_(manager) {
@@ -298,8 +298,8 @@ CurrencyDialog::CurrencyDialog(CurrencyManager& manager, bool show_chaos, bool s
         // To keep every vector the same size, we DO create spinboxes for the empty currency, just don't display them
         if (curr->currency == CURRENCY_NONE)
             continue;
-        connect(tmp->exalt_ratio_, SIGNAL(valueChanged(double)), this, SLOT(UpdateTotalValue()));
-        connect(tmp->chaos_ratio_, SIGNAL(valueChanged(double)), this, SLOT(UpdateTotalValue()));
+        connect(tmp->exalt_ratio, SIGNAL(valueChanged(double)), this, SLOT(UpdateTotalValue()));
+        connect(tmp->chaos_ratio, SIGNAL(valueChanged(double)), this, SLOT(UpdateTotalValue()));
 
         currencies_widgets_.push_back(tmp);
 
@@ -336,9 +336,9 @@ void CurrencyDialog::Update() {
 void CurrencyDialog::UpdateVisual() {
     //Destroy old layout (because you can't replace a layout, that would be too fun :/)
     delete layout_;
-    layout_ = GenerateLayout(showChaos(), showExalt());
+    layout_ = GenerateLayout(ShowChaos(), ShowExalt());
     setLayout(layout_);
-    UpdateVisibility(showChaos(), showExalt());
+    UpdateVisibility(ShowChaos(), ShowExalt());
     adjustSize();
 }
 
@@ -382,20 +382,20 @@ QVBoxLayout* CurrencyDialog::GenerateLayout(bool show_chaos, bool show_exalt) {
     for (auto &item : currencies_widgets_) {
         int curr_row = grid->rowCount() + 1;
         // To keep every vector the same size, we DO create spinboxes for the empty currency, just don't display them
-        if (item->isNone())
+        if (item->IsNone())
             continue;
-        grid->addWidget(item->name_, curr_row, 0);
-        grid->addWidget(item->count_, curr_row, 1, 1, -1);
+        grid->addWidget(item->name, curr_row, 0);
+        grid->addWidget(item->count, curr_row, 1, 1, -1);
         int col = 2;
 
         if (show_chaos) {
-            grid->addWidget(item->chaos_value_, curr_row, col);
-            grid->addWidget(item->chaos_ratio_, curr_row, col + 1);
+            grid->addWidget(item->chaos_value, curr_row, col);
+            grid->addWidget(item->chaos_ratio, curr_row, col + 1);
             col += 2;
         }
         if (show_exalt) {
-            grid->addWidget(item->exalt_value_, curr_row, col);
-            grid->addWidget(item->exalt_ratio_, curr_row, col + 1);
+            grid->addWidget(item->exalt_value, curr_row, col);
+            grid->addWidget(item->exalt_ratio, curr_row, col + 1);
         }
 
 
