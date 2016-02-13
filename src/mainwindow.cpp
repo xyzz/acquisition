@@ -92,7 +92,9 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     connect(&app_->shop(), &Shop::StatusUpdate, this, &MainWindow::OnStatusUpdate);
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
     connect(&auto_online_, &AutoOnline::Update, this, &MainWindow::OnOnlineUpdate);
-    connect(&update_current_item_trigger_, &QTimer::timeout, [&](){UpdateCurrentItem();update_current_item_trigger_.stop();});
+    connect(&delayed_update_current_item_, &QTimer::timeout, [&](){UpdateCurrentItem();delayed_update_current_item_.stop();});
+    connect(&delayed_search_form_change_, &QTimer::timeout, [&](){OnSearchFormChange();delayed_search_form_change_.stop();});
+
 }
 
 void MainWindow::InitializeLogging() {
@@ -432,6 +434,12 @@ void MainWindow::OnSearchFormChange() {
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
 }
 
+void MainWindow::OnDelayedSearchFormChange() {
+    // wait 350ms after search form change before applying
+    // This is so we don't force update after every keystroke etc...
+    delayed_search_form_change_.start(350);
+}
+
 void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /* previous */) {
     app_->buyout_manager().Save();
 
@@ -442,7 +450,7 @@ void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /*
         UpdateCurrentBucket();
     } else {
         current_item_ = current_search_->buckets()[current.parent().row()]->items()[current.row()];
-        update_current_item_trigger_.start(100);
+        delayed_update_current_item_.start(100);
     }
     UpdateCurrentBuyout();
 }

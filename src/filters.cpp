@@ -82,7 +82,7 @@ void NameSearchFilter::Initialize(QLayout *parent) {
     textbox_ = new QLineEdit;
     parent->addWidget(textbox_);
     QObject::connect(textbox_, SIGNAL(textEdited(const QString&)),
-                     parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
+                     parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
 }
 
 MinMaxFilter::MinMaxFilter(QLayout *parent, std::string property):
@@ -118,9 +118,9 @@ void MinMaxFilter::Initialize(QLayout *parent) {
     textbox_max_->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_MIN_MAX));
     label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
     QObject::connect(textbox_min_, SIGNAL(textEdited(const QString&)),
-                     parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
+                     parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
     QObject::connect(textbox_max_, SIGNAL(textEdited(const QString&)),
-                     parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
+                     parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
 }
 
 void MinMaxFilter::FromForm(FilterData *data) {
