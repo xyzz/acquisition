@@ -83,6 +83,7 @@ public:
 public slots:
     void OnTreeChange(const QModelIndex &index, const QModelIndex &prev);
     void OnSearchFormChange();
+    void OnDelayedSearchFormChange();
     void OnTabChange(int index);
     void OnImageFetched(QNetworkReply *reply);
     void OnItemsRefreshed();
@@ -154,6 +155,8 @@ private:
     AutoOnline auto_online_;
     QLabel online_label_;
     QNetworkAccessManager *network_manager_;
+    QTimer delayed_update_current_item_;
+    QTimer delayed_search_form_change_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif

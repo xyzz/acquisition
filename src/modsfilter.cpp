@@ -99,7 +99,7 @@ ModsFilter::ModsFilter(QLayout *parent):
 {
     Initialize(parent);
     QObject::connect(&signal_handler_, SIGNAL(SearchFormChanged()), 
-        parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
+        parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
 }
 
 void ModsFilter::FromForm(FilterData *data) {
