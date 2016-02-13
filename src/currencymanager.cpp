@@ -247,7 +247,6 @@ void CurrencyManager::ParseSingleItem(const Item &item) {
 void CurrencyManager::DisplayCurrency() {
 
     dialog_->show();
-    dialog_->UpdateVisual();
 }
 
 
@@ -319,7 +318,7 @@ CurrencyDialog::CurrencyDialog(CurrencyManager& manager, bool show_chaos, bool s
     total_wisdom_value_ = new QLabel("");
     layout_ = new QVBoxLayout;
     Update();
-
+    UpdateVisual();
 #if defined(Q_OS_LINUX)
     setWindowFlags(Qt::WindowCloseButtonHint);
 #endif
@@ -331,10 +330,31 @@ void CurrencyDialog::Update() {
     }
     UpdateTotalValue();
     UpdateTotalWisdomValue();
-    if(isVisible())
-        UpdateVisual();
 
+}
 
+void CurrencyDialog::UpdateVisual() {
+    //Destroy old layout (because you can't replace a layout, that would be too fun :/)
+    delete layout_;
+    layout_ = GenerateLayout(showChaos(), showExalt());
+    setLayout(layout_);
+    UpdateVisibility(showChaos(), showExalt());
+    adjustSize();
+}
+
+void CurrencyDialog::UpdateVisibility(bool show_chaos, bool show_exalt) {
+    headers_->chaos_value->setVisible(show_chaos);
+    headers_->chaos_ratio->setVisible(show_chaos);
+    headers_->exalt_value->setVisible(show_exalt);
+    headers_->exalt_ratio->setVisible(show_exalt);
+
+    for(auto &item : currencies_widgets_) {
+        item->UpdateVisual(show_chaos, show_exalt);
+    }
+    headers_->chaos_total->setVisible(show_chaos);
+    total_chaos_value_->setVisible(show_chaos);
+    headers_->exalt_total->setVisible(show_exalt);
+    total_exalt_value_->setVisible(show_exalt);
 }
 
 QVBoxLayout* CurrencyDialog::GenerateLayout(bool show_chaos, bool show_exalt) {
@@ -345,10 +365,7 @@ QVBoxLayout* CurrencyDialog::GenerateLayout(bool show_chaos, bool show_exalt) {
     int col = 2;
     //Qt is shit, if we don't hide widget that aren't in the grid, it still display them like shit
     //Also, if we don't show widget in the grid, if they weren't in it before, it doesn't display them
-    headers_->chaos_value->setVisible(show_chaos);
-    headers_->chaos_ratio->setVisible(show_chaos);
-    headers_->exalt_value->setVisible(show_exalt);
-    headers_->exalt_ratio->setVisible(show_exalt);
+
 
     if (show_chaos) {
         grid->addWidget(headers_->chaos_value, 0, col);
@@ -370,10 +387,7 @@ QVBoxLayout* CurrencyDialog::GenerateLayout(bool show_chaos, bool show_exalt) {
         grid->addWidget(item->name_, curr_row, 0);
         grid->addWidget(item->count_, curr_row, 1, 1, -1);
         int col = 2;
-        item->chaos_value_->setVisible(show_chaos);
-        item->chaos_ratio_->setVisible(show_chaos);
-        item->exalt_value_->setVisible(show_exalt);
-        item->exalt_ratio_->setVisible(show_exalt);
+
         if (show_chaos) {
             grid->addWidget(item->chaos_value_, curr_row, col);
             grid->addWidget(item->chaos_ratio_, curr_row, col + 1);
@@ -391,8 +405,7 @@ QVBoxLayout* CurrencyDialog::GenerateLayout(bool show_chaos, bool show_exalt) {
     QGridLayout *bottom = new QGridLayout;
     //Used to display in the first column the checkbox if we don't display chaos/exalt
     col = 0;
-    headers_->chaos_total->setVisible(show_chaos);
-    total_chaos_value_->setVisible(show_chaos);
+
     if (show_chaos) {
         bottom->addWidget(headers_->chaos_total,  0, 0);
         bottom->addWidget(total_chaos_value_, 0, 1);
@@ -400,8 +413,6 @@ QVBoxLayout* CurrencyDialog::GenerateLayout(bool show_chaos, bool show_exalt) {
     }
     bottom->addWidget(show_chaos_, 0, col);
     col = 0;
-    headers_->exalt_total->setVisible(show_exalt);
-    total_exalt_value_->setVisible(show_exalt);
     if (show_exalt) {
         bottom->addWidget(headers_->exalt_total, 1, 0);
         bottom->addWidget(total_exalt_value_, 1, 1);
@@ -418,13 +429,7 @@ QVBoxLayout* CurrencyDialog::GenerateLayout(bool show_chaos, bool show_exalt) {
 
 }
 
-void CurrencyDialog::UpdateVisual() {
-    //Destroy old layout (because you can't replace a layout, that would be too fun :/)
-    delete layout_;
-    layout_ = GenerateLayout(showChaos(), showExalt());
-    setLayout(layout_);
-    adjustSize();
-}
+
 
 void CurrencyDialog::UpdateTotalValue() {
     total_exalt_value_->setText(QString::number(currency_manager_.TotalExaltedValue()));

@@ -140,6 +140,7 @@ public:
 public slots:
     void Update();
     void UpdateVisual();
+    void UpdateVisibility(bool show_chaos, bool show_exalt);
     void UpdateTotalValue();
 private:
     CurrencyManager &currency_manager_;
