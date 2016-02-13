@@ -92,6 +92,7 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     connect(&app_->shop(), &Shop::StatusUpdate, this, &MainWindow::OnStatusUpdate);
     connect(&update_checker_, &UpdateChecker::UpdateAvailable, this, &MainWindow::OnUpdateAvailable);
     connect(&auto_online_, &AutoOnline::Update, this, &MainWindow::OnOnlineUpdate);
+    connect(&update_current_item_trigger_, &QTimer::timeout, [&](){UpdateCurrentItem();update_current_item_trigger_.stop();});
 }
 
 void MainWindow::InitializeLogging() {
@@ -432,6 +433,8 @@ void MainWindow::OnSearchFormChange() {
 }
 
 void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /* previous */) {
+    app_->buyout_manager().Save();
+
     if (!current.parent().isValid()) {
         // clicked on a bucket
         current_item_ = nullptr;
@@ -439,7 +442,7 @@ void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /*
         UpdateCurrentBucket();
     } else {
         current_item_ = current_search_->buckets()[current.parent().row()]->items()[current.row()];
-        UpdateCurrentItem();
+        update_current_item_trigger_.start(100);
     }
     UpdateCurrentBuyout();
 }
@@ -545,7 +548,8 @@ void MainWindow::UpdateCurrentBucket() {
 }
 
 void MainWindow::UpdateCurrentItem() {
-    app_->buyout_manager().Save();
+    if (current_item_ == nullptr)
+        return;
 
     ui->imageLabel->show();
     ui->minimapLabel->show();

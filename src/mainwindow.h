@@ -154,6 +154,7 @@ private:
     AutoOnline auto_online_;
     QLabel online_label_;
     QNetworkAccessManager *network_manager_;
+    QTimer update_current_item_trigger_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif
