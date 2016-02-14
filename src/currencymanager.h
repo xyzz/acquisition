@@ -23,12 +23,85 @@
 #include <QtWidgets>
 
 #include "application.h"
+#include "buyoutmanager.h"
+struct CurrencyRatio {
+    Currency curr1;
+    Currency curr2;
+    double value1;
+    double value2;
+    CurrencyRatio() :
+        curr1(CURRENCY_NONE),
+        curr2(CURRENCY_NONE),
+        value1(0),
+        value2(0)
+    {}
+    CurrencyRatio(Currency c1, Currency c2, double v1, double v2) :
+        curr1(c1),
+        curr2(c2),
+        value1(v1),
+        value2(v2)
+    {}
+};
 
 struct CurrencyItem {
     int count;
+    Currency currency;
     std::string name;
-    double exalt;
-    double base;
+    CurrencyRatio exalt;
+    CurrencyRatio chaos;
+    CurrencyItem(int co, Currency curr, double chaos_ratio, double exalt_ratio) {
+        count = co;
+        currency = curr;
+        name = CurrencyAsString[curr];
+        chaos = CurrencyRatio(currency, CURRENCY_CHAOS_ORB, chaos_ratio, 1);
+        exalt = CurrencyRatio(currency, CURRENCY_EXALTED_ORB, exalt_ratio, 1);
+    }
+
+};
+struct CurrencyLabels {
+    QLabel *name;
+    QLabel *count;
+    QLabel *chaos_ratio;
+    QLabel *chaos_value;
+    QLabel *exalt_ratio;
+    QLabel *exalt_value;
+    QLabel *exalt_total;
+    QLabel *chaos_total;
+    QLabel *wisdom_total;
+    CurrencyLabels() {
+        name = new QLabel("Name");
+        count = new QLabel("Count");
+        chaos_ratio = new QLabel("Amount a chaos Orb can buy");
+        chaos_value = new QLabel("Value in Chaos Orb");
+        exalt_ratio = new QLabel("Amount an Exalted Orb can buy");
+        exalt_value = new QLabel("Value in Exalted Orb");
+        exalt_total = new QLabel("Total Exalted Orbs");
+        chaos_total = new QLabel("Total Chaos Orbs");
+        wisdom_total = new QLabel("Total Scrolls of Wisdom");
+    }
+
+};
+class CurrencyDialog;
+class CurrencyWidget : public QWidget
+{
+    Q_OBJECT
+public slots:
+    void Update();
+    void UpdateVisual(bool show_chaos, bool show_exalt);
+    bool IsNone() const { return currency_->currency==CURRENCY_NONE;}
+public:
+    CurrencyWidget(std::shared_ptr<CurrencyItem> currency);
+    //Visual stuff
+    QLabel *name;
+    QLabel *count;
+    QDoubleSpinBox *chaos_ratio;
+    QDoubleSpinBox *chaos_value;
+    QDoubleSpinBox *exalt_ratio;
+    QDoubleSpinBox *exalt_value;
+
+private:
+    //Data
+    std::shared_ptr<CurrencyItem> currency_;
 };
 
 // For now we just serialize/deserialize 'value' inside CurrencyManager
@@ -60,23 +133,30 @@ class CurrencyDialog : public QDialog
 {
     Q_OBJECT
 public:
-    CurrencyDialog(CurrencyManager &manager);
+    CurrencyDialog(CurrencyManager &manager, bool show_chaos, bool show_exalt);
+    bool ShowChaos() const { return show_chaos_->isChecked();}
+    bool ShowExalt() const { return show_exalt_->isChecked();}
+
 public slots:
     void Update();
+    void UpdateVisual();
+    void UpdateVisibility(bool show_chaos, bool show_exalt);
+    void UpdateTotalValue();
 private:
     CurrencyManager &currency_manager_;
-    QGridLayout *layout_;
-    std::vector<QLabel *> names_;
-    std::vector<QDoubleSpinBox *> values_;
-    std::vector<QDoubleSpinBox *> base_values_;
-    QDoubleSpinBox *total_value_;
-    QDoubleSpinBox *total_wisdom_value_;
-    QSignalMapper *mapper;
-    void UpdateTotalExaltedValue();
+    std::vector<CurrencyWidget*> currencies_widgets_;
+    CurrencyLabels *headers_;
+    QVBoxLayout *layout_;
+    QLabel *total_exalt_value_;
+    QLabel *total_chaos_value_;
+    QLabel *total_wisdom_value_;
+    QCheckBox *show_chaos_;
+    QCheckBox *show_exalt_;
+    QFrame *separator_;
+    QVBoxLayout* GenerateLayout(bool show_chaos, bool show_exalt);
     void UpdateTotalWisdomValue();
-private slots:
-    void OnBaseValueChanged(int index);
 };
+
 
 class CurrencyManager : public QWidget
 {
@@ -87,9 +167,10 @@ public:
     void ClearCurrency();
     // Called in itemmanagerworker::ParseItem
     void ParseSingleItem(const Item &item);
-    void UpdateBaseValue(int ind, double value);
-    const std::vector<CurrencyItem> &currencies() const { return currencies_;}
+    //void UpdateBaseValue(int ind, double value);
+    const std::vector<std::shared_ptr<CurrencyItem>> &currencies() const { return currencies_;}
     double TotalExaltedValue();
+    double TotalChaosValue();
     int TotalWisdomValue();
     void DisplayCurrency();
     void Update();
@@ -99,16 +180,19 @@ public:
 private:
     Application &app_;
     DataStore &data_;
-    std::vector<CurrencyItem> currencies_;
+    std::vector<std::shared_ptr<CurrencyItem>> currencies_;
     // We only need the "count" of a CurrencyItem so int will be enough
     std::vector<int> wisdoms_;
-    std::unique_ptr<CurrencyDialog> dialog_;
-    // database interaction
+    std::shared_ptr<CurrencyDialog> dialog_;
+    // Used only the first time we launch the app
+    void FirstInitCurrency();
+    //Migrate from old storage (csv-like serializing) to new one (using json)
+    void MigrateCurrency();
     void InitCurrency();
-    void LoadCurrency();
-    void SaveCurrencyBase();
-
+    void SaveCurrencyItems();
+    std::string Serialize(const std::vector<std::shared_ptr<CurrencyItem>> &currencies);
+    void Deserialize(const std::string &data, std::vector<std::shared_ptr<CurrencyItem>> *currencies);
+    void Save();
 public slots:
-    void UpdateExaltedValue();
     void SaveCurrencyValue();
 };
