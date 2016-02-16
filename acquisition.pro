@@ -5,6 +5,7 @@ QT += core gui network webkitwidgets testlib
 
 win32 {
     QT += winextras
+    QT.testlib.CONFIG -= console
 }
 
 unix {
