@@ -95,8 +95,7 @@ QRectF ItemLocation::GetRect() const {
         } else if (inventory_id_ == "Flask") {
             itemPos.x += POS_MAP.at(inventory_id_).x;
             itemPos.y = POS_MAP.at(inventory_id_).y;
-        }
-        else {
+        } else if (POS_MAP.count(inventory_id_)) {
             itemPos = POS_MAP.at(inventory_id_);
         }
     }
