@@ -113,6 +113,11 @@ void MainWindow::InitializeLogging() {
 
 void MainWindow::InitializeUi() {
     ui->setupUi(this);
+
+#ifndef Q_OS_LINUX
+    ui->menuAuto_online->removeAction(ui->actionRemoteScript);
+#endif
+
     status_bar_label_ = new QLabel("Ready");
     statusBar()->addWidget(status_bar_label_);
     ui->itemLayout->setAlignment(Qt::AlignTop);
