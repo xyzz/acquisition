@@ -34,6 +34,7 @@
 #include "application.h"
 #include "datastore.h"
 #include "util.h"
+#include "itemsmanager.h"
 #include "currencymanager.h"
 #include "tabcache.h"
 #include "mainwindow.h"
@@ -46,6 +47,7 @@ const char *kGetCharactersUrl = "https://www.pathofexile.com/character-window/ge
 const char *kMainPage = "https://www.pathofexile.com/";
 
 ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
+    application(app),
     data_(app.data()),
     signal_mapper_(nullptr),
     league_(app.league()),
@@ -173,17 +175,19 @@ void ItemsManagerWorker::OnCharacterListReceived() {
     }
 
     QLOG_DEBUG() << "Received character list, there are" << doc.Size() << "characters";
-    for (auto &character : doc) {
-        if (!character.HasMember("league") || !character.HasMember("name") || !character["league"].IsString() || !character["name"].IsString()) {
-            QLOG_ERROR() << "Malformed character entry, the reply is most likely invalid" << bytes.constData();
-            continue;
-        }
-        if (character["league"].GetString() == league_) {
-            std::string name = character["name"].GetString();
-            ItemLocation location;
-            location.set_type(ItemLocationType::CHARACTER);
-            location.set_character(name);
-            QueueRequest(MakeCharacterRequest(name, location), location);
+    if(application.items_manager().download_characters()){
+        for (auto &character : doc) {
+            if (!character.HasMember("league") || !character.HasMember("name") || !character["league"].IsString() || !character["name"].IsString()) {
+                QLOG_ERROR() << "Malformed character entry, the reply is most likely invalid" << bytes.constData();
+                continue;
+            }
+            if (character["league"].GetString() == league_) {
+                std::string name = character["name"].GetString();
+                ItemLocation location;
+                location.set_type(ItemLocationType::CHARACTER);
+                location.set_character(name);
+                QueueRequest(MakeCharacterRequest(name, location), location);
+            }
         }
     }
 

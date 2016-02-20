@@ -273,6 +273,7 @@
     <addaction name="separator"/>
     <addaction name="actionAutomatically_refresh_items"/>
     <addaction name="actionItems_refresh_interval"/>
+    <addaction name="actionDownloadCharacters"/>
    </widget>
    <widget class="QMenu" name="menuAuto_online">
     <property name="title">
@@ -320,6 +321,17 @@
     <string>Auto refresh interval...</string>
    </property>
   </action>
+  <action name="actionDownloadCharacters">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Download characters</string>
+   </property>
+ </action>
   <action name="actionRefresh">
    <property name="text">
     <string>Refresh all tabs</string>

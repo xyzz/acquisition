@@ -41,6 +41,7 @@ ItemsManager::ItemsManager(Application &app) :
 {
     auto_update_interval_ = std::stoi(data_.Get("autoupdate_interval", "30"));
     auto_update_ = data_.GetBool("autoupdate", true);
+    download_characters_ = data_.GetBool("downloadcharacters", true);
     SetAutoUpdateInterval(auto_update_interval_);
     connect(auto_update_timer_.get(), SIGNAL(timeout()), this, SLOT(OnAutoRefreshTimer()));
 }
@@ -139,6 +140,11 @@ void ItemsManager::SetAutoUpdateInterval(int minutes) {
     auto_update_interval_ = minutes;
     if (auto_update_)
         auto_update_timer_->start(auto_update_interval_ * 60 * 1000);
+}
+
+void ItemsManager::SetDownloadCharacters(bool download) {
+    data_.SetBool("downloadcharacters", download);
+    download_characters_ = download;
 }
 
 void ItemsManager::OnAutoRefreshTimer() {

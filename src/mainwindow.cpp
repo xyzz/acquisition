@@ -136,6 +136,7 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutValueLineEdit, SIGNAL(textEdited(QString)), this, SLOT(OnBuyoutChange()));
 
     ui->actionAutomatically_refresh_items->setChecked(app_->items_manager().auto_update());
+    ui->actionDownloadCharacters->setChecked(app_->items_manager().download_characters());
     UpdateShopMenu();
 
     search_form_layout_ = new QVBoxLayout;
@@ -730,6 +731,10 @@ void MainWindow::on_actionControl_poe_xyz_is_URL_triggered() {
 void MainWindow::on_actionAutomatically_refresh_online_status_triggered() {
     auto_online_.SetEnabled(ui->actionAutomatically_refresh_online_status->isChecked());
     UpdateOnlineGui();
+}
+
+void MainWindow::on_actionDownloadCharacters_triggered(){
+    app_->items_manager().SetDownloadCharacters(ui->actionDownloadCharacters->isChecked());
 }
 
 void MainWindow::on_actionList_currency_triggered() {

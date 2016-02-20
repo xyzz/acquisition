@@ -48,8 +48,10 @@ public:
     void Update(TabCache::Policy policy = TabCache::DefaultCache, const std::vector<ItemLocation>& tab_names = std::vector<ItemLocation>());
     void SetAutoUpdateInterval(int minutes);
     void SetAutoUpdate(bool update);
+    void SetDownloadCharacters(bool download);
     int auto_update_interval() const { return auto_update_interval_; }
     bool auto_update() const { return auto_update_; }
+    bool download_characters() const { return download_characters_; }
     const Items &items() const { return items_; }
     void PropagateTabBuyouts();
 public slots:
@@ -67,6 +69,8 @@ private:
 
     // should items be automatically refreshed
     bool auto_update_;
+    // should characters be downloaded
+    bool download_characters_;
     // items will be automatically updated every X minutes
     int auto_update_interval_;
     std::unique_ptr<QTimer> auto_update_timer_;

@@ -81,6 +81,7 @@ private:
     void ParseItems(rapidjson::Value *value_ptr, const ItemLocation &base_location, rapidjson_allocator &alloc);
 
     QNetworkRequest Request(QUrl url, const ItemLocation &location, TabCache::Flags flags = TabCache::None);
+    Application& application;
     DataStore &data_;
     QNetworkAccessManager network_manager_;
     QSignalMapper *signal_mapper_;
@@ -91,7 +92,7 @@ private:
     int total_completed_, total_needed_, total_cached_;
     int requests_completed_, requests_needed_;
     int cached_requests_completed_{0};
-    
+
     std::string tabs_as_string_;
     std::string league_;
     // set to true if updating right now
