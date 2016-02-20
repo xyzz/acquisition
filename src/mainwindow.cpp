@@ -651,6 +651,11 @@ void MainWindow::UpdateShopMenu() {
         title += " [" + Util::StringJoin(app_->shop().threads(), ",") + "]";
     ui->actionForum_shop_thread->setText(title.c_str());
     ui->actionAutomatically_update_shop->setChecked(app_->shop().auto_update());
+
+    std::string action_label = "Remote process list script";
+    if (auto_online_.IsRemoteScriptSet())
+        action_label += " [******]";
+    ui->actionRemoteScript->setText(action_label.c_str());
 }
 
 void MainWindow::UpdateOnlineGui() {
@@ -724,6 +729,16 @@ void MainWindow::on_actionControl_poe_xyz_is_URL_triggered() {
         QLineEdit::Normal, "", &ok);
     if (ok && !url.isEmpty())
         auto_online_.SetUrl(url.toStdString());
+    UpdateOnlineGui();
+}
+
+void MainWindow::on_actionRemoteScript_triggered() {
+    bool ok;
+    QString path = QInputDialog::getText(this, "Remote Process List Script",
+        "Path to the script for listing the running processes of your gaming machine",
+        QLineEdit::Normal, "", &ok);
+    if (ok && !path.isEmpty())
+        auto_online_.SetRemoteScript(path.toStdString());
     UpdateOnlineGui();
 }
 

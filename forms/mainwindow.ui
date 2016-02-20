@@ -279,6 +279,7 @@
      <string>Auto online</string>
     </property>
     <addaction name="actionControl_poe_xyz_is_URL"/>
+    <addaction name="actionRemoteScript"/>
     <addaction name="actionAutomatically_refresh_online_status"/>
    </widget>
    <widget class="QMenu" name="menuCurrency">
@@ -349,6 +350,11 @@
   <action name="actionControl_poe_xyz_is_URL">
    <property name="text">
     <string>control.poe.trade URL...</string>
+   </property>
+  </action>
+  <action name="actionRemoteScript">
+   <property name="text">
+    <string>Process list script</string>
    </property>
   </action>
   <action name="actionAutomatically_refresh_online_status">
