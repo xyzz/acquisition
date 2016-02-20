@@ -162,7 +162,7 @@ void AutoOnline::SetUrl(const std::string &url) {
 
 void AutoOnline::SetRemoteScript(const std::string& path) {
     process_script_ = path;
-    data.Set("process_script", path);
+    data_.Set("process_script", path);
 }
 
 void AutoOnline::SetEnabled(bool enabled) {
