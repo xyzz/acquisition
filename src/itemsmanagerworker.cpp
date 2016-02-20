@@ -40,6 +40,7 @@
 #include "mainwindow.h"
 #include "buyoutmanager.h"
 #include "filesystem.h"
+#include "auto_price.hpp"
 
 const char *kStashItemsUrl = "https://www.pathofexile.com/character-window/get-stash-items";
 const char *kCharacterItemsUrl = "https://www.pathofexile.com/character-window/get-items";
@@ -298,15 +299,30 @@ void ItemsManagerWorker::OnFirstTabReceived() {
     tabs_as_string_ = Util::RapidjsonSerialize(doc["tabs"]);
 
     QLOG_DEBUG() << "Received tabs list, there are" << doc["tabs"].Size() << "tabs";
+
+    auto auto_price = application.items_manager().auto_price();
+    auto limit_downloads = application.items_manager().limit_downloads();
+    auto price_recipes = application.items_manager().auto_price_recipes();
+
     tabs_.clear();
 
     // Create tab location objects
     for (auto &tab : doc["tabs"]) {
         std::string label = tab["n"].GetString();
         auto index = tab["i"].GetInt();
-        // Ignore hidden locations
-        if (!doc["tabs"][index].HasMember("hidden") || !doc["tabs"][index]["hidden"].GetBool())
-            tabs_.push_back(ItemLocation(index, label, ItemLocationType::STASH));
+
+        if(!limit_downloads || is_auto_priced(label, price_recipes)){
+            // Ignore hidden locations
+            if (!doc["tabs"][index].HasMember("hidden") || !doc["tabs"][index]["hidden"].GetBool()){
+                ItemLocation location(index, label, ItemLocationType::STASH);
+
+                if(auto_price && is_auto_priced(label, price_recipes)){
+                    application.buyout_manager().SetTab(location.GetUniqueHash(), get_auto_price(label, price_recipes));
+                }
+
+                tabs_.push_back(location);
+            }
+        }
     }
 
     // Immediately parse items received from this tab (first_fetch_tab_) and Queue requests for the others
@@ -317,6 +333,10 @@ void ItemsManagerWorker::OnFirstTabReceived() {
         } else {
             QueueRequest(MakeTabRequest(index, tab), tab);
         }
+    }
+
+    if(auto_price){
+        application.items_manager().PropagateTabBuyouts();
     }
 
     total_needed_ = queue_.size() + 1;

@@ -136,6 +136,9 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutValueLineEdit, SIGNAL(textEdited(QString)), this, SLOT(OnBuyoutChange()));
 
     ui->actionAutomatically_refresh_items->setChecked(app_->items_manager().auto_update());
+    ui->actionTabsAutoPrice->setChecked(app_->items_manager().auto_price());
+    ui->actionTabsAutoPriceRecipes->setChecked(app_->items_manager().auto_price_recipes());
+    ui->actionTabsLimitDownloads->setChecked(app_->items_manager().limit_downloads());
     ui->actionDownloadCharacters->setChecked(app_->items_manager().download_characters());
     UpdateShopMenu();
 
@@ -716,6 +719,18 @@ void MainWindow::on_actionShop_template_triggered() {
 
 void MainWindow::on_actionAutomatically_update_shop_triggered() {
     app_->shop().SetAutoUpdate(ui->actionAutomatically_update_shop->isChecked());
+}
+
+void MainWindow::on_actionTabsAutoPrice_triggered() {
+    app_->items_manager().SetAutoPrice(ui->actionTabsAutoPrice->isChecked());
+}
+
+void MainWindow::on_actionTabsLimitDownloads_triggered() {
+    app_->items_manager().SetLimitDownloads(ui->actionTabsLimitDownloads->isChecked());
+}
+
+void MainWindow::on_actionTabsAutoPriceRecipes_triggered() {
+    app_->items_manager().SetAutoPriceRecipes(ui->actionTabsAutoPriceRecipes->isChecked());
 }
 
 void MainWindow::on_actionControl_poe_xyz_is_URL_triggered() {
