@@ -656,11 +656,6 @@ void MainWindow::UpdateShopMenu() {
         title += " [" + Util::StringJoin(app_->shop().threads(), ",") + "]";
     ui->actionForum_shop_thread->setText(title.c_str());
     ui->actionAutomatically_update_shop->setChecked(app_->shop().auto_update());
-
-    std::string action_label = "Remote process list script";
-    if (auto_online_.IsRemoteScriptSet())
-        action_label += " [******]";
-    ui->actionRemoteScript->setText(action_label.c_str());
 }
 
 void MainWindow::UpdateOnlineGui() {
