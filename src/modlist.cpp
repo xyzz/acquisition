@@ -80,6 +80,7 @@ const std::vector<std::vector<std::string>> simple_sum = {
     { "#% increased Burning Damage", "#% increased Fire Damage", "#% increased Elemental Damage" },
     { "#% increased Fire Area Damage", "#% increased Fire Damage", "#% increased Elemental Damage" },
     { "#% increased Critical Strike Chance for Spells", "#% increased Global Critical Strike Chance" },
+    { "#% increased Global Critical Strike Chance" },
     { "#% increased Global Critical Strike Multiplier" },
     { "#% of Physical Attack Damage Leeched as Life" },
     { "#% of Physical Attack Damage Leeched as Mana" },
