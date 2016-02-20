@@ -55,6 +55,7 @@ SOURCES += \
     src/util.cpp \
     src/version.cpp \
     src/verticalscrollarea.cpp \
+    src/auto_price.cpp \
     test/testdata.cpp \
     test/testitem.cpp \
     test/testitemsmanager.cpp \
@@ -102,6 +103,7 @@ HEADERS += \
     src/version.h \
     src/version_defines.h \
     src/verticalscrollarea.h \
+    src/auto_price.hpp \
     test/testdata.h \
     test/testitem.h \
     test/testitemsmanager.h \
