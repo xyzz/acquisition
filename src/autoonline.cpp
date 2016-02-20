@@ -77,14 +77,13 @@ bool is_poe_running_locally() {
 
 bool is_poe_running_remotely(const std::string& script) {
 #if defined(Q_OS_LINUX) || defined(Q_OS_MAC)
-    std::string poe_check_script = "/bin/sh -c \"" + script + "|grep PathOfExile|grep -v grep|wc -l\"";
+    std::string poe_check_script = "/bin/sh -c \"" + script + "\"";
 
     QProcess process;
     process.start(poe_check_script.c_str());
     process.waitForFinished(-1);
 
-    QString i = process.readAllStandardOutput();
-    return i.toInt() > 0;
+    return process.exitCode() == 0;
 #elif defined(Q_OS_WIN)
     QLOG_ERROR() << "Script handling has not been implemented on Windows";
     return false;
