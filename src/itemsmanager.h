@@ -48,8 +48,17 @@ public:
     void Update(TabCache::Policy policy = TabCache::DefaultCache, const std::vector<ItemLocation>& tab_names = std::vector<ItemLocation>());
     void SetAutoUpdateInterval(int minutes);
     void SetAutoUpdate(bool update);
+    void SetAutoPrice(bool price);
+    void SetAutoPriceRecipes(bool price);
+    void SetLimitDownloads(bool limit);
+    void SetDownloadCharacters(bool download);
     int auto_update_interval() const { return auto_update_interval_; }
     bool auto_update() const { return auto_update_; }
+    bool auto_price() const { return auto_price_; }
+    bool auto_price_recipes() const { return auto_price_recipes_; }
+    bool limit_downloads() const { return limit_downloads_; }
+    bool download_characters() const { return download_characters_; }
+
     const Items &items() const { return items_; }
     void PropagateTabBuyouts();
 public slots:
@@ -67,6 +76,18 @@ private:
 
     // should items be automatically refreshed
     bool auto_update_;
+
+    // should tabs be automatically priced
+    bool auto_price_;
+
+    // should recipe tabs be automatically priced
+    bool auto_price_recipes_;
+
+    // should only priced tabs be automatically downloaded
+    bool limit_downloads_;
+
+    // should characters be downloaded
+    bool download_characters_;
     // items will be automatically updated every X minutes
     int auto_update_interval_;
     std::unique_ptr<QTimer> auto_update_timer_;

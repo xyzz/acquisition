@@ -273,6 +273,15 @@
     <addaction name="separator"/>
     <addaction name="actionAutomatically_refresh_items"/>
     <addaction name="actionItems_refresh_interval"/>
+    <addaction name="actionDownloadCharacters"/>
+   </widget>
+   <widget class="QMenu" name="menuAutoPrice">
+    <property name="title">
+     <string>Auto price</string>
+    </property>
+    <addaction name="actionTabsAutoPrice"/>
+    <addaction name="actionTabsLimitDownloads"/>
+    <addaction name="actionTabsAutoPriceRecipes"/>
    </widget>
    <widget class="QMenu" name="menuAuto_online">
     <property name="title">
@@ -291,6 +300,7 @@
    </widget>
    <addaction name="menuItems"/>
    <addaction name="menuShop"/>
+   <addaction name="menuAutoPrice"/>
    <addaction name="menuAuto_online"/>
    <addaction name="menuCurrency"/>
   </widget>
@@ -321,6 +331,50 @@
     <string>Auto refresh interval...</string>
    </property>
   </action>
+  <action name="actionTabsAutoPrice">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Automatically set buyout</string>
+   </property>
+  </action>
+  <action name="actionTabsLimitDownloads">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Download only priced tabs</string>
+   </property>
+  </action>
+  <action name="actionTabsAutoPriceRecipes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Automatically price recipes tabs</string>
+   </property>
+  </action>
+  <action name="actionDownloadCharacters">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Download characters</string>
+   </property>
+ </action>
   <action name="actionRefresh">
    <property name="text">
     <string>Refresh all tabs</string>

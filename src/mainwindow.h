@@ -107,6 +107,10 @@ private slots:
     void on_actionRefresh_triggered();
     void on_actionRefresh_selected_triggered();
     void on_actionAutomatically_refresh_items_triggered();
+    void on_actionTabsAutoPrice_triggered();
+    void on_actionTabsAutoPriceRecipes_triggered();
+    void on_actionTabsLimitDownloads_triggered();
+    void on_actionDownloadCharacters_triggered();
     void on_actionUpdate_shop_triggered();
     void on_actionShop_template_triggered();
     void on_actionAutomatically_update_shop_triggered();
