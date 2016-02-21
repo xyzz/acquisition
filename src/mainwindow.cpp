@@ -113,6 +113,11 @@ void MainWindow::InitializeLogging() {
 
 void MainWindow::InitializeUi() {
     ui->setupUi(this);
+
+#ifndef Q_OS_LINUX
+    ui->menuAuto_online->removeAction(ui->actionRemoteScript);
+#endif
+
     status_bar_label_ = new QLabel("Ready");
     statusBar()->addWidget(status_bar_label_);
     ui->itemLayout->setAlignment(Qt::AlignTop);
@@ -724,6 +729,16 @@ void MainWindow::on_actionControl_poe_xyz_is_URL_triggered() {
         QLineEdit::Normal, "", &ok);
     if (ok && !url.isEmpty())
         auto_online_.SetUrl(url.toStdString());
+    UpdateOnlineGui();
+}
+
+void MainWindow::on_actionRemoteScript_triggered() {
+    bool ok;
+    QString path = QInputDialog::getText(this, "Remote Process List Script",
+        "Path to the script for listing the running processes of your gaming machine",
+        QLineEdit::Normal, "", &ok);
+    if (ok && !path.isEmpty())
+        auto_online_.SetRemoteScript(path.toStdString());
     UpdateOnlineGui();
 }
 
