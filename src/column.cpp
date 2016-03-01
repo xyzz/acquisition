@@ -192,3 +192,13 @@ std::string DateColumn::value(const Item &item) {
     return Util::TimeAgoInWords(bo.last_update);
 
 }
+
+std::string ItemlevelColumn::name() {
+    return "ilvl";
+}
+
+std::string ItemlevelColumn::value(const Item &item) {
+    if (item.ilvl() > 0)
+        return std::to_string(item.ilvl());
+    return "";
+}

@@ -93,6 +93,7 @@ public:
     int count() const { return count_; };
     bool has_mtx() const { return has_mtx_; }
     const ModTable &mod_table() const { return mod_table_; }
+    int ilvl() const { return ilvl_; }
 
 private:
     // The point of GenerateMods is to create combined (e.g. implicit+explicit) poe.trade-like mod map to be searched by mod filter.
@@ -119,6 +120,7 @@ private:
     std::string json_;
     int count_;
     bool has_mtx_;
+    int ilvl_;
     std::vector<ItemProperty> text_properties_;
     std::vector<ItemRequirement> text_requirements_;
     std::map<std::string, ItemMods> text_mods_;

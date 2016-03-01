@@ -74,7 +74,8 @@ Item::Item(const rapidjson::Value &json) :
     links_cnt_(0),
     sockets_({ 0, 0, 0, 0 }),
     json_(Util::RapidjsonSerialize(json)),
-    has_mtx_(false)
+    has_mtx_(false),
+    ilvl_(0)
 {
     for (auto &mod_type : ITEM_MOD_TYPES) {
         text_mods_[mod_type] = std::vector<std::string>();
@@ -174,6 +175,9 @@ Item::Item(const rapidjson::Value &json) :
     }
 
     has_mtx_ = json.HasMember("cosmeticMods");
+
+    if (json.HasMember("ilvl"))
+        ilvl_ = json["ilvl"].GetInt();
 
     GenerateMods(json);
 }

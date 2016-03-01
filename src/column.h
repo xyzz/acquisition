@@ -105,3 +105,9 @@ public:
 private:
     const BuyoutManager &bo_manager_;
 };
+
+class ItemlevelColumn : public Column {
+public:
+    std::string name();
+    std::string value(const Item &item);
+};

@@ -58,7 +58,8 @@ Search::Search(BuyoutManager &bo_manager, const std::string &caption,
         std::make_unique<PropertyColumn>("Ev", "Evasion Rating"),
         std::make_unique<PropertyColumn>("ES", "Energy Shield"),
         std::make_unique<PropertyColumn>("B", "Chance to Block"),
-        std::make_unique<PropertyColumn>("Lvl", "Level")
+        std::make_unique<PropertyColumn>("Lvl", "Level"),
+        std::make_unique<ItemlevelColumn>()
     };
     columns_ = std::vector<move_only>(std::make_move_iterator(std::begin(init)), std::make_move_iterator(std::end(init)));
 

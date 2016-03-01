@@ -400,3 +400,7 @@ bool PricedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) 
     Buyout bo = bm_.Get(*item);
     return bo.type != BuyoutType::BUYOUT_TYPE_NONE;
 }
+
+double ItemlevelFilter::GetValue(const std::shared_ptr<Item> &item) {
+    return item->ilvl();
+}
