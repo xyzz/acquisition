@@ -29,7 +29,7 @@
 #include "itemlocation.h"
 
 const std::vector<std::string> ITEM_MOD_TYPES = {
-    "implicitMods", "explicitMods", "craftedMods", "cosmeticMods"
+    "implicitMods", "enchantMods", "explicitMods", "craftedMods", "cosmeticMods"
 };
 
 static std::string item_unique_properties(const rapidjson::Value &json, const std::string &name) {
