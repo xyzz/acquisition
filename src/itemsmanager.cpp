@@ -75,7 +75,7 @@ void ItemsManager::ApplyAutoTabBuyouts() {
     auto &bo = app_.buyout_manager();
     for (auto const &loc: bo_manager_.GetStashTabLocations()) {
         auto tab_label = loc.get_tab_label();
-        Buyout buyout(tab_label);
+        Buyout buyout = bo.StringToBuyout(tab_label);
         if (buyout.IsValid()) {
             bo.SetTab(loc.GetUniqueHash(), buyout);
             bo.Lock(loc.GetUniqueHash());

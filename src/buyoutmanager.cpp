@@ -35,25 +35,62 @@
 #include "itemlocation.h"
 #include "QVariant"
 
-Buyout::Buyout(std::string format) :
-    type(BUYOUT_TYPE_NONE),
-    currency(CURRENCY_NONE)
-{
-    // Parse format string and initialize buyout object, if string does not match any known format
-    // then the buyout object will not be valid (IsValid will return false).
-    std::regex exp("(~\\S+)\\s+(\\d+\\.?\\d*)\\s+(\\S+)");
+const std::map<std::string, BuyoutType> BuyoutManager::string_to_buyout_type_ = {
+    {"~gb/o", BUYOUT_TYPE_BUYOUT},
+    {"~b/o", BUYOUT_TYPE_BUYOUT},
+//    {"~c/o", BUYOUT_TYPE_CURRENT_OFFER},
+    {"~price", BUYOUT_TYPE_FIXED},
+};
 
-    std::smatch sm;
-
-    // regex_search allows for stuff before ~ and after currency type.  We only want to honor the formats
-    // that POE trade also accept so this may need to change if it's too generous
-    if (std::regex_search(format,sm,exp)) {
-        type = Util::StringToBuyoutType(sm[1]);
-        value = QVariant(sm[2].str().c_str()).toDouble();
-        currency = Util::StringToCurrencyType(sm[3]);
-        source = BUYOUT_SOURCE_GAME;
-    }
-}
+const std::map<std::string, Currency> BuyoutManager::string_to_currency_type_ = {
+    {"alt", CURRENCY_ORB_OF_ALTERATION},
+    {"alts", CURRENCY_ORB_OF_ALTERATION},
+    {"alteration", CURRENCY_ORB_OF_ALTERATION},
+    {"alterations", CURRENCY_ORB_OF_ALTERATION},
+    {"fuse", CURRENCY_ORB_OF_FUSING},
+    {"fuses", CURRENCY_ORB_OF_FUSING},
+    {"fusing", CURRENCY_ORB_OF_FUSING},
+    {"fusings", CURRENCY_ORB_OF_FUSING},
+    {"alch", CURRENCY_ORB_OF_ALCHEMY},
+    {"alchs", CURRENCY_ORB_OF_ALCHEMY},
+    {"alchemy", CURRENCY_ORB_OF_ALCHEMY},
+    {"chaos", CURRENCY_CHAOS_ORB},
+    {"gcp", CURRENCY_GCP},
+    {"gcps", CURRENCY_GCP},
+    {"gemcutter", CURRENCY_GCP},
+    {"gemcutters", CURRENCY_GCP},
+    {"prism", CURRENCY_GCP},
+    {"prisms", CURRENCY_GCP},
+    {"exa", CURRENCY_EXALTED_ORB},
+    {"exalted", CURRENCY_EXALTED_ORB},
+    {"chrom", CURRENCY_CHROMATIC_ORB},
+    {"chrome", CURRENCY_CHROMATIC_ORB},
+    {"chromes", CURRENCY_CHROMATIC_ORB},
+    {"chromatic", CURRENCY_CHROMATIC_ORB},
+    {"chromatics", CURRENCY_CHROMATIC_ORB},
+    {"jew", CURRENCY_JEWELLERS_ORB},
+    {"jews", CURRENCY_JEWELLERS_ORB},
+    {"jewel", CURRENCY_JEWELLERS_ORB},
+    {"jewels", CURRENCY_JEWELLERS_ORB},
+    {"jeweler", CURRENCY_JEWELLERS_ORB},
+    {"jewelers", CURRENCY_JEWELLERS_ORB},
+    {"chance", CURRENCY_ORB_OF_CHANCE},
+    {"chisel", CURRENCY_CARTOGRAPHERS_CHISEL},
+    {"chisels", CURRENCY_CARTOGRAPHERS_CHISEL},
+    {"cartographer", CURRENCY_CARTOGRAPHERS_CHISEL},
+    {"cartographers", CURRENCY_CARTOGRAPHERS_CHISEL},
+    {"scour", CURRENCY_ORB_OF_SCOURING},
+    {"scours", CURRENCY_ORB_OF_SCOURING},
+    {"scouring", CURRENCY_ORB_OF_SCOURING},
+    {"blessed", CURRENCY_BLESSED_ORB},
+    {"regret", CURRENCY_ORB_OF_REGRET},
+    {"regrets", CURRENCY_ORB_OF_REGRET},
+    {"regal", CURRENCY_REGAL_ORB},
+    {"regals", CURRENCY_REGAL_ORB},
+    {"divine", CURRENCY_DIVINE_ORB},
+    {"divines", CURRENCY_DIVINE_ORB},
+    {"vaal", CURRENCY_VAAL_ORB},
+};
 
 BuyoutManager::BuyoutManager(DataStore &data) :
     data_(data),
@@ -278,6 +315,42 @@ void BuyoutManager::SetStashTabLocations(const std::vector<ItemLocation> &tabs) 
 
 const std::vector<ItemLocation> BuyoutManager::GetStashTabLocations() const {
     return tabs_;
+}
+
+
+Currency BuyoutManager::StringToCurrencyType(std::string currency) const {
+    auto const &it = string_to_currency_type_.find(currency);
+    if (it != string_to_currency_type_.end()) {
+        return it->second;
+    }
+    return CURRENCY_NONE;
+}
+
+BuyoutType BuyoutManager::StringToBuyoutType(std::string bo_str) const {
+    auto const &it = string_to_buyout_type_.find(bo_str);
+    if (it != string_to_buyout_type_.end()) {
+        return it->second;
+    }
+    return BUYOUT_TYPE_NONE;
+}
+
+Buyout BuyoutManager::StringToBuyout(std::string format) {
+    // Parse format string and initialize buyout object, if string does not match any known format
+    // then the buyout object will not be valid (IsValid will return false).
+    std::regex exp("(~\\S+)\\s+(\\d+\\.?\\d*)\\s+(\\S+)");
+
+    std::smatch sm;
+
+    Buyout tmp;
+    // regex_search allows for stuff before ~ and after currency type.  We only want to honor the formats
+    // that POE trade also accept so this may need to change if it's too generous
+    if (std::regex_search(format,sm,exp)) {
+        tmp.type = StringToBuyoutType(sm[1]);
+        tmp.value = QVariant(sm[2].str().c_str()).toDouble();
+        tmp.currency = StringToCurrencyType(sm[3]);
+        tmp.source = BUYOUT_SOURCE_GAME;
+    }
+    return tmp;
 }
 
 void BuyoutManager::MigrateItem(const Item &item) {

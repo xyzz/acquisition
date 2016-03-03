@@ -25,7 +25,7 @@
 
 class ItemLocation;
 
-enum Currency: unsigned short {
+enum Currency {
     CURRENCY_NONE,
     CURRENCY_ORB_OF_ALTERATION,
     CURRENCY_ORB_OF_FUSING,
@@ -85,14 +85,14 @@ const std::vector<std::string> CurrencyAsTag({
     "vaal"
 });
 
-enum BuyoutType: unsigned short {
+enum BuyoutType {
     BUYOUT_TYPE_NONE,
     BUYOUT_TYPE_BUYOUT,
     BUYOUT_TYPE_FIXED,
     BUYOUT_TYPE_NO_PRICE
 };
 
-enum BuyoutSource: unsigned short {
+enum BuyoutSource {
     BUYOUT_SOURCE_MANUAL,
     BUYOUT_SOURCE_GAME,
     BUYOUT_SOURCE_AUTO
@@ -133,8 +133,6 @@ struct Buyout {
         currency(currency_),
         last_update(last_update_)
     {}
-    // Auto pricing constructor
-    Buyout(std::string format);
 };
 
 class DataStore;
@@ -169,11 +167,16 @@ public:
     const std::vector<ItemLocation> GetStashTabLocations() const;
     void Clear();
 
+    Buyout StringToBuyout(std::string);
+
     void Save();
     void Load();
 
     void MigrateItem(const Item &item);
 private:
+    Currency StringToCurrencyType(std::string currency) const;
+    BuyoutType StringToBuyoutType(std::string bo_str) const;
+
     std::string Serialize(const std::map<std::string, Buyout> &buyouts);
     void Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts);
 
@@ -189,5 +192,7 @@ private:
     std::set<std::string> refresh_locked_;
     bool save_needed_;
     std::vector<ItemLocation> tabs_;
+    static const std::map<std::string, BuyoutType> string_to_buyout_type_;
+    static const std::map<std::string, Currency> string_to_currency_type_;
 };
 
