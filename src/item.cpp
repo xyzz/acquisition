@@ -86,6 +86,10 @@ Item::Item(const rapidjson::Value &json) :
         }
     }
 
+    if (json.HasMember("note")) {
+        note_ = json["note"].GetString();
+    }
+
     if (json.HasMember("properties")) {
         for (auto prop_it = json["properties"].Begin(); prop_it != json["properties"].End(); ++prop_it) {
             auto &prop = *prop_it;

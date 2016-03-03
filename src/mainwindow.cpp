@@ -639,10 +639,6 @@ void MainWindow::OnItemsRefreshed() {
         tab++;
     }
     OnSearchFormChange();
-
-    // Apply auto tab buyouts and propagate
-    app_->items_manager().ApplyAutoTabBuyouts();
-    app_->items_manager().PropagateTabBuyouts();
 }
 
 MainWindow::~MainWindow() {

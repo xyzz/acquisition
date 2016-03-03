@@ -83,6 +83,21 @@ void ItemsManager::ApplyAutoTabBuyouts() {
     }
 }
 
+void ItemsManager::ApplyAutoItemBuyouts() {
+    // Loop over all items, check for note field with pricing and apply
+    auto &bo = app_.buyout_manager();
+    for (auto const& item: items_) {
+        auto const &note = item->note();
+        if (!note.empty()) {
+            Buyout buyout = bo.StringToBuyout(note);
+            if (buyout.IsValid()) {
+                bo.Set(*item, buyout);
+                bo.Lock(*item);
+            }
+        }
+    }
+}
+
 void ItemsManager::PropagateTabBuyouts() {
     auto &bo = app_.buyout_manager();
     bo.ClearRefreshLocks();
@@ -133,6 +148,8 @@ void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<ItemLo
 
     bo_manager_.SetStashTabLocations(tabs);
     MigrateBuyouts();
+    ApplyAutoTabBuyouts();
+    ApplyAutoItemBuyouts();
     PropagateTabBuyouts();
 
     emit ItemsRefreshed(initial_refresh);

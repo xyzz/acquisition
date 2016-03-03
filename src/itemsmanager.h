@@ -52,6 +52,7 @@ public:
     bool auto_update() const { return auto_update_; }
     const Items &items() const { return items_; }
     void ApplyAutoTabBuyouts();
+    void ApplyAutoItemBuyouts();
     void PropagateTabBuyouts();
 public slots:
     // called by auto_update_timer_
