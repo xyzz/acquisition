@@ -65,6 +65,24 @@ void ItemsManager::OnStatusUpdate(const CurrentStatusUpdate &status) {
     emit StatusUpdate(status);
 }
 
+void ItemsManager::ApplyAutoTabBuyouts() {
+    // Can handle everything related to auto-tab pricing here.
+    // 1. First format we need to honor is ascendency pricing formats which is top priority and overrides other types
+    // 2. Second priority is to honor manual user pricing
+    // 3. Third priority it to apply pricing based on ideally user specified formats (doesn't exist yet)
+
+    // Loop over all tabs, create buyout based on tab name which applies auto-pricing policies
+    auto &bo = app_.buyout_manager();
+    for (auto const &loc: bo_manager_.GetStashTabLocations()) {
+        auto tab_label = loc.get_tab_label();
+        Buyout buyout(tab_label);
+        if (buyout.IsValid()) {
+            bo.SetTab(loc.GetUniqueHash(), buyout);
+            bo.Lock(loc.GetUniqueHash());
+        }
+    }
+}
+
 void ItemsManager::PropagateTabBuyouts() {
     auto &bo = app_.buyout_manager();
     bo.ClearRefreshLocks();

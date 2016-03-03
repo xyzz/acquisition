@@ -29,6 +29,8 @@ class QComboBox;
 class QNetworkReply;
 
 struct Buyout;
+enum BuyoutType: unsigned short;
+enum Currency: unsigned short;
 
 enum class TextWidthId {
     WIDTH_MIN_MAX,
@@ -38,6 +40,10 @@ enum class TextWidthId {
 };
 
 namespace Util {
+extern std::map<std::string, BuyoutType> string_to_buyout_type_;
+extern std::map<std::string, Currency> string_to_currency_type_;
+Currency StringToCurrencyType(std::string currency);
+BuyoutType StringToBuyoutType(std::string bo_str);
 std::string Md5(const std::string &value);
 double AverageDamage(const std::string &s);
 void PopulateBuyoutTypeComboBox(QComboBox *combobox);

@@ -51,6 +51,7 @@ public:
     int auto_update_interval() const { return auto_update_interval_; }
     bool auto_update() const { return auto_update_; }
     const Items &items() const { return items_; }
+    void ApplyAutoTabBuyouts();
     void PropagateTabBuyouts();
 public slots:
     // called by auto_update_timer_

@@ -95,13 +95,14 @@ void Shop::Update() {
     for (auto &item : app_.items_manager().items()) {
         tmp.item = item.get();
         tmp.bo.type = BUYOUT_TYPE_NONE;
-        tmp.bo.type = BUYOUT_TYPE_NONE;
         std::string hash = item->location().GetUniqueHash();
         if (app_.buyout_manager().ExistsTab(hash))
             tmp.bo = app_.buyout_manager().GetTab(hash);
         if (app_.buyout_manager().Exists(*item))
             tmp.bo = app_.buyout_manager().Get(*item);
         if (tmp.bo.type == BUYOUT_TYPE_NONE)
+            continue;
+        if (tmp.bo.source == BUYOUT_SOURCE_GAME)
             continue;
         if (item->location().socketed())
             continue;

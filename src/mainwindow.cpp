@@ -307,20 +307,27 @@ void MainWindow::OnBuyoutChange() {
     if (ui->buyoutValueLineEdit->text().isEmpty() && (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED))
         return;
 
-    for (auto const &index: ui->treeView->selectionModel()->selectedIndexes()) {
+    BuyoutManager &bo_manager = app_->buyout_manager();
+    for (auto const &index: ui->treeView->selectionModel()->selectedIndexes()) {    
+        auto const &tab = current_search_->GetTabLocation(index).GetUniqueHash();
+
+        // Don't allow users to manually update locked tabs (game priced)
+        if (bo_manager.GetLocked(tab))
+            continue;
         if (!index.parent().isValid()) {
-            auto const &bucket = *current_search_->buckets()[index.row()];
-            auto const &tab = bucket.location().GetUniqueHash();
             if (bo.type == BUYOUT_TYPE_NONE)
-                app_->buyout_manager().DeleteTab(tab);
+                bo_manager.DeleteTab(tab);
             else
-                app_->buyout_manager().SetTab(tab, bo);
+                bo_manager.SetTab(tab, bo);
         } else {
             auto &item = current_search_->buckets()[index.parent().row()]->items()[index.row()];
+            // Don't allow users to manually update locked items (game priced per item in note section)
+            if (bo_manager.GetLocked(*item))
+                continue;
             if (bo.type == BUYOUT_TYPE_NONE)
-                app_->buyout_manager().Delete(*item);
+                bo_manager.Delete(*item);
             else
-                app_->buyout_manager().Set(*item, bo);
+                bo_manager.Set(*item, bo);
         }
     }
     app_->items_manager().PropagateTabBuyouts();
@@ -632,6 +639,10 @@ void MainWindow::OnItemsRefreshed() {
         tab++;
     }
     OnSearchFormChange();
+
+    // Apply auto tab buyouts and propagate
+    app_->items_manager().ApplyAutoTabBuyouts();
+    app_->items_manager().PropagateTabBuyouts();
 }
 
 MainWindow::~MainWindow() {

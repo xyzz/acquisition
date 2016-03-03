@@ -94,6 +94,7 @@ public:
     bool has_mtx() const { return has_mtx_; }
     const ModTable &mod_table() const { return mod_table_; }
     int ilvl() const { return ilvl_; }
+    bool operator<(const Item &other) const;
 
 private:
     // The point of GenerateMods is to create combined (e.g. implicit+explicit) poe.trade-like mod map to be searched by mod filter.

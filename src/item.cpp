@@ -244,3 +244,7 @@ void Item::CalculateHash(const rapidjson::Value &json) {
     unique_new += "~" + location_.GetUniqueHash();
     hash_ = Util::Md5(unique_new);
 }
+
+bool Item::operator<(const Item &other) const {
+    return hash_ < other.hash();
+}

@@ -22,6 +22,7 @@
 #include <cassert>
 #include <sstream>
 #include <stdexcept>
+#include <regex>
 #include "QsLog.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -32,6 +33,27 @@
 #include "rapidjson_util.h"
 #include "util.h"
 #include "itemlocation.h"
+#include "QVariant"
+
+Buyout::Buyout(std::string format) :
+    type(BUYOUT_TYPE_NONE),
+    currency(CURRENCY_NONE)
+{
+    // Parse format string and initialize buyout object, if string does not match any known format
+    // then the buyout object will not be valid (IsValid will return false).
+    std::regex exp("(~\\S+)\\s+(\\d+\\.?\\d*)\\s+(\\S+)");
+
+    std::smatch sm;
+
+    // regex_search allows for stuff before ~ and after currency type.  We only want to honor the formats
+    // that POE trade also accept so this may need to change if it's too generous
+    if (std::regex_search(format,sm,exp)) {
+        type = Util::StringToBuyoutType(sm[1]);
+        value = QVariant(sm[2].str().c_str()).toDouble();
+        currency = Util::StringToCurrencyType(sm[3]);
+        source = BUYOUT_SOURCE_GAME;
+    }
+}
 
 BuyoutManager::BuyoutManager(DataStore &data) :
     data_(data),
@@ -41,8 +63,10 @@ BuyoutManager::BuyoutManager(DataStore &data) :
 }
 
 void BuyoutManager::Set(const Item &item, const Buyout &buyout) {
-    save_needed_ = true;
-    buyouts_[item.hash()] = buyout;
+    if (!GetLocked(item)) {
+        save_needed_ = true;
+        buyouts_[item.hash()] = buyout;
+    }
 }
 
 Buyout BuyoutManager::Get(const Item &item) const {
@@ -65,8 +89,10 @@ Buyout BuyoutManager::GetTab(const std::string &tab) const {
 }
 
 void BuyoutManager::SetTab(const std::string &tab, const Buyout &buyout) {
-    save_needed_ = true;
-    tab_buyouts_[tab] = buyout;
+    if (!GetLocked(tab)) {
+        save_needed_ = true;
+        tab_buyouts_[tab] = buyout;
+    }
 }
 
 bool BuyoutManager::ExistsTab(const std::string &tab) const {
@@ -101,6 +127,22 @@ void BuyoutManager::ClearRefreshLocks() {
     refresh_locked_.clear();
 }
 
+void BuyoutManager::Lock(const Item &item) {
+    buyout_locks_.insert(item);
+}
+
+void BuyoutManager::Lock(const std::string &tab) {
+    tab_buyout_locks_.insert(tab);
+}
+
+bool BuyoutManager::GetLocked(const Item &item) {
+    return buyout_locks_.count(item);
+}
+
+bool BuyoutManager::GetLocked(const std::string &tab) {
+    return tab_buyout_locks_.count(tab);
+}
+
 void BuyoutManager::Clear() {
     save_needed_ = true;
     buyouts_.clear();
@@ -118,6 +160,8 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
     for (auto &bo : buyouts) {
         const Buyout &buyout = bo.second;
         if (buyout.type != BUYOUT_TYPE_NO_PRICE && (buyout.currency == CURRENCY_NONE || buyout.type == BUYOUT_TYPE_NONE))
+            continue;
+        if (buyout.source != BUYOUT_SOURCE_MANUAL)
             continue;
         if (buyout.type >= BuyoutTypeAsTag.size() || buyout.currency >= CurrencyAsTag.size()) {
             QLOG_WARN() << "Ignoring invalid buyout, type:" << buyout.type

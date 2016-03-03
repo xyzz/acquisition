@@ -25,7 +25,7 @@
 
 class ItemLocation;
 
-enum Currency {
+enum Currency: unsigned short {
     CURRENCY_NONE,
     CURRENCY_ORB_OF_ALTERATION,
     CURRENCY_ORB_OF_FUSING,
@@ -85,11 +85,17 @@ const std::vector<std::string> CurrencyAsTag({
     "vaal"
 });
 
-enum BuyoutType {
+enum BuyoutType: unsigned short {
     BUYOUT_TYPE_NONE,
     BUYOUT_TYPE_BUYOUT,
     BUYOUT_TYPE_FIXED,
     BUYOUT_TYPE_NO_PRICE
+};
+
+enum BuyoutSource: unsigned short {
+    BUYOUT_SOURCE_MANUAL,
+    BUYOUT_SOURCE_GAME,
+    BUYOUT_SOURCE_AUTO
 };
 
 const std::vector<std::string> BuyoutTypeAsTag({
@@ -109,11 +115,13 @@ const std::vector<std::string> BuyoutTypeAsPrefix({
 struct Buyout {
     double value;
     BuyoutType type;
+    BuyoutSource source{BUYOUT_SOURCE_MANUAL};
     Currency currency;
     QDateTime last_update;
     bool inherited = false;
     bool operator==(const Buyout &o) const;
     bool operator!=(const Buyout &o) const;
+    bool IsValid() { return (type != BUYOUT_TYPE_NONE) && (currency != CURRENCY_NONE);  };
     Buyout() :
         value(0),
         type(BUYOUT_TYPE_NONE),
@@ -125,6 +133,8 @@ struct Buyout {
         currency(currency_),
         last_update(last_update_)
     {}
+    // Auto pricing constructor
+    Buyout(std::string format);
 };
 
 class DataStore;
@@ -144,6 +154,12 @@ public:
 
     void SetRefreshChecked(const ItemLocation &tab, bool value);
     bool GetRefreshChecked(const ItemLocation &tab) const;
+
+    void Lock(const Item &item);
+    void Lock(const std::string &tab);
+
+    bool GetLocked(const Item &item);
+    bool GetLocked(const std::string &tab);
 
     bool GetRefreshLocked(const ItemLocation &tab) const;
     void SetRefreshLocked(const ItemLocation &tab);
@@ -167,6 +183,8 @@ private:
     DataStore &data_;
     std::map<std::string, Buyout> buyouts_;
     std::map<std::string, Buyout> tab_buyouts_;
+    std::set<Item> buyout_locks_;
+    std::set<std::string> tab_buyout_locks_;
     std::map<std::string, bool> refresh_checked_;
     std::set<std::string> refresh_locked_;
     bool save_needed_;
