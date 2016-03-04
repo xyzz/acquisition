@@ -22,6 +22,7 @@
 #include <cassert>
 #include <sstream>
 #include <stdexcept>
+#include <regex>
 #include "QsLog.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -32,6 +33,64 @@
 #include "rapidjson_util.h"
 #include "util.h"
 #include "itemlocation.h"
+#include "QVariant"
+
+const std::map<std::string, BuyoutType> BuyoutManager::string_to_buyout_type_ = {
+    {"~gb/o", BUYOUT_TYPE_BUYOUT},
+    {"~b/o", BUYOUT_TYPE_BUYOUT},
+//    {"~c/o", BUYOUT_TYPE_CURRENT_OFFER},
+    {"~price", BUYOUT_TYPE_FIXED},
+};
+
+const std::map<std::string, Currency> BuyoutManager::string_to_currency_type_ = {
+    {"alt", CURRENCY_ORB_OF_ALTERATION},
+    {"alts", CURRENCY_ORB_OF_ALTERATION},
+    {"alteration", CURRENCY_ORB_OF_ALTERATION},
+    {"alterations", CURRENCY_ORB_OF_ALTERATION},
+    {"fuse", CURRENCY_ORB_OF_FUSING},
+    {"fuses", CURRENCY_ORB_OF_FUSING},
+    {"fusing", CURRENCY_ORB_OF_FUSING},
+    {"fusings", CURRENCY_ORB_OF_FUSING},
+    {"alch", CURRENCY_ORB_OF_ALCHEMY},
+    {"alchs", CURRENCY_ORB_OF_ALCHEMY},
+    {"alchemy", CURRENCY_ORB_OF_ALCHEMY},
+    {"chaos", CURRENCY_CHAOS_ORB},
+    {"gcp", CURRENCY_GCP},
+    {"gcps", CURRENCY_GCP},
+    {"gemcutter", CURRENCY_GCP},
+    {"gemcutters", CURRENCY_GCP},
+    {"prism", CURRENCY_GCP},
+    {"prisms", CURRENCY_GCP},
+    {"exa", CURRENCY_EXALTED_ORB},
+    {"exalted", CURRENCY_EXALTED_ORB},
+    {"chrom", CURRENCY_CHROMATIC_ORB},
+    {"chrome", CURRENCY_CHROMATIC_ORB},
+    {"chromes", CURRENCY_CHROMATIC_ORB},
+    {"chromatic", CURRENCY_CHROMATIC_ORB},
+    {"chromatics", CURRENCY_CHROMATIC_ORB},
+    {"jew", CURRENCY_JEWELLERS_ORB},
+    {"jews", CURRENCY_JEWELLERS_ORB},
+    {"jewel", CURRENCY_JEWELLERS_ORB},
+    {"jewels", CURRENCY_JEWELLERS_ORB},
+    {"jeweler", CURRENCY_JEWELLERS_ORB},
+    {"jewelers", CURRENCY_JEWELLERS_ORB},
+    {"chance", CURRENCY_ORB_OF_CHANCE},
+    {"chisel", CURRENCY_CARTOGRAPHERS_CHISEL},
+    {"chisels", CURRENCY_CARTOGRAPHERS_CHISEL},
+    {"cartographer", CURRENCY_CARTOGRAPHERS_CHISEL},
+    {"cartographers", CURRENCY_CARTOGRAPHERS_CHISEL},
+    {"scour", CURRENCY_ORB_OF_SCOURING},
+    {"scours", CURRENCY_ORB_OF_SCOURING},
+    {"scouring", CURRENCY_ORB_OF_SCOURING},
+    {"blessed", CURRENCY_BLESSED_ORB},
+    {"regret", CURRENCY_ORB_OF_REGRET},
+    {"regrets", CURRENCY_ORB_OF_REGRET},
+    {"regal", CURRENCY_REGAL_ORB},
+    {"regals", CURRENCY_REGAL_ORB},
+    {"divine", CURRENCY_DIVINE_ORB},
+    {"divines", CURRENCY_DIVINE_ORB},
+    {"vaal", CURRENCY_VAAL_ORB},
+};
 
 BuyoutManager::BuyoutManager(DataStore &data) :
     data_(data),
@@ -41,8 +100,17 @@ BuyoutManager::BuyoutManager(DataStore &data) :
 }
 
 void BuyoutManager::Set(const Item &item, const Buyout &buyout) {
-    save_needed_ = true;
-    buyouts_[item.hash()] = buyout;
+    auto it = buyouts_.lower_bound(item.hash());
+    if (it != buyouts_.end() && !(buyouts_.key_comp()(item.hash(), it->first))) {
+        // Entry exists - we don't want to update if buyout is equal to existing
+        if (buyout != it->second) {
+            save_needed_ = true;
+            it->second = buyout;
+        }
+    } else {
+        save_needed_ = true;
+        buyouts_.insert(it, {item.hash(), buyout});
+    }
 }
 
 Buyout BuyoutManager::Get(const Item &item) const {
@@ -65,8 +133,17 @@ Buyout BuyoutManager::GetTab(const std::string &tab) const {
 }
 
 void BuyoutManager::SetTab(const std::string &tab, const Buyout &buyout) {
-    save_needed_ = true;
-    tab_buyouts_[tab] = buyout;
+    auto it = tab_buyouts_.lower_bound(tab);
+    if (it != tab_buyouts_.end() && !(tab_buyouts_.key_comp()(tab, it->first))) {
+        // Entry exists - we don't want to update if buyout is equal to existing
+        if (buyout != it->second) {
+            save_needed_ = true;
+            it->second = buyout;
+        }
+    } else {
+        save_needed_ = true;
+        tab_buyouts_.insert(it, {tab, buyout});
+    }
 }
 
 bool BuyoutManager::ExistsTab(const std::string &tab) const {
@@ -76,6 +153,24 @@ bool BuyoutManager::ExistsTab(const std::string &tab) const {
 void BuyoutManager::DeleteTab(const std::string &tab) {
     save_needed_ = true;
     tab_buyouts_.erase(tab);
+}
+
+void BuyoutManager::CompressTabBuyouts() {
+    // When tabs are renamed we end up with stale tab buyouts that aren't deleted.
+    // This function is to remove buyouts associated with tab names that don't
+    // currently exist.
+    std::set<std::string> tmp;
+    for (auto const& loc: tabs_)
+        tmp.insert(loc.GetUniqueHash());
+
+    for (auto it = tab_buyouts_.begin(), ite = tab_buyouts_.end(); it != ite;) {
+        if(tmp.count(it->first) == 0) {
+            save_needed_ = true;
+            it = tab_buyouts_.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void BuyoutManager::SetRefreshChecked(const ItemLocation &loc, bool value) {
@@ -99,6 +194,22 @@ void BuyoutManager::SetRefreshLocked(const ItemLocation &loc) {
 
 void BuyoutManager::ClearRefreshLocks() {
     refresh_locked_.clear();
+}
+
+bool BuyoutManager::IsGamePriced(const Item &item) {
+    auto it = buyouts_.find(item.hash());
+    if (it != buyouts_.end()) {
+        return it->second.source == BUYOUT_SOURCE_GAME;
+    }
+    return false;
+}
+
+bool BuyoutManager::IsGamePriced(const std::string &tab) {
+    auto it = tab_buyouts_.find(tab);
+    if (it != tab_buyouts_.end()) {
+        return it->second.source == BUYOUT_SOURCE_GAME;
+    }
+    return false;
 }
 
 void BuyoutManager::Clear() {
@@ -136,6 +247,7 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
 
         Util::RapidjsonAddConstString(&item, "type", BuyoutTypeAsTag[buyout.type], alloc);
         Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[buyout.currency], alloc);
+        Util::RapidjsonAddConstString(&item, "source", BuyoutSourceAsTag[buyout.source], alloc);
 
         item.AddMember("inherited", buyout.inherited, alloc);
 
@@ -171,6 +283,9 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
         bo.value = object["value"].GetDouble();
         if (object.HasMember("last_update")){
             bo.last_update = QDateTime::fromTime_t(object["last_update"].GetInt());
+        }
+        if (object.HasMember("source")){
+            bo.source = static_cast<BuyoutSource>(Util::TagAsBuyoutSource(object["source"].GetString()));
         }
         bo.inherited = false;
         if (object.HasMember("inherited"))
@@ -236,6 +351,43 @@ const std::vector<ItemLocation> BuyoutManager::GetStashTabLocations() const {
     return tabs_;
 }
 
+
+Currency BuyoutManager::StringToCurrencyType(std::string currency) const {
+    auto const &it = string_to_currency_type_.find(currency);
+    if (it != string_to_currency_type_.end()) {
+        return it->second;
+    }
+    return CURRENCY_NONE;
+}
+
+BuyoutType BuyoutManager::StringToBuyoutType(std::string bo_str) const {
+    auto const &it = string_to_buyout_type_.find(bo_str);
+    if (it != string_to_buyout_type_.end()) {
+        return it->second;
+    }
+    return BUYOUT_TYPE_NONE;
+}
+
+Buyout BuyoutManager::StringToBuyout(std::string format) {
+    // Parse format string and initialize buyout object, if string does not match any known format
+    // then the buyout object will not be valid (IsValid will return false).
+    std::regex exp("(~\\S+)\\s+(\\d+\\.?\\d*)\\s+(\\S+)");
+
+    std::smatch sm;
+
+    Buyout tmp;
+    // regex_search allows for stuff before ~ and after currency type.  We only want to honor the formats
+    // that POE trade also accept so this may need to change if it's too generous
+    if (std::regex_search(format,sm,exp)) {
+        tmp.type = StringToBuyoutType(sm[1]);
+        tmp.value = QVariant(sm[2].str().c_str()).toDouble();
+        tmp.currency = StringToCurrencyType(sm[3]);
+        tmp.source = BUYOUT_SOURCE_GAME;
+        tmp.last_update = QDateTime::currentDateTime();
+    }
+    return tmp;
+}
+
 void BuyoutManager::MigrateItem(const Item &item) {
     std::string old_hash = item.old_hash();
     std::string hash = item.hash();
@@ -249,7 +401,9 @@ void BuyoutManager::MigrateItem(const Item &item) {
 
 bool Buyout::operator==(const Buyout&o) const {
     static const double eps = 1e-6;
-    return std::fabs(o.value - value) < eps && o.type == type && o.currency == currency && o.inherited == inherited;
+    return std::fabs(o.value - value) < eps && o.type == type
+            && o.currency == currency && o.inherited == inherited
+            && o.source == source;
 }
 
 bool Buyout::operator!=(const Buyout &o) const {

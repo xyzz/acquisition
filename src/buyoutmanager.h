@@ -106,14 +106,30 @@ const std::vector<std::string> BuyoutTypeAsPrefix({
     "",
 });
 
+enum BuyoutSource {
+    BUYOUT_SOURCE_NONE,
+    BUYOUT_SOURCE_MANUAL,
+    BUYOUT_SOURCE_GAME,
+    BUYOUT_SOURCE_AUTO
+};
+
+const std::vector<std::string> BuyoutSourceAsTag({
+    "",
+    "manual",
+    "game",
+    "auto",
+});
+
 struct Buyout {
     double value;
     BuyoutType type;
+    BuyoutSource source{BUYOUT_SOURCE_MANUAL};
     Currency currency;
     QDateTime last_update;
     bool inherited = false;
     bool operator==(const Buyout &o) const;
     bool operator!=(const Buyout &o) const;
+    bool IsValid() { return (type != BUYOUT_TYPE_NONE) && (currency != CURRENCY_NONE) && (source != BUYOUT_SOURCE_NONE); };
     Buyout() :
         value(0),
         type(BUYOUT_TYPE_NONE),
@@ -141,9 +157,13 @@ public:
     Buyout GetTab(const std::string &tab) const;
     void DeleteTab(const std::string &tab);
     bool ExistsTab(const std::string &tab) const;
+    void CompressTabBuyouts();
 
     void SetRefreshChecked(const ItemLocation &tab, bool value);
     bool GetRefreshChecked(const ItemLocation &tab) const;
+
+    bool IsGamePriced(const Item &item);
+    bool IsGamePriced(const std::string &tab);
 
     bool GetRefreshLocked(const ItemLocation &tab) const;
     void SetRefreshLocked(const ItemLocation &tab);
@@ -153,11 +173,16 @@ public:
     const std::vector<ItemLocation> GetStashTabLocations() const;
     void Clear();
 
+    Buyout StringToBuyout(std::string);
+
     void Save();
     void Load();
 
     void MigrateItem(const Item &item);
 private:
+    Currency StringToCurrencyType(std::string currency) const;
+    BuyoutType StringToBuyoutType(std::string bo_str) const;
+
     std::string Serialize(const std::map<std::string, Buyout> &buyouts);
     void Deserialize(const std::string &data, std::map<std::string, Buyout> *buyouts);
 
@@ -171,5 +196,7 @@ private:
     std::set<std::string> refresh_locked_;
     bool save_needed_;
     std::vector<ItemLocation> tabs_;
+    static const std::map<std::string, BuyoutType> string_to_buyout_type_;
+    static const std::map<std::string, Currency> string_to_currency_type_;
 };
 

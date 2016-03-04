@@ -28,6 +28,7 @@ public:
     void set_character(const std::string &character) { character_ = character; }
     void set_tab_id(int tab_id) { tab_id_ = tab_id; }
     void set_tab_label(const std::string &tab_label) { tab_label_ = tab_label; }
+    std::string get_tab_label() const { return tab_label_; }
     bool socketed() const { return socketed_; }
     void set_socketed(bool socketed) { socketed_ = socketed; }
     int get_tab_id() const { return tab_id_; }

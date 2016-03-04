@@ -90,10 +90,12 @@ public:
     const std::vector<ItemSocketGroup> &socket_groups() const { return socket_groups_; }
     const ItemLocation &location() const { return location_; }
     const std::string& json() { return json_; };
+    const std::string& note() const { return note_; };
     int count() const { return count_; };
     bool has_mtx() const { return has_mtx_; }
     const ModTable &mod_table() const { return mod_table_; }
     int ilvl() const { return ilvl_; }
+    bool operator<(const Item &other) const;
 
 private:
     // The point of GenerateMods is to create combined (e.g. implicit+explicit) poe.trade-like mod map to be searched by mod filter.
@@ -125,6 +127,7 @@ private:
     std::vector<ItemRequirement> text_requirements_;
     std::map<std::string, ItemMods> text_mods_;
     std::vector<ItemSocket> text_sockets_;
+    std::string note_;
     ModTable mod_table_;
 };
 
