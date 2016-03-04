@@ -67,7 +67,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
 #if defined(Q_OS_LINUX)
     setWindowIcon(QIcon(":/icons/assets/icon.svg"));
 #endif
-    QStringList leagues = { "Perandus", "Perandus Hardcore", "Standard", "Hardcore" };
+    QStringList leagues = { "Perandus", "Hardcore Perandus", "Standard", "Hardcore" };
     ui->leagueComboBox->clear();
     ui->leagueComboBox->addItems(leagues);
     ui->leagueComboBox->setEnabled(true);

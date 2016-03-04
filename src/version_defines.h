@@ -1,9 +1,9 @@
 #pragma once
 
-#define VER_CODE                    25
-#define VER_STR                     "0.5b"
-#define VER_FILEVERSION             0,5,2,0
-#define VER_FILEVERSION_STR         "0.5.2.0"
+#define VER_CODE                    26
+#define VER_STR                     "0.5c"
+#define VER_FILEVERSION             0,5,3,0
+#define VER_FILEVERSION_STR         "0.5.3.0"
 
 #define VER_PRODUCTVERSION          VER_FILEVERSION
 #define VER_PRODUCTVERSION_STR      VER_FILEVERSION_STR
