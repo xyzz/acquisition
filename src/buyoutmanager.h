@@ -92,12 +92,6 @@ enum BuyoutType {
     BUYOUT_TYPE_NO_PRICE
 };
 
-enum BuyoutSource {
-    BUYOUT_SOURCE_MANUAL,
-    BUYOUT_SOURCE_GAME,
-    BUYOUT_SOURCE_AUTO
-};
-
 const std::vector<std::string> BuyoutTypeAsTag({
     "",
     "b/o",
@@ -112,6 +106,20 @@ const std::vector<std::string> BuyoutTypeAsPrefix({
     "",
 });
 
+enum BuyoutSource {
+    BUYOUT_SOURCE_NONE,
+    BUYOUT_SOURCE_MANUAL,
+    BUYOUT_SOURCE_GAME,
+    BUYOUT_SOURCE_AUTO
+};
+
+const std::vector<std::string> BuyoutSourceAsTag({
+    "",
+    "manual",
+    "game",
+    "auto",
+});
+
 struct Buyout {
     double value;
     BuyoutType type;
@@ -121,7 +129,7 @@ struct Buyout {
     bool inherited = false;
     bool operator==(const Buyout &o) const;
     bool operator!=(const Buyout &o) const;
-    bool IsValid() { return (type != BUYOUT_TYPE_NONE) && (currency != CURRENCY_NONE);  };
+    bool IsValid() { return (type != BUYOUT_TYPE_NONE) && (currency != CURRENCY_NONE) && (source != BUYOUT_SOURCE_NONE); };
     Buyout() :
         value(0),
         type(BUYOUT_TYPE_NONE),
@@ -149,15 +157,13 @@ public:
     Buyout GetTab(const std::string &tab) const;
     void DeleteTab(const std::string &tab);
     bool ExistsTab(const std::string &tab) const;
+    void CompressTabBuyouts();
 
     void SetRefreshChecked(const ItemLocation &tab, bool value);
     bool GetRefreshChecked(const ItemLocation &tab) const;
 
-    void Lock(const Item &item);
-    void Lock(const std::string &tab);
-
-    bool GetLocked(const Item &item);
-    bool GetLocked(const std::string &tab);
+    bool IsGamePriced(const Item &item);
+    bool IsGamePriced(const std::string &tab);
 
     bool GetRefreshLocked(const ItemLocation &tab) const;
     void SetRefreshLocked(const ItemLocation &tab);
@@ -186,8 +192,6 @@ private:
     DataStore &data_;
     std::map<std::string, Buyout> buyouts_;
     std::map<std::string, Buyout> tab_buyouts_;
-    std::set<Item> buyout_locks_;
-    std::set<std::string> tab_buyout_locks_;
     std::map<std::string, bool> refresh_checked_;
     std::set<std::string> refresh_locked_;
     bool save_needed_;

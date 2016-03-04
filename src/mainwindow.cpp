@@ -312,7 +312,7 @@ void MainWindow::OnBuyoutChange() {
         auto const &tab = current_search_->GetTabLocation(index).GetUniqueHash();
 
         // Don't allow users to manually update locked tabs (game priced)
-        if (bo_manager.GetLocked(tab))
+        if (bo_manager.IsGamePriced(tab))
             continue;
         if (!index.parent().isValid()) {
             if (bo.type == BUYOUT_TYPE_NONE)
@@ -322,7 +322,7 @@ void MainWindow::OnBuyoutChange() {
         } else {
             auto &item = current_search_->buckets()[index.parent().row()]->items()[index.row()];
             // Don't allow users to manually update locked items (game priced per item in note section)
-            if (bo_manager.GetLocked(*item))
+            if (bo_manager.IsGamePriced(*item))
                 continue;
             if (bo.type == BUYOUT_TYPE_NONE)
                 bo_manager.Delete(*item);

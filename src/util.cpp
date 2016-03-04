@@ -64,6 +64,10 @@ int Util::TagAsCurrency(const std::string &tag) {
     return std::find(CurrencyAsTag.begin(), CurrencyAsTag.end(), tag) - CurrencyAsTag.begin();
 }
 
+int Util::TagAsBuyoutSource(const std::string &tag) {
+    return std::find(BuyoutSourceAsTag.begin(), BuyoutSourceAsTag.end(), tag) - BuyoutSourceAsTag.begin();
+}
+
 static std::vector<std::string> width_strings = {
     "max#",
     "R. Level",

@@ -78,9 +78,12 @@ void ItemsManager::ApplyAutoTabBuyouts() {
         Buyout buyout = bo.StringToBuyout(tab_label);
         if (buyout.IsValid()) {
             bo.SetTab(loc.GetUniqueHash(), buyout);
-            bo.Lock(loc.GetUniqueHash());
         }
     }
+
+    // Need to compress tab buyouts here, as the tab names change we accumulate and save BO's
+    // for tabs that no longer exist I think.
+    bo.CompressTabBuyouts();
 }
 
 void ItemsManager::ApplyAutoItemBuyouts() {
@@ -92,7 +95,13 @@ void ItemsManager::ApplyAutoItemBuyouts() {
             Buyout buyout = bo.StringToBuyout(note);
             if (buyout.IsValid()) {
                 bo.Set(*item, buyout);
-                bo.Lock(*item);
+            } else {
+                // For each item it's possible that the 'note' field was set to a BO and now
+                // it is not. So basically any item without a note could have a game buyout
+                // we need to delete.
+                if(bo.IsGamePriced(*item)) {
+                    bo.Delete(*item);
+                }
             }
         }
     }
