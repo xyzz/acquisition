@@ -371,19 +371,24 @@ BuyoutType BuyoutManager::StringToBuyoutType(std::string bo_str) const {
 Buyout BuyoutManager::StringToBuyout(std::string format) {
     // Parse format string and initialize buyout object, if string does not match any known format
     // then the buyout object will not be valid (IsValid will return false).
-    std::regex exp("(~\\S+)\\s+(\\d+\\.?\\d*)\\s+(\\S+)");
-
-    std::smatch sm;
-
     Buyout tmp;
-    // regex_search allows for stuff before ~ and after currency type.  We only want to honor the formats
-    // that POE trade also accept so this may need to change if it's too generous
-    if (std::regex_search(format,sm,exp)) {
-        tmp.type = StringToBuyoutType(sm[1]);
-        tmp.value = QVariant(sm[2].str().c_str()).toDouble();
-        tmp.currency = StringToCurrencyType(sm[3]);
-        tmp.source = BUYOUT_SOURCE_GAME;
-        tmp.last_update = QDateTime::currentDateTime();
+    try {
+        std::regex exp("(~\\S+)\\s+(\\d+\\.?\\d*)\\s+(\\S+)");
+
+        std::smatch sm;
+
+        // regex_search allows for stuff before ~ and after currency type.  We only want to honor the formats
+        // that POE trade also accept so this may need to change if it's too generous
+        if (std::regex_search(format,sm,exp)) {
+            tmp.type = StringToBuyoutType(sm[1]);
+            tmp.value = QVariant(sm[2].str().c_str()).toDouble();
+            tmp.currency = StringToCurrencyType(sm[3]);
+            tmp.source = BUYOUT_SOURCE_GAME;
+            tmp.last_update = QDateTime::currentDateTime();
+        }
+    } catch(std::regex_error) {
+        // In case exp is not a valid regex according to the std::regex implementation,
+        // just fall through to returning the non-valid object.
     }
     return tmp;
 }
