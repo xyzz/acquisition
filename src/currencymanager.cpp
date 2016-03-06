@@ -111,6 +111,9 @@ void CurrencyManager::ClearCurrency() {
     }
 }
 void CurrencyManager::InitCurrency() {
+    for(unsigned int i = 0; i < CurrencyAsString.size();i++) {
+        currencies_.push_back(std::make_shared<CurrencyItem>(0, static_cast<Currency>(i), 1, 1));
+    }
     Deserialize(data_.Get("currency_items"), &currencies_);
     for (unsigned int i = 0; i < CurrencyWisdomValue.size(); i++) {
         wisdoms_.push_back(0);
@@ -175,9 +178,13 @@ void CurrencyManager::Deserialize(const std::string &data, std::vector<std::shar
     for (auto itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr) {
         auto &object = itr->value;
         Currency curr = static_cast<Currency>(Util::TagAsCurrency(object["currency"].GetString()));
-        std::shared_ptr<CurrencyItem> item = std::make_shared<CurrencyItem>(object["count"].GetDouble(), curr,
-                object["chaos_ratio"].GetDouble(), object["exalt_ratio"].GetDouble());
-        currencies->push_back(item);
+        for (auto &item : *currencies) {
+            if(item->currency == curr) {
+                item = std::make_shared<CurrencyItem>(object["count"].GetDouble(), curr,
+                        object["chaos_ratio"].GetDouble(), object["exalt_ratio"].GetDouble());
+            }
+        }
+        //currencies->push_back(item);
     }
 }
 
