@@ -395,10 +395,7 @@ bool AltartFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) 
 bool PricedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     if (!data->checked)
         return true;
-    if (!bm_.Exists(*item))
-        return false;
-    Buyout bo = bm_.Get(*item);
-    return bo.type != BuyoutType::BUYOUT_TYPE_NONE;
+    return bm_.Get(*item).IsActive();
 }
 
 double ItemlevelFilter::GetValue(const std::shared_ptr<Item> &item) {

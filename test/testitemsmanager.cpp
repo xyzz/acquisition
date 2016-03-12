@@ -47,7 +47,8 @@ void TestItemsManager::BuyoutForNewItem() {
 
     BuyoutManager &bo = app_.buyout_manager();
     Item &item = *items[0];
-    QVERIFY2(!bo.Exists(item), "Buyout for a newly created item shouldn't exist.");
+    QVERIFY2(!bo.Get(item).IsActive(), "Buyout for a newly created item should exist but be in InActive state");
+    QVERIFY2(bo.Get(item).IsValid(), "Buyout for a newly created item should exist and be valid");
 }
 
 // Tests that buyouts are propagated when a user sets tab buyout
@@ -65,8 +66,8 @@ void TestItemsManager::BuyoutPropagation() {
     auto tabs = { first_tab, second_tab };
     app_.items_manager().OnItemsRefreshed(items, tabs, true);
 
-    QVERIFY2(bo.Exists(*first), "Item buyout for the first item must exist");
-    QVERIFY2(!bo.Exists(*second), "Item buyout for the second item must not exist");
+    QVERIFY2(bo.Get(*first).IsActive(), "Item buyout for the first item must exist and be active");
+    QVERIFY2(!bo.Get(*second).IsActive(), "Item buyout for the second item should exist but be InActive");
 
     Buyout from_mgr = bo.Get(*first);
     QVERIFY2(from_mgr.inherited == true, "Buyout for the first item must be marked as inherited");
@@ -90,8 +91,8 @@ void TestItemsManager::UserSetBuyoutPropagation() {
     auto tabs = { first_tab };
     app_.items_manager().OnItemsRefreshed(items, tabs, true);
 
-    QVERIFY2(bo.Exists(*first), "Item buyout for the first item must exist");
-    QVERIFY2(bo.Exists(*second), "Item buyout for the second item must exist");
+    QVERIFY2(bo.Get(*first).IsActive(), "Item buyout for the first item must exist and be active");
+    QVERIFY2(bo.Get(*second).IsActive(), "Item buyout for the second item must exist and be active");
 
     Buyout from_mgr_first = bo.Get(*first);
     Buyout from_mgr_second = bo.Get(*second);
@@ -120,12 +121,12 @@ void TestItemsManager::MoveItemNoBoToBo() {
     // Put item into the first tab
     app_.items_manager().OnItemsRefreshed({ item_before }, tabs, true);
 
-    QVERIFY2(!bo.Exists(*item_before), "Before: the buyout must not exist");
+    QVERIFY2(!bo.Get(*item_before).IsActive(), "Before: the buyout must not be active");
 
     // Move item to the second tab
     app_.items_manager().OnItemsRefreshed({ item_after }, tabs, true);
 
-    QVERIFY2(bo.Exists(*item_before), "After: the buyout must exist");
+    QVERIFY2(bo.Get(*item_before).IsActive(), "After: the buyout must exist and be active");
     auto buyout = bo.Get(*item_before);
     QVERIFY2(buyout.inherited == true, "After: the buyout must be inherited");
     buyout.inherited = false;
@@ -149,7 +150,7 @@ void TestItemsManager::MoveItemBoToNoBo() {
     // Put item into the first tab
     app_.items_manager().OnItemsRefreshed({ item_before }, tabs, true);
 
-    QVERIFY2(bo.Exists(*item_before), "Before: the buyout must exist");
+    QVERIFY2(bo.Get(*item_before).IsActive(), "Before: the buyout must exist and be active");
     auto buyout = bo.Get(*item_before);
     QVERIFY2(buyout.inherited == true, "Before: the buyout must be inherited");
     buyout.inherited = false;
@@ -158,7 +159,7 @@ void TestItemsManager::MoveItemBoToNoBo() {
     // Move item to the second tab
     app_.items_manager().OnItemsRefreshed({ item_after }, tabs, true);
 
-    QVERIFY2(!bo.Exists(*item_before), "After: the buyout must not exist");
+    QVERIFY2(!bo.Get(*item_before).IsActive(), "After: the buyout should be inactive");
 }
 
 // Bo => Bo, check that the buyout is updated
@@ -180,7 +181,7 @@ void TestItemsManager::MoveItemBoToBo() {
     // Put item into the first tab
     app_.items_manager().OnItemsRefreshed({ item_before }, tabs, true);
 
-    QVERIFY2(bo.Exists(*item_before), "Before: the buyout must exist");
+    QVERIFY2(bo.Get(*item_before).IsActive(), "Before: the buyout must exist and be active");
     auto buyout = bo.Get(*item_before);
     QVERIFY2(buyout.inherited == true, "Before: the buyout must be inherited");
     buyout.inherited = false;
@@ -189,7 +190,7 @@ void TestItemsManager::MoveItemBoToBo() {
     // Move item to the second tab
     app_.items_manager().OnItemsRefreshed({ item_after }, tabs, true);
 
-    QVERIFY2(bo.Exists(*item_before), "After: the buyout must exist");
+    QVERIFY2(bo.Get(*item_before).IsActive(), "After: the buyout must exist and be active");
     buyout = bo.Get(*item_before);
     QVERIFY2(buyout.inherited == true, "After: the buyout must be inherited");
     buyout.inherited = false;
@@ -210,11 +211,11 @@ void TestItemsManager::ItemHashMigration() {
     app_.data().Set("buyouts", "{\"5f083f2f5ceb10ed720bd4c1771ed09d\": {\"currency\": \"alt\", \"type\": \"b/o\", \"value\": 1.23, \"last_update\": 567}}");
     bo.Load();
 
-    QVERIFY2(!bo.Exists(item), "Before migration: the buyout mustn't exist");
+    QVERIFY2(!bo.Get(item).IsActive(), "Before migration: the buyout should exist but be inactive");
     // trigger buyout migration by refreshing itemsmanager
     app_.items_manager().OnItemsRefreshed({ std::make_shared<Item>(item) }, {}, true);
 
-    QVERIFY2(bo.Exists(item), "After migration: the buyout must exist");
+    QVERIFY2(bo.Get(item).IsActive(), "After migration: the buyout must exist");
     auto buyout_from_mgr = bo.Get(item);
     QVERIFY2(buyout_from_mgr == buyout, "After migration: the buyout must match our data");
 }

@@ -48,24 +48,13 @@ double Util::AverageDamage(const std::string &s) {
 }
 
 void Util::PopulateBuyoutTypeComboBox(QComboBox *combobox) {
-    combobox->addItems(QStringList({"Ignore", "Buyout", "Fixed price", "No price"}));
+    combobox->addItems(QStringList({"[Ignore]", "Buyout", "Fixed price", "Current Offer", "No price", "[Inherit]"}));
+    combobox->setCurrentIndex(5);
 }
 
 void Util::PopulateBuyoutCurrencyComboBox(QComboBox *combobox) {
-    for (auto &currency : CurrencyAsString)
-        combobox->addItem(QString(currency.c_str()));
-}
-
-int Util::TagAsBuyoutType(const std::string &tag) {
-    return std::find(BuyoutTypeAsTag.begin(), BuyoutTypeAsTag.end(), tag) - BuyoutTypeAsTag.begin();
-}
-
-int Util::TagAsCurrency(const std::string &tag) {
-    return std::find(CurrencyAsTag.begin(), CurrencyAsTag.end(), tag) - CurrencyAsTag.begin();
-}
-
-int Util::TagAsBuyoutSource(const std::string &tag) {
-    return std::find(BuyoutSourceAsTag.begin(), BuyoutSourceAsTag.end(), tag) - BuyoutSourceAsTag.begin();
+    for (auto type : Currency::Types())
+        combobox->addItem(QString(Currency(type).AsString().c_str()));
 }
 
 static std::vector<std::string> width_strings = {
@@ -108,14 +97,6 @@ std::string Util::FindTextBetween(const std::string &page, const std::string &le
     if (first == std::string::npos || last == std::string::npos || first > last)
         return "";
     return page.substr(first + left.size(), last - first - left.size());
-}
-
-std::string Util::BuyoutAsText(const Buyout &bo) {
-    if (bo.type != BUYOUT_TYPE_NO_PRICE) {
-        return BuyoutTypeAsTag[bo.type] + " " + QString::number(bo.value).toStdString() + " " + CurrencyAsTag[bo.currency];
-    } else {
-        return BuyoutTypeAsTag[bo.type];
-    }
 }
 
 std::string Util::RapidjsonSerialize(const rapidjson::Value &val) {

@@ -76,7 +76,7 @@ void ItemsManager::ApplyAutoTabBuyouts() {
     for (auto const &loc: bo_manager_.GetStashTabLocations()) {
         auto tab_label = loc.get_tab_label();
         Buyout buyout = bo.StringToBuyout(tab_label);
-        if (buyout.IsValid()) {
+        if (buyout.IsActive()) {
             bo.SetTab(loc.GetUniqueHash(), buyout);
         }
     }
@@ -93,15 +93,12 @@ void ItemsManager::ApplyAutoItemBuyouts() {
         auto const &note = item->note();
         if (!note.empty()) {
             Buyout buyout = bo.StringToBuyout(note);
-            if (buyout.IsValid()) {
+            // This line may look confusing, buyout returns an active buyout if game
+            // pricing was found or a default buyout (inherit) if it was not.
+            // If there is a currently valid note we want to apply OR if
+            // old note no longer is valid (so basically clear pricing)
+            if (buyout.IsActive() || bo.Get(*item).IsGameSet()) {
                 bo.Set(*item, buyout);
-            } else {
-                // For each item it's possible that the 'note' field was set to a BO and now
-                // it is not. So basically any item without a note could have a game buyout
-                // we need to delete.
-                if(bo.IsGamePriced(*item)) {
-                    bo.Delete(*item);
-                }
             }
         }
     }
@@ -113,41 +110,24 @@ void ItemsManager::PropagateTabBuyouts() {
     for (auto &item_ptr : items_) {
         auto &item = *item_ptr;
         std::string hash = item.location().GetUniqueHash();
-        bool item_bo_exists = bo.Exists(item);
-        bool tab_bo_exists = bo.ExistsTab(hash);
+        auto item_bo = bo.Get(item);
+        auto tab_bo = bo.GetTab(hash);
 
-        Buyout item_bo, tab_bo;
-        if (item_bo_exists)
-            item_bo = bo.Get(item);
-        if (tab_bo_exists)
-            tab_bo = bo.GetTab(hash);
-
-        // If *any* bo's are set on an item or the tab then lock the refresh state to
-        // be ON.  I think this is intuitive, that users generally want to auto-refresh
-        // tabs they are selling from and it prevents those tabs from going stale and
-        // posting possible stale data to forumns.
-        if (tab_bo_exists || (item_bo_exists && !item_bo.inherited)) {
+        // If any savable bo's are set on an item or the tab then lock
+        // the refresh state.
+        if (item_bo.IsSavable() || tab_bo.IsSavable()) {
             bo.SetRefreshLocked(item.location());
         }
 
-        // The logic below is quite complicated and probably should be simplified.
-        // One day.
-
-        // We update inherited attribute here because it later gets copied to the item if
-        // its buyout doesn't match exactly the tab buyout
-        tab_bo.inherited = true;
-
-        // Don't do anything to the item if it has a personal buyout set
-        if (item_bo_exists && !item_bo.inherited)
-            continue;
-        // If item has an inherited buyout but tab is clear, delete it
-        if (item_bo_exists && !tab_bo_exists) {
-            bo.Delete(item);
-        // If tab buyout exists and item's buyout doesn't match it, update it
-        // Only update when it doesn't match to preserve last_update
-        } else if (tab_bo_exists && (!item_bo_exists || item_bo != tab_bo)) {
-            tab_bo.last_update = QDateTime::currentDateTime();
-            bo.Set(item, tab_bo);
+        if (item_bo.IsInherited()) {
+            if (tab_bo.IsActive()) {
+                // Any propagation from tab price to item price should include this bit set
+                tab_bo.inherited = true;
+                bo.Set(item, tab_bo);
+            } else {
+                // This effectively 'clears' buyout by setting back to 'inherit' state.
+                bo.Set(item, Buyout());
+            }
         }
     }
 }

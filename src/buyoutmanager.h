@@ -25,7 +25,7 @@
 
 class ItemLocation;
 
-enum Currency {
+enum CurrencyType {
     CURRENCY_NONE,
     CURRENCY_ORB_OF_ALTERATION,
     CURRENCY_ORB_OF_FUSING,
@@ -47,70 +47,14 @@ enum Currency {
     CURRENCY_MIRROR_OF_KALANDRA
 };
 
-const std::vector<std::string> CurrencyAsString({
-    "",
-    "Orb of Alteration",
-    "Orb of Fusing",
-    "Orb of Alchemy",
-    "Chaos Orb",
-    "Gemcutter's Prism",
-    "Exalted Orb",
-    "Chromatic Orb",
-    "Jeweller's Orb",
-    "Orb of Chance",
-    "Cartographer's Chisel",
-    "Orb of Scouring",
-    "Blessed Orb",
-    "Orb of Regret",
-    "Regal Orb",
-    "Divine Orb",
-    "Vaal Orb",
-    "Perandus Coin",
-    "Mirror of Kalandra"
-});
-
-const std::vector<std::string> CurrencyAsTag({
-    "",
-    "alt",
-    "fuse",
-    "alch",
-    "chaos",
-    "gcp",
-    "exa",
-    "chrom",
-    "jew",
-    "chance",
-    "chisel",
-    "scour",
-    "blessed",
-    "regret",
-    "regal",
-    "divine",
-    "vaal",
-    "coin",
-    "mirror"
-});
-
 enum BuyoutType {
-    BUYOUT_TYPE_NONE,
+    BUYOUT_TYPE_IGNORE,
     BUYOUT_TYPE_BUYOUT,
     BUYOUT_TYPE_FIXED,
-    BUYOUT_TYPE_NO_PRICE
+    BUYOUT_TYPE_CURRENT_OFFER,
+    BUYOUT_TYPE_NO_PRICE,
+    BUYOUT_TYPE_INHERIT,
 };
-
-const std::vector<std::string> BuyoutTypeAsTag({
-    "",
-    "b/o",
-    "price",
-    "no price",
-});
-
-const std::vector<std::string> BuyoutTypeAsPrefix({
-    "",
-    " ~b/o ",
-    " ~price ",
-    "",
-});
 
 enum BuyoutSource {
     BUYOUT_SOURCE_NONE,
@@ -119,14 +63,34 @@ enum BuyoutSource {
     BUYOUT_SOURCE_AUTO
 };
 
-const std::vector<std::string> BuyoutSourceAsTag({
-    "",
-    "manual",
-    "game",
-    "auto",
-});
+struct Currency {
+    typedef std::map<CurrencyType, std::string> CurrencyTypeMap;
+
+    Currency() = default;
+    Currency(CurrencyType in_type): type(in_type) { };
+
+    CurrencyType type{CURRENCY_NONE};
+
+    static std::vector<CurrencyType> Types();
+    static Currency FromIndex(int i);
+    static Currency FromTag(std::string tag);
+
+    bool operator==(const Currency& rhs) const { return type == rhs.type; }
+    bool operator!=(const Currency& rhs) const { return type != rhs.type; }
+    bool operator<(const Currency& rhs) const { return type < rhs.type; }
+
+    std::string AsString() const;
+    std::string AsTag() const;
+
+private:
+    static const CurrencyTypeMap currency_type_as_string_;
+    static const CurrencyTypeMap currency_type_as_tag_;
+};
 
 struct Buyout {
+    typedef std::map<BuyoutType, std::string> BuyoutTypeMap;
+    typedef std::map<BuyoutSource, std::string> BuyoutSourceMap;
+
     double value;
     BuyoutType type;
     BuyoutSource source{BUYOUT_SOURCE_MANUAL};
@@ -135,10 +99,27 @@ struct Buyout {
     bool inherited = false;
     bool operator==(const Buyout &o) const;
     bool operator!=(const Buyout &o) const;
-    bool IsValid() { return (type != BUYOUT_TYPE_NONE) && (currency != CURRENCY_NONE) && (source != BUYOUT_SOURCE_NONE); };
+    bool IsValid() const;
+    bool IsActive() const;
+    bool IsInherited() const { return inherited || type == BUYOUT_TYPE_INHERIT; };
+    bool IsSavable() const { return IsValid() && !IsInherited(); };
+    bool IsPostable() const;
+    bool IsPriced() const;
+    bool IsGameSet() const;
+
+    static BuyoutType TagAsBuyoutType(std::string tag);
+    static BuyoutType IndexAsBuyoutType(int index);
+    static BuyoutSource TagAsBuyoutSource(std::string tag);
+
+    std::string AsText() const;
+    std::string BuyoutTypeAsTag() const;
+    std::string BuyoutTypeAsPrefix() const;
+    std::string BuyoutSourceAsTag() const;
+    std::string CurrencyAsTag() const;
+
     Buyout() :
         value(0),
-        type(BUYOUT_TYPE_NONE),
+        type(BUYOUT_TYPE_INHERIT),
         currency(CURRENCY_NONE)
     {}
     Buyout(double value_, BuyoutType type_, Currency currency_, QDateTime last_update_) :
@@ -147,6 +128,10 @@ struct Buyout {
         currency(currency_),
         last_update(last_update_)
     {}
+private:
+    static const BuyoutTypeMap buyout_type_as_tag_;
+    static const BuyoutTypeMap buyout_type_as_prefix_;
+    static const BuyoutSourceMap buyout_source_as_tag_;
 };
 
 class DataStore;
@@ -156,20 +141,13 @@ public:
     explicit BuyoutManager(DataStore &data);
     void Set(const Item &item, const Buyout &buyout);
     Buyout Get(const Item &item) const;
-    void Delete(const Item &item);
-    bool Exists(const Item &item) const;
 
     void SetTab(const std::string &tab, const Buyout &buyout);
     Buyout GetTab(const std::string &tab) const;
-    void DeleteTab(const std::string &tab);
-    bool ExistsTab(const std::string &tab) const;
     void CompressTabBuyouts();
 
     void SetRefreshChecked(const ItemLocation &tab, bool value);
     bool GetRefreshChecked(const ItemLocation &tab) const;
-
-    bool IsGamePriced(const Item &item);
-    bool IsGamePriced(const std::string &tab);
 
     bool GetRefreshLocked(const ItemLocation &tab) const;
     void SetRefreshLocked(const ItemLocation &tab);

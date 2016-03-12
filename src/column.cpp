@@ -161,19 +161,13 @@ std::string PriceColumn::name() {
 }
 
 std::string PriceColumn::value(const Item &item) {
-    if (!bo_manager_.Exists(item))
-        return "";
     const Buyout &bo = bo_manager_.Get(item);
-    return Util::BuyoutAsText(bo);
+    return bo.AsText();
 }
 
 QColor PriceColumn::color(const Item &item) {
-    if (bo_manager_.Exists(item)) {
-        const Buyout &bo = bo_manager_.Get(item);
-        if (bo.inherited)
-            return QColor(0xaa, 0xaa, 0xaa);
-    }
-    return QColor();
+    const Buyout &bo = bo_manager_.Get(item);
+    return bo.IsInherited() ? QColor(0xaa, 0xaa, 0xaa):QColor();
 }
 
 DateColumn::DateColumn(const BuyoutManager &bo_manager):
@@ -185,12 +179,8 @@ std::string DateColumn::name() {
 }
 
 std::string DateColumn::value(const Item &item) {
-    if (!bo_manager_.Exists(item))
-        return "";
-
     const Buyout &bo = bo_manager_.Get(item);
-    return Util::TimeAgoInWords(bo.last_update);
-
+    return bo.IsActive() ? Util::TimeAgoInWords(bo.last_update):"";
 }
 
 std::string ItemlevelColumn::name() {
