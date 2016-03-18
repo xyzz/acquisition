@@ -35,10 +35,79 @@
 #include "itemlocation.h"
 #include "QVariant"
 
+const Currency::CurrencyTypeMap Currency::currency_type_as_string_ = {
+    {CURRENCY_NONE, ""},
+    {CURRENCY_ORB_OF_ALTERATION, "Orb of Alteration"},
+    {CURRENCY_ORB_OF_FUSING, "Orb of Fusing"},
+    {CURRENCY_ORB_OF_ALCHEMY, "Orb of Alchemy"},
+    {CURRENCY_CHAOS_ORB, "Chaos Orb"},
+    {CURRENCY_GCP, "Gemcutter's Prism"},
+    {CURRENCY_EXALTED_ORB, "Exalted Orb"},
+    {CURRENCY_CHROMATIC_ORB, "Chromatic Orb"},
+    {CURRENCY_JEWELLERS_ORB, "Jeweller's Orb"},
+    {CURRENCY_ORB_OF_CHANCE, "Orb of Chance"},
+    {CURRENCY_CARTOGRAPHERS_CHISEL, "Cartographer's Chisel"},
+    {CURRENCY_ORB_OF_SCOURING, "Orb of Scouring"},
+    {CURRENCY_BLESSED_ORB, "Blessed Orb"},
+    {CURRENCY_ORB_OF_REGRET, "Orb of Regret"},
+    {CURRENCY_REGAL_ORB, "Regal Orb"},
+    {CURRENCY_DIVINE_ORB, "Divine Orb"},
+    {CURRENCY_VAAL_ORB, "Vaal Orb"},
+    {CURRENCY_PERANDUS_COIN, "Perandus Coin"},
+    {CURRENCY_MIRROR_OF_KALANDRA, "Mirror of Kalandra"}
+};
+
+const Currency::CurrencyTypeMap Currency::currency_type_as_tag_ = {
+    {CURRENCY_NONE, ""},
+    {CURRENCY_ORB_OF_ALTERATION, "alt"},
+    {CURRENCY_ORB_OF_FUSING, "fuse"},
+    {CURRENCY_ORB_OF_ALCHEMY, "alch"},
+    {CURRENCY_CHAOS_ORB, "chaos"},
+    {CURRENCY_GCP, "gcp"},
+    {CURRENCY_EXALTED_ORB, "exa"},
+    {CURRENCY_CHROMATIC_ORB, "chrom"},
+    {CURRENCY_JEWELLERS_ORB, "jew"},
+    {CURRENCY_ORB_OF_CHANCE, "chance"},
+    {CURRENCY_CARTOGRAPHERS_CHISEL, "chisel"},
+    {CURRENCY_ORB_OF_SCOURING, "scour"},
+    {CURRENCY_BLESSED_ORB, "blessed"},
+    {CURRENCY_ORB_OF_REGRET, "regret"},
+    {CURRENCY_REGAL_ORB, "regal"},
+    {CURRENCY_DIVINE_ORB, "divine"},
+    {CURRENCY_VAAL_ORB, "vaal"},
+    {CURRENCY_PERANDUS_COIN, "coin"},
+    {CURRENCY_MIRROR_OF_KALANDRA, "mirror"}
+};
+
+const Buyout::BuyoutTypeMap Buyout::buyout_type_as_tag_ = {
+    {BUYOUT_TYPE_IGNORE, "[ignore]"},
+    {BUYOUT_TYPE_BUYOUT, "b/o"},
+    {BUYOUT_TYPE_FIXED, "price"},
+    {BUYOUT_TYPE_NO_PRICE, "no price"},
+    {BUYOUT_TYPE_CURRENT_OFFER, "c/o"},
+    {BUYOUT_TYPE_INHERIT, ""}
+};
+
+const Buyout::BuyoutTypeMap Buyout::buyout_type_as_prefix_ = {
+    {BUYOUT_TYPE_IGNORE, ""},
+    {BUYOUT_TYPE_BUYOUT, " ~b/o "},
+    {BUYOUT_TYPE_FIXED, " ~price "},
+    {BUYOUT_TYPE_CURRENT_OFFER, " ~c/o "},
+    {BUYOUT_TYPE_NO_PRICE, ""},
+    {BUYOUT_TYPE_INHERIT, ""}
+};
+
+const Buyout::BuyoutSourceMap Buyout::buyout_source_as_tag_ = {
+    {BUYOUT_SOURCE_NONE, ""},
+    {BUYOUT_SOURCE_MANUAL, "manual"},
+    {BUYOUT_SOURCE_GAME, "game"},
+    {BUYOUT_SOURCE_AUTO, "auto"}
+};
+
 const std::map<std::string, BuyoutType> BuyoutManager::string_to_buyout_type_ = {
     {"~gb/o", BUYOUT_TYPE_BUYOUT},
     {"~b/o", BUYOUT_TYPE_BUYOUT},
-//    {"~c/o", BUYOUT_TYPE_CURRENT_OFFER},
+    {"~c/o", BUYOUT_TYPE_CURRENT_OFFER},
     {"~price", BUYOUT_TYPE_FIXED},
 };
 
@@ -117,22 +186,19 @@ void BuyoutManager::Set(const Item &item, const Buyout &buyout) {
 }
 
 Buyout BuyoutManager::Get(const Item &item) const {
-    if (!Exists(item))
-        throw std::runtime_error("Asked to get inexistant buyout.");
-    return buyouts_.at(item.hash());
-}
-
-void BuyoutManager::Delete(const Item &item) {
-    save_needed_ = true;
-    buyouts_.erase(item.hash());
-}
-
-bool BuyoutManager::Exists(const Item &item) const {
-    return buyouts_.count(item.hash()) > 0;
+    auto const it = buyouts_.find(item.hash());
+    if (it != buyouts_.end()) {
+        return it->second;
+    }
+    return Buyout();
 }
 
 Buyout BuyoutManager::GetTab(const std::string &tab) const {
-    return tab_buyouts_.at(tab);
+    auto const it = tab_buyouts_.find(tab);
+    if (it != tab_buyouts_.end()) {
+        return it->second;
+    }
+    return Buyout();
 }
 
 void BuyoutManager::SetTab(const std::string &tab, const Buyout &buyout) {
@@ -147,15 +213,6 @@ void BuyoutManager::SetTab(const std::string &tab, const Buyout &buyout) {
         save_needed_ = true;
         tab_buyouts_.insert(it, {tab, buyout});
     }
-}
-
-bool BuyoutManager::ExistsTab(const std::string &tab) const {
-    return tab_buyouts_.count(tab) > 0;
-}
-
-void BuyoutManager::DeleteTab(const std::string &tab) {
-    save_needed_ = true;
-    tab_buyouts_.erase(tab);
 }
 
 void BuyoutManager::CompressTabBuyouts() {
@@ -199,22 +256,6 @@ void BuyoutManager::ClearRefreshLocks() {
     refresh_locked_.clear();
 }
 
-bool BuyoutManager::IsGamePriced(const Item &item) {
-    auto it = buyouts_.find(item.hash());
-    if (it != buyouts_.end()) {
-        return it->second.source == BUYOUT_SOURCE_GAME;
-    }
-    return false;
-}
-
-bool BuyoutManager::IsGamePriced(const std::string &tab) {
-    auto it = tab_buyouts_.find(tab);
-    if (it != tab_buyouts_.end()) {
-        return it->second.source == BUYOUT_SOURCE_GAME;
-    }
-    return false;
-}
-
 void BuyoutManager::Clear() {
     save_needed_ = true;
     buyouts_.clear();
@@ -231,13 +272,8 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
 
     for (auto &bo : buyouts) {
         const Buyout &buyout = bo.second;
-        if (buyout.type != BUYOUT_TYPE_NO_PRICE && (buyout.currency == CURRENCY_NONE || buyout.type == BUYOUT_TYPE_NONE))
+        if (!buyout.IsSavable())
             continue;
-        if (buyout.type >= BuyoutTypeAsTag.size() || buyout.currency >= CurrencyAsTag.size()) {
-            QLOG_WARN() << "Ignoring invalid buyout, type:" << buyout.type
-                << "currency:" << buyout.currency;
-            continue;
-        }
         rapidjson::Value item(rapidjson::kObjectType);
         item.AddMember("value", buyout.value, alloc);
 
@@ -248,9 +284,9 @@ std::string BuyoutManager::Serialize(const std::map<std::string, Buyout> &buyout
             item.AddMember("last_update", QDateTime::currentDateTime().toTime_t(), alloc);
         }
 
-        Util::RapidjsonAddConstString(&item, "type", BuyoutTypeAsTag[buyout.type], alloc);
-        Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[buyout.currency], alloc);
-        Util::RapidjsonAddConstString(&item, "source", BuyoutSourceAsTag[buyout.source], alloc);
+        Util::RapidjsonAddConstString(&item, "type", buyout.BuyoutTypeAsTag(), alloc);
+        Util::RapidjsonAddConstString(&item, "currency", buyout.CurrencyAsTag(), alloc);
+        Util::RapidjsonAddConstString(&item, "source", buyout.BuyoutSourceAsTag(), alloc);
 
         item.AddMember("inherited", buyout.inherited, alloc);
 
@@ -281,14 +317,14 @@ void BuyoutManager::Deserialize(const std::string &data, std::map<std::string, B
         const std::string &name = itr->name.GetString();
         Buyout bo;
 
-        bo.currency = static_cast<Currency>(Util::TagAsCurrency(object["currency"].GetString()));
-        bo.type = static_cast<BuyoutType>(Util::TagAsBuyoutType(object["type"].GetString()));
+        bo.currency = Currency::FromTag(object["currency"].GetString());
+        bo.type = Buyout::TagAsBuyoutType(object["type"].GetString());
         bo.value = object["value"].GetDouble();
         if (object.HasMember("last_update")){
             bo.last_update = QDateTime::fromTime_t(object["last_update"].GetInt());
         }
         if (object.HasMember("source")){
-            bo.source = static_cast<BuyoutSource>(Util::TagAsBuyoutSource(object["source"].GetString()));
+            bo.source = Buyout::TagAsBuyoutSource(object["source"].GetString());
         }
         bo.inherited = false;
         if (object.HasMember("inherited"))
@@ -359,6 +395,8 @@ Currency BuyoutManager::StringToCurrencyType(std::string currency) const {
     auto const &it = string_to_currency_type_.find(currency);
     if (it != string_to_currency_type_.end()) {
         return it->second;
+    } else {
+        QLOG_WARN() << "Cannot map string: '" << QString(currency.c_str()) << "' to currency type.  This should not happen - please report.";
     }
     return CURRENCY_NONE;
 }
@@ -367,8 +405,10 @@ BuyoutType BuyoutManager::StringToBuyoutType(std::string bo_str) const {
     auto const &it = string_to_buyout_type_.find(bo_str);
     if (it != string_to_buyout_type_.end()) {
         return it->second;
+    } else {
+        QLOG_WARN() << "Cannot map string: '" << QString(bo_str.c_str()) << "' to buyout type.  This should not happen - please report.";
     }
-    return BUYOUT_TYPE_NONE;
+    return BUYOUT_TYPE_INHERIT;
 }
 
 Buyout BuyoutManager::StringToBuyout(std::string format) {
@@ -402,6 +442,98 @@ void BuyoutManager::MigrateItem(const Item &item) {
     }
 }
 
+bool Buyout::IsValid() const {
+    switch (type) {
+    case BUYOUT_TYPE_IGNORE:
+    case BUYOUT_TYPE_INHERIT:
+    case BUYOUT_TYPE_NO_PRICE:
+        return true;
+        break;
+    default:
+        return (currency != CURRENCY_NONE) && (source != BUYOUT_SOURCE_NONE);
+    }
+}
+
+bool Buyout::IsActive() const {
+    return (type == BUYOUT_TYPE_INHERIT) ? false:true;
+}
+
+bool Buyout::IsPostable() const {
+    return ((source != BUYOUT_SOURCE_GAME) && (IsPriced() || (type == BUYOUT_TYPE_NO_PRICE)));
+}
+
+bool Buyout::IsPriced() const {
+    return (type == BUYOUT_TYPE_BUYOUT || type == BUYOUT_TYPE_FIXED || type == BUYOUT_TYPE_CURRENT_OFFER);
+}
+
+bool Buyout::IsGameSet() const {
+    return (source == BUYOUT_SOURCE_GAME);
+}
+
+BuyoutSource Buyout::TagAsBuyoutSource(std::string tag) {
+    auto &m = buyout_source_as_tag_;
+    auto const &it = std::find_if(m.begin(), m.end(), [&](BuyoutSourceMap::value_type const &x){ return x.second == tag;});
+    return (it != m.end()) ? it->first:BUYOUT_SOURCE_NONE;
+}
+
+BuyoutType Buyout::TagAsBuyoutType(std::string tag) {
+    auto &m = buyout_type_as_tag_;
+    auto const &it = std::find_if(m.begin(), m.end(), [&](BuyoutTypeMap::value_type const &x){ return x.second == tag;});
+    return (it != m.end()) ? it->first:BUYOUT_TYPE_INHERIT;
+}
+
+BuyoutType Buyout::IndexAsBuyoutType(int index) {
+    if (index >= buyout_type_as_tag_.size()) {
+        QLOG_WARN() << "Buyout type index out of bounds: " << index << ". This should never happen - please report.";
+        return BUYOUT_TYPE_INHERIT;
+    } else {
+        return static_cast<BuyoutType>(index);
+    }
+}
+
+std::string Buyout::AsText() const {
+    if (IsPriced()) {
+        return BuyoutTypeAsTag() + " " + QString::number(value).toStdString() + " " + CurrencyAsTag();
+    } else {
+        return BuyoutTypeAsTag();
+    }
+}
+
+std::string Buyout::BuyoutTypeAsTag() const {
+    auto const &it = buyout_type_as_tag_.find(type);
+    if (it != buyout_type_as_tag_.end()) {
+        return it->second;
+    } else {
+        QLOG_WARN() << "No mapping from buyout type: " << type << " to tag. This should never happen - please report.";
+        return "";
+    }
+}
+
+std::string Buyout::BuyoutTypeAsPrefix() const {
+    auto const &it = buyout_type_as_prefix_.find(type);
+    if (it != buyout_type_as_prefix_.end()) {
+        return it->second;
+    } else {
+        QLOG_WARN() << "No mapping from buyout type: " << type << " to prefix. This should never happen - please report.";
+        return "";
+    }
+}
+
+std::string Buyout::BuyoutSourceAsTag() const {
+    auto const &it = buyout_source_as_tag_.find(source);
+    if (it != buyout_source_as_tag_.end()) {
+        return it->second;
+    } else {
+        QLOG_WARN() << "No mapping from buyout source: " << source << " to tag. This should never happen - please report.";
+        return "";
+    }
+}
+
+std::string Buyout::CurrencyAsTag() const
+{
+    return currency.AsTag();
+}
+
 bool Buyout::operator==(const Buyout&o) const {
     static const double eps = 1e-6;
     return std::fabs(o.value - value) < eps && o.type == type
@@ -411,4 +543,48 @@ bool Buyout::operator==(const Buyout&o) const {
 
 bool Buyout::operator!=(const Buyout &o) const {
     return !(o == *this);
+}
+
+Currency Currency::FromTag(std::string tag)
+{
+    auto &m = currency_type_as_tag_;
+    auto const &it = std::find_if(m.begin(), m.end(), [&](CurrencyTypeMap::value_type const &x){ return x.second == tag;});
+    return Currency((it != m.end()) ? it->first:CURRENCY_NONE);
+}
+
+std::vector<CurrencyType> Currency::Types() {
+    std::vector<CurrencyType> tmp;
+    for (unsigned int i = 0; i < currency_type_as_tag_.size();i++) {
+       tmp.push_back(static_cast<CurrencyType>(i));
+    }
+    return tmp;
+}
+
+Currency Currency::FromIndex(int index) {
+    if (index >= currency_type_as_tag_.size()) {
+        QLOG_WARN() << "Currency type index out of bounds: " << index << ". This should never happen - please report.";
+        return CURRENCY_NONE;
+    } else {
+        return Currency(static_cast<CurrencyType>(index));
+    }
+}
+
+std::string Currency::AsString() const {
+    auto const &it = currency_type_as_string_.find(type);
+    if (it != currency_type_as_string_.end()) {
+        return it->second;
+    } else {
+        QLOG_WARN() << "No mapping from currency type: " << type << " to string. This should never happen - please report.";
+        return "";
+    }
+}
+
+std::string Currency::AsTag() const {
+    auto const &it = currency_type_as_tag_.find(type);
+    if (it != currency_type_as_tag_.end()) {
+        return it->second;
+    } else {
+        QLOG_WARN() << "No mapping from currency type: " << type << " to tag. This should never happen - please report.";
+        return "";
+    }
 }

@@ -89,8 +89,9 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
         }
         if (role == Qt::DisplayRole) {
             QString title(location.GetHeader().c_str());
-            if (bo_manager_.ExistsTab(location.GetUniqueHash()))
-                title += QString(" [%1]").arg(Util::BuyoutAsText(bo_manager_.GetTab(location.GetUniqueHash())).c_str());
+            auto const &bo = bo_manager_.GetTab(location.GetUniqueHash());
+            if (bo.IsActive())
+                title += QString(" [%1]").arg(bo.AsText().c_str());
             return title;
         }
         return QVariant();

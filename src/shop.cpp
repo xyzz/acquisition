@@ -74,9 +74,9 @@ void Shop::SetShopTemplate(const std::string &shop_template) {
 }
 std::string Shop::SpoilerBuyout(Buyout &bo) {
     std::string out = "";
-    out += "[spoiler=\"" + BuyoutTypeAsPrefix[bo.type];
-    if (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED)
-        out += " " + QString::number(bo.value).toStdString() + " "+ CurrencyAsTag[bo.currency];
+    out += "[spoiler=\"" + bo.BuyoutTypeAsPrefix();
+    if (bo.IsPriced())
+        out += " " + QString::number(bo.value).toStdString() + " "+ bo.CurrencyAsTag();
     out += "\"]";
     return out;
 }
@@ -94,15 +94,9 @@ void Shop::Update() {
     //Get all buyouts to be able to sort them
     for (auto &item : app_.items_manager().items()) {
         tmp.item = item.get();
-        tmp.bo.type = BUYOUT_TYPE_NONE;
-        std::string hash = item->location().GetUniqueHash();
-        if (app_.buyout_manager().ExistsTab(hash))
-            tmp.bo = app_.buyout_manager().GetTab(hash);
-        if (app_.buyout_manager().Exists(*item))
-            tmp.bo = app_.buyout_manager().Get(*item);
-        if (tmp.bo.type == BUYOUT_TYPE_NONE)
-            continue;
-        if (tmp.bo.source == BUYOUT_SOURCE_GAME)
+        tmp.bo = app_.buyout_manager().Get(*item);
+
+        if (!tmp.bo.IsPostable())
             continue;
         if (item->location().socketed())
             continue;

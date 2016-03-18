@@ -140,6 +140,10 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutTypeComboBox, SIGNAL(activated(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutValueLineEdit, SIGNAL(textEdited(QString)), this, SLOT(OnBuyoutChange()));
 
+    ui->buyoutTypeComboBox->setEnabled(false);
+    ui->buyoutValueLineEdit->setEnabled(false);
+    ui->buyoutCurrencyComboBox->setEnabled(false);
+
     ui->actionAutomatically_refresh_items->setChecked(app_->items_manager().auto_update());
     UpdateShopMenu();
 
@@ -290,21 +294,24 @@ void MainWindow::OnBuyoutChange() {
     app_->shop().ExpireShopData();
 
     Buyout bo;
-    bo.type = static_cast<BuyoutType>(ui->buyoutTypeComboBox->currentIndex());
-    bo.currency = static_cast<Currency>(ui->buyoutCurrencyComboBox->currentIndex());
+    bo.type = Buyout::IndexAsBuyoutType(ui->buyoutTypeComboBox->currentIndex());
+    bo.currency = Currency::FromIndex(ui->buyoutCurrencyComboBox->currentIndex());
     bo.value = ui->buyoutValueLineEdit->text().replace(',', ".").toDouble();
     bo.last_update = QDateTime::currentDateTime();
 
-    if (bo.type == BUYOUT_TYPE_NONE) {
-        ui->buyoutCurrencyComboBox->setEnabled(false);
-        ui->buyoutValueLineEdit->setEnabled(false);
-    } else {
+    if (bo.IsPriced()) {
         ui->buyoutCurrencyComboBox->setEnabled(true);
         ui->buyoutValueLineEdit->setEnabled(true);
+    } else {
+        ui->buyoutCurrencyComboBox->setEnabled(false);
+        ui->buyoutValueLineEdit->setEnabled(false);
     }
 
+    if (!bo.IsValid())
+        return;
+
     // Don't assign a zero buyout if nothing is entered in the value textbox
-    if (ui->buyoutValueLineEdit->text().isEmpty() && (bo.type == BUYOUT_TYPE_BUYOUT || bo.type == BUYOUT_TYPE_FIXED))
+    if (ui->buyoutValueLineEdit->text().isEmpty() && bo.IsPriced())
         return;
 
     BuyoutManager &bo_manager = app_->buyout_manager();
@@ -312,22 +319,16 @@ void MainWindow::OnBuyoutChange() {
         auto const &tab = current_search_->GetTabLocation(index).GetUniqueHash();
 
         // Don't allow users to manually update locked tabs (game priced)
-        if (bo_manager.IsGamePriced(tab))
+        if (bo_manager.GetTab(tab).IsGameSet())
             continue;
         if (!index.parent().isValid()) {
-            if (bo.type == BUYOUT_TYPE_NONE)
-                bo_manager.DeleteTab(tab);
-            else
-                bo_manager.SetTab(tab, bo);
+            bo_manager.SetTab(tab, bo);
         } else {
             auto &item = current_search_->buckets()[index.parent().row()]->items()[index.row()];
             // Don't allow users to manually update locked items (game priced per item in note section)
-            if (bo_manager.IsGamePriced(*item))
+            if (bo_manager.Get(*item).IsGameSet())
                 continue;
-            if (bo.type == BUYOUT_TYPE_NONE)
-                bo_manager.Delete(*item);
-            else
-                bo_manager.Set(*item, bo);
+            bo_manager.Set(*item, bo);
         }
     }
     app_->items_manager().PropagateTabBuyouts();
@@ -598,33 +599,30 @@ void MainWindow::UpdateCurrentItem() {
     ui->locationLabel->setText(current_item_->location().GetHeader().c_str());
 }
 
-void MainWindow::ResetBuyoutWidgets() {
-    ui->buyoutTypeComboBox->setCurrentIndex(0);
-    ui->buyoutCurrencyComboBox->setEnabled(false);
-    ui->buyoutValueLineEdit->setText("");
-    ui->buyoutValueLineEdit->setEnabled(false);
-}
-
 void MainWindow::UpdateBuyoutWidgets(const Buyout &bo) {
-    ui->buyoutCurrencyComboBox->setEnabled(true);
-    ui->buyoutValueLineEdit->setEnabled(true);
     ui->buyoutTypeComboBox->setCurrentIndex(bo.type);
-    ui->buyoutCurrencyComboBox->setCurrentIndex(bo.currency);
-    ui->buyoutValueLineEdit->setText(QString::number(bo.value));
+    ui->buyoutTypeComboBox->setEnabled(!bo.IsGameSet());
+    ui->buyoutCurrencyComboBox->setEnabled(false);
+    ui->buyoutValueLineEdit->setEnabled(false);
+
+    if (bo.IsPriced()) {
+        ui->buyoutCurrencyComboBox->setCurrentIndex(bo.currency.type);
+        ui->buyoutValueLineEdit->setText(QString::number(bo.value));
+        if (!bo.IsGameSet()) {
+            ui->buyoutCurrencyComboBox->setEnabled(true);
+            ui->buyoutValueLineEdit->setEnabled(true);
+        }
+    } else {
+        ui->buyoutValueLineEdit->setText("");
+    }
 }
 
 void MainWindow::UpdateCurrentBuyout() {
     if (current_item_) {
-        if (!app_->buyout_manager().Exists(*current_item_))
-            ResetBuyoutWidgets();
-        else
-            UpdateBuyoutWidgets(app_->buyout_manager().Get(*current_item_));
+        UpdateBuyoutWidgets(app_->buyout_manager().Get(*current_item_));
     } else {
         std::string tab = current_bucket_.location().GetUniqueHash();
-        if (!app_->buyout_manager().ExistsTab(tab))
-            ResetBuyoutWidgets();
-        else
-            UpdateBuyoutWidgets(app_->buyout_manager().GetTab(tab));
+        UpdateBuyoutWidgets(app_->buyout_manager().GetTab(tab));
     }
 }
 

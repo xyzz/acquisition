@@ -111,8 +111,8 @@ void CurrencyManager::ClearCurrency() {
     }
 }
 void CurrencyManager::InitCurrency() {
-    for(unsigned int i = 0; i < CurrencyAsString.size();i++) {
-        currencies_.push_back(std::make_shared<CurrencyItem>(0, static_cast<Currency>(i), 1, 1));
+    for(auto type: Currency::Types()) {
+        currencies_.push_back(std::make_shared<CurrencyItem>(0, Currency(type), 1, 1));
     }
     Deserialize(data_.Get("currency_items"), &currencies_);
     for (unsigned int i = 0; i < CurrencyWisdomValue.size(); i++) {
@@ -124,8 +124,8 @@ void CurrencyManager::FirstInitCurrency() {
     std::string value = "";
     //Dummy items + dummy currency_last_value
     //TODO : can i get the size of the Currency enum ??
-    for(unsigned int i = 0; i < CurrencyAsString.size();i++) {
-        currencies_.push_back(std::make_shared<CurrencyItem>(0, static_cast<Currency>(i), 1, 1));
+    for(auto type: Currency::Types()) {
+        currencies_.push_back(std::make_shared<CurrencyItem>(0, Currency(type), 1, 1));
 
         value += "0;";
     }
@@ -156,7 +156,7 @@ std::string CurrencyManager::Serialize(const std::vector<std::shared_ptr<Currenc
         item.AddMember("count", curr->count, alloc);
         item.AddMember("chaos_ratio", curr->chaos.value1, alloc);
         item.AddMember("exalt_ratio", curr->exalt.value1, alloc);
-        Util::RapidjsonAddConstString(&item, "currency", CurrencyAsTag[curr->currency], alloc);
+        Util::RapidjsonAddConstString(&item, "currency", curr->currency.AsTag(), alloc);
         rapidjson::Value name(curr->name.c_str(), alloc);
         doc.AddMember(name, item, alloc);
     }
@@ -177,7 +177,7 @@ void CurrencyManager::Deserialize(const std::string &data, std::vector<std::shar
         return;
     for (auto itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr) {
         auto &object = itr->value;
-        Currency curr = static_cast<Currency>(Util::TagAsCurrency(object["currency"].GetString()));
+        Currency curr = Currency::FromTag(object["currency"].GetString());
         for (auto &item : *currencies) {
             if(item->currency == curr) {
                 item = std::make_shared<CurrencyItem>(object["count"].GetDouble(), curr,
@@ -215,9 +215,10 @@ void CurrencyManager::SaveCurrencyValue() {
 
 void CurrencyManager::ExportCurrency() {
     std::string header_csv = "Date; Total value";
-    for (auto& name : CurrencyAsString) {
-        if (name != "")
-            header_csv += ";" + name;
+    for (auto& item : currencies_) {
+        auto label = item->currency.AsString();
+        if (label != "")
+            header_csv += ";" + label;
     }
     std::vector<CurrencyUpdate> result = data_.GetAllCurrency();
 

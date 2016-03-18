@@ -52,7 +52,7 @@ struct CurrencyItem {
     CurrencyItem(int co, Currency curr, double chaos_ratio, double exalt_ratio) {
         count = co;
         currency = curr;
-        name = CurrencyAsString[curr];
+        name = curr.AsString();
         chaos = CurrencyRatio(currency, CURRENCY_CHAOS_ORB, chaos_ratio, 1);
         exalt = CurrencyRatio(currency, CURRENCY_EXALTED_ORB, exalt_ratio, 1);
     }
@@ -88,7 +88,7 @@ class CurrencyWidget : public QWidget
 public slots:
     void Update();
     void UpdateVisual(bool show_chaos, bool show_exalt);
-    bool IsNone() const { return currency_->currency==CURRENCY_NONE;}
+    bool IsNone() const { return currency_->currency.type==CURRENCY_NONE;}
 public:
     CurrencyWidget(std::shared_ptr<CurrencyItem> currency);
     //Visual stuff

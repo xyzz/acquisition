@@ -129,7 +129,6 @@ private:
     void AddSearchGroup(QLayout *layout, const std::string &name);
     bool eventFilter(QObject *o, QEvent *e);
     void UpdateShopMenu();
-    void ResetBuyoutWidgets();
     void UpdateBuyoutWidgets(const Buyout &bo);
     void ExpandCollapse(TreeState state);
     void UpdateOnlineGui();
