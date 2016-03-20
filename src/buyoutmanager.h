@@ -79,10 +79,11 @@ struct Currency {
     bool operator!=(const Currency& rhs) const { return type != rhs.type; }
     bool operator<(const Currency& rhs) const { return type < rhs.type; }
 
-    std::string AsString() const;
-    std::string AsTag() const;
+    const std::string &AsString() const;
+    const std::string &AsTag() const;
 
 private:
+    static const std::string currency_type_error_;
     static const CurrencyTypeMap currency_type_as_string_;
     static const CurrencyTypeMap currency_type_as_tag_;
 };
@@ -112,10 +113,10 @@ struct Buyout {
     static BuyoutSource TagAsBuyoutSource(std::string tag);
 
     std::string AsText() const;
-    std::string BuyoutTypeAsTag() const;
-    std::string BuyoutTypeAsPrefix() const;
-    std::string BuyoutSourceAsTag() const;
-    std::string CurrencyAsTag() const;
+    const std::string &BuyoutTypeAsTag() const;
+    const std::string &BuyoutTypeAsPrefix() const;
+    const std::string &BuyoutSourceAsTag() const;
+    const std::string &CurrencyAsTag() const;
 
     Buyout() :
         value(0),
@@ -129,6 +130,7 @@ struct Buyout {
         last_update(last_update_)
     {}
 private:
+    static const std::string buyout_type_error_;
     static const BuyoutTypeMap buyout_type_as_tag_;
     static const BuyoutTypeMap buyout_type_as_prefix_;
     static const BuyoutSourceMap buyout_source_as_tag_;
