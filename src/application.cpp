@@ -72,13 +72,11 @@ void Application::OnItemsRefreshed(bool initial_refresh) {
 }
 
 void Application::SaveDbOnNewVersion() {
-    std::string version = data_->Get("version", "");
+    //If user updated from a 0.5c db to a 0.5d, db exists but no "version" in it
+    std::string version = data_->Get("version", "0.5c");
     // We call this just after login, so we didn't pulled tabs for the first time ; so "tabs" shouldn't exist in the DB
     // This way we don't create an useless data_save_version folder on the first time you run acquisition
     bool first_start = data_->Get("tabs", "first_time") == "first_time";
-    //If user updated from a 0.5c db to a 0.5d, db exists but no "version" in it
-    if (version.empty())
-        version = "0.5c";
     if (version != VERSION_NAME && !first_start) {
         QString data_path = Filesystem::UserDir().c_str() + QString("/data");
         QString save_path = data_path + "_save_" + version.c_str();
