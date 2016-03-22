@@ -63,4 +63,5 @@ private:
     std::unique_ptr<QNetworkAccessManager> logged_in_nm_;
     std::unique_ptr<ItemsManager> items_manager_;
     std::unique_ptr<CurrencyManager> currency_manager_;
+    void SaveDbOnNewVersion();
 };
