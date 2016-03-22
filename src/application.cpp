@@ -29,6 +29,8 @@
 #include "currencymanager.h"
 #include "porting.h"
 #include "shop.h"
+#include "QsLog.h"
+#include "version.h"
 
 Application::Application() {}
 
@@ -51,8 +53,8 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
         std::string data_file = SqliteDataStore::MakeFilename(email, league);
         data_ = std::make_unique<SqliteDataStore>(Filesystem::UserDir() + "/data/" + data_file);
         sensitive_data_ = std::make_unique<SqliteDataStore>(Filesystem::UserDir() + "/sensitive_data/" + data_file);
+        SaveDbOnNewVersion();
     }
-
     buyout_manager_ = std::make_unique<BuyoutManager>(*data_);
     shop_ = std::make_unique<Shop>(*this);
     items_manager_ = std::make_unique<ItemsManager>(*this);
@@ -67,4 +69,28 @@ void Application::OnItemsRefreshed(bool initial_refresh) {
     shop_->Update();
     if (!initial_refresh && shop_->auto_update())
         shop_->SubmitShopToForum();
+}
+
+void Application::SaveDbOnNewVersion() {
+    std::string version = data_->Get("version", "");
+    // We call this just after login, so we didn't pulled tabs for the first time ; so "tabs" shouldn't exist in the DB
+    // This way we don't create an useless data_save_version folder on the first time you run acquisition
+    bool first_start = data_->Get("tabs", "first_time") == "first_time";
+    //If user updated from a 0.5c db to a 0.5d, db exists but no "version" in it
+    if (version.empty())
+        version = "0.5c";
+    if (version != VERSION_NAME && !first_start) {
+        QString data_path = Filesystem::UserDir().c_str() + QString("/data");
+        QString save_path = data_path + "_save_" + version.c_str();
+        QDir src(data_path);
+        QDir dst(save_path);
+        if (!dst.exists())
+            QDir().mkpath(dst.path());
+        for(auto name : src.entryList()) {
+            QFile::copy(data_path + QDir::separator() + name, save_path + QDir::separator() + name);
+        }
+        QLOG_INFO() << "I've created the folder " << save_path << "in your acquisition folder, containing a save of all your data";
+    }
+    data_->Set("version", VERSION_NAME);
+
 }
