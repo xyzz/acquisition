@@ -35,6 +35,8 @@
 #include "itemlocation.h"
 #include "QVariant"
 
+const std::string Currency::currency_type_error_;
+
 const Currency::CurrencyTypeMap Currency::currency_type_as_string_ = {
     {CURRENCY_NONE, ""},
     {CURRENCY_ORB_OF_ALTERATION, "Orb of Alteration"},
@@ -78,6 +80,8 @@ const Currency::CurrencyTypeMap Currency::currency_type_as_tag_ = {
     {CURRENCY_PERANDUS_COIN, "coin"},
     {CURRENCY_MIRROR_OF_KALANDRA, "mirror"}
 };
+
+const std::string Buyout::buyout_type_error_;
 
 const Buyout::BuyoutTypeMap Buyout::buyout_type_as_tag_ = {
     {BUYOUT_TYPE_IGNORE, "[ignore]"},
@@ -500,37 +504,37 @@ std::string Buyout::AsText() const {
     }
 }
 
-std::string Buyout::BuyoutTypeAsTag() const {
+const std::string &Buyout::BuyoutTypeAsTag() const {
     auto const &it = buyout_type_as_tag_.find(type);
     if (it != buyout_type_as_tag_.end()) {
         return it->second;
     } else {
         QLOG_WARN() << "No mapping from buyout type: " << type << " to tag. This should never happen - please report.";
-        return "";
+        return buyout_type_error_;
     }
 }
 
-std::string Buyout::BuyoutTypeAsPrefix() const {
+const std::string &Buyout::BuyoutTypeAsPrefix() const {
     auto const &it = buyout_type_as_prefix_.find(type);
     if (it != buyout_type_as_prefix_.end()) {
         return it->second;
     } else {
         QLOG_WARN() << "No mapping from buyout type: " << type << " to prefix. This should never happen - please report.";
-        return "";
+        return buyout_type_error_;
     }
 }
 
-std::string Buyout::BuyoutSourceAsTag() const {
+const std::string &Buyout::BuyoutSourceAsTag() const {
     auto const &it = buyout_source_as_tag_.find(source);
     if (it != buyout_source_as_tag_.end()) {
         return it->second;
     } else {
         QLOG_WARN() << "No mapping from buyout source: " << source << " to tag. This should never happen - please report.";
-        return "";
+        return buyout_type_error_;
     }
 }
 
-std::string Buyout::CurrencyAsTag() const
+const std::string &Buyout::CurrencyAsTag() const
 {
     return currency.AsTag();
 }
@@ -570,22 +574,22 @@ Currency Currency::FromIndex(int index) {
     }
 }
 
-std::string Currency::AsString() const {
+const std::string &Currency::AsString() const {
     auto const &it = currency_type_as_string_.find(type);
     if (it != currency_type_as_string_.end()) {
         return it->second;
     } else {
         QLOG_WARN() << "No mapping from currency type: " << type << " to string. This should never happen - please report.";
-        return "";
+        return currency_type_error_;
     }
 }
 
-std::string Currency::AsTag() const {
+const std::string &Currency::AsTag() const {
     auto const &it = currency_type_as_tag_.find(type);
     if (it != currency_type_as_tag_.end()) {
         return it->second;
     } else {
         QLOG_WARN() << "No mapping from currency type: " << type << " to tag. This should never happen - please report.";
-        return "";
+        return currency_type_error_;
     }
 }
