@@ -103,7 +103,7 @@ struct Buyout {
     bool IsValid() const;
     bool IsActive() const;
     bool IsInherited() const { return inherited || type == BUYOUT_TYPE_INHERIT; };
-    bool IsSavable() const { return IsValid() && !IsInherited(); };
+    bool IsSavable() const { return IsValid() && !(type == BUYOUT_TYPE_INHERIT); };
     bool IsPostable() const;
     bool IsPriced() const;
     bool IsGameSet() const;
@@ -147,6 +147,7 @@ public:
     void SetTab(const std::string &tab, const Buyout &buyout);
     Buyout GetTab(const std::string &tab) const;
     void CompressTabBuyouts();
+    void CompressItemBuyouts(const Items &items);
 
     void SetRefreshChecked(const ItemLocation &tab, bool value);
     bool GetRefreshChecked(const ItemLocation &tab) const;

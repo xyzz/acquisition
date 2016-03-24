@@ -102,6 +102,8 @@ void ItemsManager::ApplyAutoItemBuyouts() {
             }
         }
     }
+
+    bo.CompressItemBuyouts(items_);
 }
 
 void ItemsManager::PropagateTabBuyouts() {
@@ -123,6 +125,7 @@ void ItemsManager::PropagateTabBuyouts() {
             if (tab_bo.IsActive()) {
                 // Any propagation from tab price to item price should include this bit set
                 tab_bo.inherited = true;
+                tab_bo.last_update = QDateTime::currentDateTime();
                 bo.Set(item, tab_bo);
             } else {
                 // This effectively 'clears' buyout by setting back to 'inherit' state.

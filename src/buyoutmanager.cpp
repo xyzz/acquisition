@@ -238,6 +238,26 @@ void BuyoutManager::CompressTabBuyouts() {
     }
 }
 
+void BuyoutManager::CompressItemBuyouts(const Items &items) {
+    // When items are moved between tabs or deleted their buyouts entries remain
+    // This function looks at buyouts and makes sure there is an associated item
+    // that exists
+    std::set<std::string> tmp;
+    for (auto const &item_sp: items) {
+        const Item & item= *item_sp;
+        tmp.insert(item.hash());
+    }
+
+    for (auto it = buyouts_.cbegin(); it != buyouts_.cend();) {
+        if (tmp.count(it->first) == 0) {
+
+            buyouts_.erase(it++);
+        } else {
+            ++it;
+        }
+    }
+}
+
 void BuyoutManager::SetRefreshChecked(const ItemLocation &loc, bool value) {
     save_needed_ = true;
     refresh_checked_[loc.GetUniqueHash()] = value;
