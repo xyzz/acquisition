@@ -652,7 +652,7 @@ void MainWindow::on_actionForum_shop_thread_triggered() {
         "Enter thread number. You can enter multiple shops by separating them with a comma. More than one shop may be needed if you have a lot of items.",
         QLineEdit::Normal, Util::StringJoin(app_->shop().threads(), ",").c_str(), &ok);
     if (ok && !thread.isEmpty())
-        app_->shop().SetThread(Util::StringSplit(thread.toStdString(), ','));
+        app_->shop().SetThread(Util::StringSplit(thread.remove(QRegularExpression("\\s+")).toStdString(), ','));
     UpdateShopMenu();
 }
 
