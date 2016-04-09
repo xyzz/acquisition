@@ -1,3 +1,7 @@
 [submodule "redist"]
 	path = redist
 	url = https://github.com/xyzz/acquisition-redist.git
+[submodule "deps/boost-header-only"]
+	path = deps/boost-header-only
+	url = https://github.com/ericsium/boost-header-only.git
+	branch = 1.60
