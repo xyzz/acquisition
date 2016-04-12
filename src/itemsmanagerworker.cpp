@@ -450,5 +450,6 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 void ItemsManagerWorker::PreserveSelectedCharacter() {
     if (selected_character_.empty())
         return;
+    tab_cache_->OnPolicyUpdate(TabCache::DefaultCache);
     network_manager_.get(MakeCharacterRequest(selected_character_, ItemLocation()));
 }
