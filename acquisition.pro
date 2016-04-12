@@ -17,7 +17,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 include(deps/QsLog/QsLog.pri)
 
-INCLUDEPATH += src deps
+INCLUDEPATH += src deps deps/boost-header-only
 
 SOURCES += \
     deps/sqlite/sqlite3.c \

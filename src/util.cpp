@@ -34,6 +34,7 @@
 
 #include "buyoutmanager.h"
 #include "porting.h"
+#include <boost/algorithm/string/join.hpp>
 
 std::string Util::Md5(const std::string &value) {
     QString hash = QString(QCryptographicHash::hash(value.c_str(), QCryptographicHash::Md5).toHex());
@@ -127,13 +128,7 @@ std::string Util::StringReplace(const std::string &haystack, const std::string &
 }
 
 std::string Util::StringJoin(const std::vector<std::string> &arr, const std::string &separator) {
-    std::string result;
-    for (size_t i = 0; i < arr.size(); ++i) {
-        if (i != 0)
-            result += separator;
-        result += arr[i];
-    }
-    return result;
+    return boost::algorithm::join(arr, separator);
 }
 
 std::vector<std::string> Util::StringSplit(const std::string &str, char delim) {
