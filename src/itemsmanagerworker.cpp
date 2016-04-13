@@ -418,7 +418,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
         // item list as strings.
 
         std::sort(begin(items_), end(items_), [](const std::shared_ptr<Item> &a, const std::shared_ptr<Item> &b){
-            return b->location() < a->location();
+            return *a < *b;
         });
 
         QStringList tmp;

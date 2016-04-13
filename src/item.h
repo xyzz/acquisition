@@ -129,6 +129,7 @@ private:
     std::vector<ItemSocket> text_sockets_;
     std::string note_;
     ModTable mod_table_;
+    std::string uid_;
 };
 
 typedef std::vector<std::shared_ptr<Item>> Items;
