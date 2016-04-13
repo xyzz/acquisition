@@ -86,6 +86,10 @@ Item::Item(const rapidjson::Value &json) :
         }
     }
 
+    if (json.HasMember("id")) {
+        uid_ = json["id"].GetString();
+    }
+
     if (json.HasMember("note")) {
         note_ = json["note"].GetString();
     }
@@ -249,6 +253,8 @@ void Item::CalculateHash(const rapidjson::Value &json) {
     hash_ = Util::Md5(unique_new);
 }
 
-bool Item::operator<(const Item &other) const {
-    return hash_ < other.hash();
+bool Item::operator<(const Item &rhs) const {
+    std::string name = PrettyName();
+    std::string rhs_name = rhs.PrettyName();
+    return std::tie(name,uid_,hash_) < std::tie(rhs_name, rhs.uid_, hash_);
 }

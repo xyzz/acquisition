@@ -132,11 +132,9 @@ std::string ItemLocation::GetUniqueHash() const {
         return "character:" + character_;
 }
 
-bool ItemLocation::operator<(const ItemLocation &other) const {
-    if (type_ != other.type_)
-        return type_ < other.type_;
+bool ItemLocation::operator<(const ItemLocation &rhs) const {
     if (type_ == ItemLocationType::STASH)
-        return tab_id_ < other.tab_id_;
+        return std::tie(type_,tab_id_) < std::tie(rhs.type_,rhs.tab_id_);
     else
-        return character_ < other.character_;
+        return std::tie(type_,character_) < std::tie(rhs.type_,rhs.character_);
 }
