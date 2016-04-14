@@ -21,6 +21,7 @@
 
 #include <QColor>
 #include <string>
+#include <QVariant>
 
 #include "item.h"
 
@@ -28,23 +29,24 @@ class BuyoutManager;
 
 class Column {
 public:
-    virtual std::string name() = 0;
-    virtual std::string value(const Item &item) = 0;
-    virtual QColor color(const Item &item);
+    virtual std::string name() const = 0;
+    virtual QVariant value(const Item &item) const = 0;
+    virtual QColor color(const Item &item) const;
+    virtual bool lt(const Item* lhs, const Item* rhs) const;
     virtual ~Column() {}
 };
 
 class NameColumn : public Column {
 public:
-    std::string name();
-    std::string value(const Item &item);
-    QColor color(const Item &item);
+    std::string name() const;
+    QVariant value(const Item &item) const;
+    QColor color(const Item &item) const;
 };
 
 class CorruptedColumn : public Column {
 public:
-    std::string name();
-    std::string value(const Item &item);
+    std::string name() const;
+    QVariant value(const Item &item) const;
 };
 
 // Returns values from item -> properties
@@ -52,8 +54,8 @@ class PropertyColumn : public Column {
 public:
     explicit PropertyColumn(const std::string &name);
     PropertyColumn(const std::string &name, const std::string &property);
-    std::string name();
-    std::string value(const Item &item);
+    std::string name() const;
+    QVariant value(const Item &item) const;
 private:
     std::string name_;
     std::string property_;
@@ -61,28 +63,28 @@ private:
 
 class DPSColumn : public Column {
 public:
-    std::string name();
-    std::string value(const Item &item);
+    std::string name() const;
+    QVariant value(const Item &item) const;
 };
 
 class pDPSColumn : public Column {
 public:
-    std::string name();
-    std::string value(const Item &item);
+    std::string name() const;
+    QVariant value(const Item &item) const;
 };
 
 class eDPSColumn : public Column {
 public:
-    std::string name();
-    std::string value(const Item &item);
+    std::string name() const;
+    QVariant value(const Item &item) const;
 };
 
 class ElementalDamageColumn : public Column {
 public:
     explicit ElementalDamageColumn(int index);
-    std::string name();
-    std::string value(const Item &item);
-    QColor color(const Item &item);
+    std::string name() const;
+    QVariant value(const Item &item) const;
+    QColor color(const Item &item) const;
 private:
     size_t index_;
 };
@@ -90,9 +92,9 @@ private:
 class PriceColumn : public Column {
 public:
     explicit PriceColumn(const BuyoutManager &bo_manager);
-    std::string name();
-    std::string value(const Item &item);
-    QColor color(const Item &item);
+    std::string name() const;
+    QVariant value(const Item &item) const;
+    QColor color(const Item &item) const;
 private:
     const BuyoutManager &bo_manager_;
 };
@@ -100,14 +102,14 @@ private:
 class DateColumn : public Column {
 public:
     explicit DateColumn(const BuyoutManager &bo_manager);
-    std::string name();
-    std::string value(const Item &item);
+    std::string name() const;
+    QVariant value(const Item &item) const;
 private:
     const BuyoutManager &bo_manager_;
 };
 
 class ItemlevelColumn : public Column {
 public:
-    std::string name();
-    std::string value(const Item &item);
+    std::string name() const;
+    QVariant value(const Item &item) const;
 };

@@ -11,3 +11,13 @@ Bucket::Bucket(const ItemLocation &location):
 void Bucket::AddItem(const std::shared_ptr<Item> item) {
     items_.push_back(item);
 }
+
+void Bucket::Sort(const Column &column, Qt::SortOrder order)
+{
+    std::sort(begin(items_), end(items_), [&](const std::shared_ptr<Item>& lhs, const std::shared_ptr<Item>& rhs) {
+        if (order == Qt::AscendingOrder) {
+            return column.lt(rhs.get(),lhs.get());
+        }
+        return column.lt(lhs.get(),rhs.get());
+    });
+}

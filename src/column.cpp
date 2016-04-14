@@ -20,25 +20,50 @@
 #include "column.h"
 
 #include <cmath>
+#include <QVector>
+#include <QRegularExpression>
 
 #include "buyoutmanager.h"
 #include "util.h"
 
 const double EPS = 1e-6;
+const QRegularExpression sort_double_match("^\\+?([\\d.]+)%?$");
+const QRegularExpression sort_avg_match("^(\\d+)-(\\d+)$");
 
-QColor Column::color(const Item & /* item */) {
+QColor Column::color(const Item & /* item */) const {
     return QColor();
 }
 
-std::string NameColumn::name() {
+bool Column::lt(const Item* lhs, const Item* rhs) const {
+    QVector<QVariant> values{value(*lhs),value(*rhs)};
+
+    // Transform values into something optimal for sorting
+    // Possibilities: 12, 12.12, 10%, 10.13%, +16%, 12-14
+    for (QVariant &var: values) {
+        if (var.isNull()) continue;
+
+        QString str = var.toString();
+        QRegularExpressionMatch match;
+
+        if (str.contains(sort_double_match, &match)) {
+            var = match.captured(1).toDouble();
+        } else if (str.contains(sort_avg_match, &match)) {
+            var = 0.5 * (match.captured(1).toDouble() + match.captured(2).toDouble());
+        }
+    }
+
+    return std::tie(values[0], *lhs) < std::tie(values[1], *rhs);
+}
+
+std::string NameColumn::name() const {
     return "Name";
 }
 
-std::string NameColumn::value(const Item &item) {
-    return item.PrettyName();
+QVariant NameColumn::value(const Item &item) const {
+    return item.PrettyName().c_str();
 }
 
-QColor NameColumn::color(const Item &item) {
+QColor NameColumn::color(const Item &item) const {
     switch(item.frameType()) {
     case FRAME_TYPE_NORMAL:
         return QColor();
@@ -56,14 +81,14 @@ QColor NameColumn::color(const Item &item) {
     return QColor();
 }
 
-std::string CorruptedColumn::name() {
+std::string CorruptedColumn::name() const {
     return "Cr";
 }
 
-std::string CorruptedColumn::value(const Item &item) {
+QVariant CorruptedColumn::value(const Item &item) const {
     if (item.corrupted())
         return "C";
-    return "";
+    return QVariant();
 }
 
 PropertyColumn::PropertyColumn(const std::string &name):
@@ -76,68 +101,68 @@ PropertyColumn::PropertyColumn(const std::string &name, const std::string &prope
     property_(property)
 {}
 
-std::string PropertyColumn::name() {
+std::string PropertyColumn::name() const {
     return name_;
 }
 
-std::string PropertyColumn::value(const Item &item) {
+QVariant PropertyColumn::value(const Item &item) const {
     if (item.properties().count(property_))
-        return item.properties().find(property_)->second;
-    return "";
+        return item.properties().find(property_)->second.c_str();
+    return QVariant();
 }
 
-std::string DPSColumn::name() {
+std::string DPSColumn::name() const {
     return "DPS";
 }
 
-std::string DPSColumn::value(const Item &item) {
+QVariant DPSColumn::value(const Item &item) const {
     double dps = item.DPS();
     if (fabs(dps) < EPS)
-        return "";
-    return QString::number(dps).toUtf8().constData();
+        return QVariant();
+    return dps;
 }
 
-std::string pDPSColumn::name() {
+std::string pDPSColumn::name() const {
     return "pDPS";
 }
 
-std::string pDPSColumn::value(const Item &item) {
+QVariant pDPSColumn::value(const Item &item) const {
     double pdps = item.pDPS();
     if (fabs(pdps) < EPS)
-        return "";
-    return QString::number(pdps).toUtf8().constData();
+        return QVariant();
+    return pdps;
 }
 
-std::string eDPSColumn::name() {
+std::string eDPSColumn::name() const {
     return "eDPS";
 }
 
-std::string eDPSColumn::value(const Item &item) {
+QVariant eDPSColumn::value(const Item &item) const {
     double edps = item.eDPS();
     if (fabs(edps) < EPS)
-        return "";
-    return QString::number(edps).toUtf8().constData();
+        return QVariant();
+    return edps;
 }
 
 ElementalDamageColumn::ElementalDamageColumn(int index):
     index_(index)
 {}
 
-std::string ElementalDamageColumn::name() {
+std::string ElementalDamageColumn::name() const {
     if (index_ == 0)
         return "ED";
     return "";
 }
 
-std::string ElementalDamageColumn::value(const Item &item) {
+QVariant ElementalDamageColumn::value(const Item &item) const {
     if (item.elemental_damage().size() > index_) {
         auto &ed = item.elemental_damage().at(index_);
-        return ed.first;
+        return ed.first.c_str();
     }
-    return "";
+    return QVariant();
 }
 
-QColor ElementalDamageColumn::color(const Item &item) {
+QColor ElementalDamageColumn::color(const Item &item) const {
     if (item.elemental_damage().size() > index_) {
         auto &ed = item.elemental_damage().at(index_);
         switch (ed.second) {
@@ -156,16 +181,16 @@ PriceColumn::PriceColumn(const BuyoutManager &bo_manager):
     bo_manager_(bo_manager)
 {}
 
-std::string PriceColumn::name() {
+std::string PriceColumn::name() const {
     return "Price";
 }
 
-std::string PriceColumn::value(const Item &item) {
+QVariant PriceColumn::value(const Item &item) const {
     const Buyout &bo = bo_manager_.Get(item);
-    return bo.AsText();
+    return bo.AsText().c_str();
 }
 
-QColor PriceColumn::color(const Item &item) {
+QColor PriceColumn::color(const Item &item) const {
     const Buyout &bo = bo_manager_.Get(item);
     return bo.IsInherited() ? QColor(0xaa, 0xaa, 0xaa):QColor();
 }
@@ -174,21 +199,21 @@ DateColumn::DateColumn(const BuyoutManager &bo_manager):
     bo_manager_(bo_manager)
 {}
 
-std::string DateColumn::name() {
+std::string DateColumn::name() const {
     return "Last Update";
 }
 
-std::string DateColumn::value(const Item &item) {
+QVariant DateColumn::value(const Item &item) const {
     const Buyout &bo = bo_manager_.Get(item);
-    return bo.IsActive() ? Util::TimeAgoInWords(bo.last_update):"";
+    return bo.IsActive() ? Util::TimeAgoInWords(bo.last_update).c_str():QVariant();
 }
 
-std::string ItemlevelColumn::name() {
+std::string ItemlevelColumn::name() const {
     return "ilvl";
 }
 
-std::string ItemlevelColumn::value(const Item &item) {
+QVariant ItemlevelColumn::value(const Item &item) const {
     if (item.ilvl() > 0)
-        return std::to_string(item.ilvl());
-    return "";
+        return item.ilvl();
+    return QVariant();
 }

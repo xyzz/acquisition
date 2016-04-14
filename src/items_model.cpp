@@ -99,7 +99,7 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     auto &column = search_.columns()[index.column()];
     const Item &item = *search_.buckets()[index.parent().row()]->items()[index.row()];
     if (role == Qt::DisplayRole)
-        return QString(column->value(item).c_str());
+        return column->value(item);
     else if (role == Qt::ForegroundRole)
         return column->color(item);
     return QVariant();
@@ -141,6 +141,23 @@ bool ItemsModel::setData(const QModelIndex &index, const QVariant &value, int ro
         return true;
     }
     return false;
+}
+
+void ItemsModel::sort(int column, Qt::SortOrder order)
+{
+    sort_order_ = order;
+    sort_column_ = column;
+
+    auto &column_obj = search_.columns()[column];
+    for (const auto &bucket: search_.buckets()) {
+        bucket->Sort(*column_obj, order);
+    }
+    layoutChanged();
+}
+
+void ItemsModel::sort()
+{
+    sort(sort_column_, sort_order_);
 }
 
 QModelIndex ItemsModel::parent(const QModelIndex &index) const {
