@@ -170,6 +170,7 @@ void MainWindow::InitializeUi() {
 
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    ui->treeView->setSortingEnabled(true);
 
     context_menu_.addAction("Refresh Selected", this, SLOT(OnRefreshSelected()));
     context_menu_.addAction("Check Selected", this, SLOT(OnCheckSelected()));

@@ -118,6 +118,8 @@ void Search::FilterItems(const Items &items) {
     buckets_.clear();
     for (auto &element : bucketed_tabs)
         buckets_.push_back(std::move(element.second));
+
+    model_->sort();
 }
 
 QString Search::GetCaption() {
