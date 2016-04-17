@@ -25,6 +25,7 @@
 #include "itemlocation.h"
 #include "search.h"
 #include "util.h"
+#include "QsLog.h"
 
 ItemsModel::ItemsModel(BuyoutManager &bo_manager, const Search &search) :
     bo_manager_(bo_manager),
@@ -83,11 +84,15 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
 
         const ItemLocation &location = search_.GetTabLocation(index);
         if ( role == Qt::CheckStateRole) {
+            if (!location.IsValid())
+                return QVariant();
             if (bo_manager_.GetRefreshLocked(location))
                 return Qt::PartiallyChecked;
             return ( bo_manager_.GetRefreshChecked(location) ? Qt::Checked : Qt::Unchecked );
         }
         if (role == Qt::DisplayRole) {
+            if (!location.IsValid())
+                return "All Items";
             QString title(location.GetHeader().c_str());
             auto const &bo = bo_manager_.GetTab(location.GetUniqueHash());
             if (bo.IsActive())
@@ -110,16 +115,12 @@ Qt::ItemFlags ItemsModel::flags(const QModelIndex &index) const
     if (!index.isValid())
         return 0;
 
-    Qt::ItemFlags flags = QAbstractItemModel::flags(index);
-
     if ( index.column() == 0 && index.internalId() == 0) {
         const ItemLocation &location = search_.GetTabLocation(index);
-        flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
-        if (!bo_manager_.GetRefreshLocked(location)) {
-            flags |= Qt::ItemIsUserCheckable;
-        }
+        if (location.IsValid() && !bo_manager_.GetRefreshLocked(location))
+            return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsUserCheckable;
     }
-    return flags;
+    return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 }
 
 bool ItemsModel::setData(const QModelIndex &index, const QVariant &value, int role) {

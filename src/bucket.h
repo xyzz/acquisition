@@ -11,10 +11,11 @@ class Bucket {
 public:
     Bucket();
     explicit Bucket(const ItemLocation &location);
-    void AddItem(const std::shared_ptr<Item> item);
+    void AddItem(const std::shared_ptr<Item> &item);
     const Items &items() const { return items_; }
     const ItemLocation &location() const { return location_; }
     void Sort(const Column &column, Qt::SortOrder order);
+
 private:
     Items items_;
     ItemLocation location_;

@@ -34,6 +34,8 @@ public:
     virtual QColor color(const Item &item) const;
     virtual bool lt(const Item* lhs, const Item* rhs) const;
     virtual ~Column() {}
+private:
+    std::tuple<QVariant, QVariant, const Item&> multivalue(const Item *item) const;
 };
 
 class NameColumn : public Column {
@@ -95,7 +97,9 @@ public:
     std::string name() const;
     QVariant value(const Item &item) const;
     QColor color(const Item &item) const;
+    bool lt(const Item *lhs, const Item *rhs) const;
 private:
+    std::tuple<int, double, const Item&> multivalue(const Item *item) const;
     const BuyoutManager &bo_manager_;
 };
 
@@ -104,6 +108,7 @@ public:
     explicit DateColumn(const BuyoutManager &bo_manager);
     std::string name() const;
     QVariant value(const Item &item) const;
+    bool lt(const Item *lhs, const Item *rhs) const;
 private:
     const BuyoutManager &bo_manager_;
 };
