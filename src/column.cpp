@@ -28,31 +28,37 @@
 
 const double EPS = 1e-6;
 const QRegularExpression sort_double_match("^\\+?([\\d.]+)%?$");
-const QRegularExpression sort_avg_match("^(\\d+)-(\\d+)$");
+const QRegularExpression sort_two_values("^(\\d+)([-/])(\\d+)$");
 
 QColor Column::color(const Item & /* item */) const {
     return QColor();
 }
 
-bool Column::lt(const Item* lhs, const Item* rhs) const {
-    QVector<QVariant> values{value(*lhs),value(*rhs)};
-
+std::tuple<QVariant, QVariant, const Item&> Column::multivalue(const Item* item) const {
     // Transform values into something optimal for sorting
-    // Possibilities: 12, 12.12, 10%, 10.13%, +16%, 12-14
-    for (QVariant &var: values) {
-        if (var.isNull()) continue;
+    // Possibilities: 12, 12.12, 10%, 10.13%, +16%, 12-14, 10/20
+    QVariant sort_first_by;
+    QVariant sort_second_by;
 
-        QString str = var.toString();
-        QRegularExpressionMatch match;
+    QString str = value(*item).toString();
+    QRegularExpressionMatch match;
 
-        if (str.contains(sort_double_match, &match)) {
-            var = match.captured(1).toDouble();
-        } else if (str.contains(sort_avg_match, &match)) {
-            var = 0.5 * (match.captured(1).toDouble() + match.captured(2).toDouble());
+    if (str.contains(sort_double_match, &match)) {
+        sort_first_by = match.captured(1).toDouble();
+    } else if (str.contains(sort_two_values, &match)) {
+        if (match.captured(2).startsWith("-")) {
+            sort_first_by = 0.5 * (match.captured(1).toDouble() + match.captured(3).toDouble());
+        } else {
+            sort_first_by = item->PrettyName().c_str();
+            sort_second_by = match.captured(1).toDouble();
         }
     }
 
-    return std::tie(values[0], *lhs) < std::tie(values[1], *rhs);
+    return std::forward_as_tuple(sort_first_by, sort_second_by, *item);
+}
+
+bool Column::lt(const Item* lhs, const Item* rhs) const {
+    return multivalue(lhs) < multivalue(rhs);
 }
 
 std::string NameColumn::name() const {
@@ -195,6 +201,20 @@ QColor PriceColumn::color(const Item &item) const {
     return bo.IsInherited() ? QColor(0xaa, 0xaa, 0xaa):QColor();
 }
 
+std::tuple<int, double, const Item&> PriceColumn::multivalue(const Item* item) const {
+    const Buyout &bo = bo_manager_.Get(*item);
+    // forward_as_tuple used to forward item reference properly and avoid ref to temporary
+    // that will be destroyed.  We want item reference because we want to sort based on item
+    // object itself and not the pointer.  I'm not entirely sure I fully understand
+    // this mechanism, but basically want to avoid a ton of Item copies during sorting
+    // so trying to avoid pass by value (ericsium).
+    return std::forward_as_tuple(bo.currency.AsRank(), bo.value, *item);
+}
+
+bool PriceColumn::lt(const Item* lhs, const Item* rhs) const {
+    return multivalue(lhs) < multivalue(rhs);
+}
+
 DateColumn::DateColumn(const BuyoutManager &bo_manager):
     bo_manager_(bo_manager)
 {}
@@ -206,6 +226,13 @@ std::string DateColumn::name() const {
 QVariant DateColumn::value(const Item &item) const {
     const Buyout &bo = bo_manager_.Get(item);
     return bo.IsActive() ? Util::TimeAgoInWords(bo.last_update).c_str():QVariant();
+}
+
+bool DateColumn::lt(const Item* lhs, const Item* rhs) const {
+    auto lhs_update_time = bo_manager_.Get(*lhs).last_update;
+    auto rhs_update_time = bo_manager_.Get(*rhs).last_update;
+    return (std::tie(lhs_update_time, *lhs) <
+            std::tie(rhs_update_time, *rhs)) ;
 }
 
 std::string ItemlevelColumn::name() const {

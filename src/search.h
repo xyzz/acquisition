@@ -36,6 +36,12 @@ class QModelIndex;
 
 class Search {
 public:
+    enum ViewMode {
+        ByTab,
+        ByItem
+    };
+
+public:
     Search(BuyoutManager &bo, const std::string &caption, const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view);
     void FilterItems(const Items &items);
     void FromForm();
@@ -44,7 +50,7 @@ public:
     const std::string &caption() const { return caption_; }
     const Items &items() const { return items_; }
     const std::vector<std::unique_ptr<Column>> &columns() const { return columns_; }
-    const std::vector<std::unique_ptr<Bucket>> &buckets() const { return buckets_; }
+    const std::vector<std::unique_ptr<Bucket>> &buckets() const;
     QString GetCaption();
     int GetItemsCount();
     bool IsAnyFilterActive() const;
@@ -53,7 +59,8 @@ public:
     void RestoreViewProperties();
     void SaveViewProperties();
     ItemLocation GetTabLocation(const QModelIndex & index) const;
-
+    void SetViewMode(ViewMode mode);
+    int GetViewMode() { return current_mode_; };
 private:
     void UpdateItemCounts(const Items &items);
 
@@ -65,7 +72,9 @@ private:
     BuyoutManager &bo_manager_;
     std::unique_ptr<ItemsModel> model_;
     std::vector<std::unique_ptr<Bucket>> buckets_;
+    std::vector<std::unique_ptr<Bucket>> bucket_;
     uint unfiltered_item_count_{0};
     uint filtered_item_count_total_{0};
     QSet<QString> expanded_property_;
+    ViewMode current_mode_{ByTab};
 };

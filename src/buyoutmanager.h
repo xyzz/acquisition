@@ -65,6 +65,7 @@ enum BuyoutSource {
 
 struct Currency {
     typedef std::map<CurrencyType, std::string> CurrencyTypeMap;
+    typedef std::map<CurrencyType, int> CurrencyRankMap;
 
     Currency() = default;
     Currency(CurrencyType in_type): type(in_type) { };
@@ -81,11 +82,13 @@ struct Currency {
 
     const std::string &AsString() const;
     const std::string &AsTag() const;
+    const int &AsRank() const;
 
 private:
     static const std::string currency_type_error_;
     static const CurrencyTypeMap currency_type_as_string_;
     static const CurrencyTypeMap currency_type_as_tag_;
+    static const CurrencyRankMap currency_type_as_rank_;
 };
 
 struct Buyout {

@@ -82,6 +82,14 @@ void Search::ResetForm() {
         filter->filter()->ResetForm();
 }
 
+const std::vector<std::unique_ptr<Bucket> > &Search::buckets() const {
+    if (current_mode_ == ByTab) {
+        return buckets_;
+    } else {
+        return {bucket_};
+    }
+}
+
 void Search::FilterItems(const Items &items) {
     items_.clear();
     for (const auto &item : items) {
@@ -97,12 +105,17 @@ void Search::FilterItems(const Items &items) {
 
     UpdateItemCounts(items);
 
+    // Single bucket with null location is used to view all items at once
+    bucket_.clear();
+    bucket_.push_back(std::make_unique<Bucket>(ItemLocation()));
+
     std::map<ItemLocation, std::unique_ptr<Bucket>> bucketed_tabs;
     for (const auto &item : items_) {
         ItemLocation location = item->location();
         if (!bucketed_tabs.count(location))
             bucketed_tabs[location] = std::make_unique<Bucket>(location);
-        bucketed_tabs[location]->AddItem(item);
+        bucketed_tabs[location]->AddItem(item);        
+        bucket_.front()->AddItem(item);
     }
 
     // We need to add empty tabs here as there are no items to force their addition
@@ -119,7 +132,6 @@ void Search::FilterItems(const Items &items) {
     for (auto &element : bucketed_tabs)
         buckets_.push_back(std::move(element.second));
 
-    model_->sort();
 }
 
 QString Search::GetCaption() {
@@ -127,8 +139,26 @@ QString Search::GetCaption() {
 }
 
 ItemLocation Search::GetTabLocation(const QModelIndex & index) const {
-    auto tab_index = index.parent().isValid() ? index.parent():index;
-    return buckets_[tab_index.row()]->location();
+    if (!index.isValid())
+        return ItemLocation();
+
+    if (index.internalId() > 0) {
+        // If index represents an item, get location from item as view may be on 'item' view
+        // where bucket location doesn't match items location
+        return buckets()[index.parent().row()]->items()[index.row()]->location();
+    } else {
+        // Otherwise index represents a tab already, get location from there
+        return buckets()[index.row()]->location();
+    }
+}
+
+void Search::SetViewMode(ViewMode mode)
+{
+    if (mode != current_mode_) {
+        current_mode_ = mode;
+        model_->sort();
+        view_->setExpanded(model_->index(0,0), current_mode_==ByItem);
+    }
 }
 
 int Search::GetItemsCount() {
@@ -138,7 +168,10 @@ int Search::GetItemsCount() {
 void Search::Activate(const Items &items) {
     FromForm();
     FilterItems(items);
+    view_->setSortingEnabled(false);
     view_->setModel(model_.get());
+    view_->header()->setSortIndicator(model_->GetSortColumn(), model_->GetSortOrder());
+    view_->setSortingEnabled(true);
 }
 
 void Search::SaveViewProperties() {

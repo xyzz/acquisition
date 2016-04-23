@@ -95,6 +95,13 @@ MainWindow::MainWindow(std::unique_ptr<Application> app):
     connect(&delayed_update_current_item_, &QTimer::timeout, [&](){UpdateCurrentItem();delayed_update_current_item_.stop();});
     connect(&delayed_search_form_change_, &QTimer::timeout, [&](){OnSearchFormChange();delayed_search_form_change_.stop();});
 
+    // This updates the item information when index changes
+    connect(ui->treeView->header(), &QHeaderView::sortIndicatorChanged, [&](int, Qt::SortOrder) {
+        QModelIndex idx = ui->treeView->selectionModel()->currentIndex();
+        if (idx.isValid())
+            OnTreeChange(idx, idx);
+    });
+
 }
 
 void MainWindow::InitializeLogging() {
@@ -139,6 +146,14 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutCurrencyComboBox, SIGNAL(activated(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutTypeComboBox, SIGNAL(activated(int)), this, SLOT(OnBuyoutChange()));
     connect(ui->buyoutValueLineEdit, SIGNAL(textEdited(QString)), this, SLOT(OnBuyoutChange()));
+
+    ui->viewComboBox->addItems({"By Tab", "By Item"});
+
+    connect(ui->viewComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [&](int mode) {
+        current_search_->SetViewMode(static_cast<Search::ViewMode>(mode));
+        if (mode == Search::ByTab)
+            OnExpandAll();
+    });
 
     ui->buyoutTypeComboBox->setEnabled(false);
     ui->buyoutValueLineEdit->setEnabled(false);
@@ -432,6 +447,8 @@ void MainWindow::OnSearchFormChange() {
     previous_search_ = current_search_;
 
     current_search_->Activate(app_->items_manager().items());
+    ui->viewComboBox->setCurrentIndex(static_cast<int>(current_search_->GetViewMode()));
+
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
     ui->treeView->reset();

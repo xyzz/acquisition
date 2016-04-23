@@ -81,6 +81,28 @@ const Currency::CurrencyTypeMap Currency::currency_type_as_tag_ = {
     {CURRENCY_MIRROR_OF_KALANDRA, "mirror"}
 };
 
+const Currency::CurrencyRankMap Currency::currency_type_as_rank_ = {
+    {CURRENCY_NONE, 0},
+    {CURRENCY_CHROMATIC_ORB, 1},
+    {CURRENCY_ORB_OF_ALTERATION, 2},
+    {CURRENCY_JEWELLERS_ORB, 3},
+    {CURRENCY_ORB_OF_CHANCE, 4},
+    {CURRENCY_CARTOGRAPHERS_CHISEL, 5},
+    {CURRENCY_PERANDUS_COIN, 6},
+    {CURRENCY_ORB_OF_FUSING, 7},
+    {CURRENCY_ORB_OF_ALCHEMY, 8},
+    {CURRENCY_BLESSED_ORB, 9},
+    {CURRENCY_ORB_OF_SCOURING, 10},
+    {CURRENCY_CHAOS_ORB, 11},
+    {CURRENCY_ORB_OF_REGRET, 12},
+    {CURRENCY_REGAL_ORB, 13},
+    {CURRENCY_VAAL_ORB, 14},
+    {CURRENCY_GCP, 15},
+    {CURRENCY_DIVINE_ORB, 16},
+    {CURRENCY_EXALTED_ORB, 17},
+    {CURRENCY_MIRROR_OF_KALANDRA, 18}
+};
+
 const std::string Buyout::buyout_type_error_;
 
 const Buyout::BuyoutTypeMap Buyout::buyout_type_as_tag_ = {
@@ -612,4 +634,9 @@ const std::string &Currency::AsTag() const {
         QLOG_WARN() << "No mapping from currency type: " << type << " to tag. This should never happen - please report.";
         return currency_type_error_;
     }
+}
+
+const int &Currency::AsRank() const
+{
+    return currency_type_as_rank_.at(type);
 }
