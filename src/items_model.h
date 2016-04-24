@@ -43,10 +43,12 @@ public:
     void sort();
     Qt::SortOrder GetSortOrder() { return sort_order_;};
     int GetSortColumn() { return sort_column_;};
+    void SetSorted(bool val) { sorted_ = val; };
 
 private:
     BuyoutManager &bo_manager_;
     const Search &search_;
     Qt::SortOrder sort_order_{Qt::DescendingOrder};
     int sort_column_{0};
+    bool sorted_{false};
 };

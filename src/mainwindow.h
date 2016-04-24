@@ -118,6 +118,7 @@ private slots:
     void on_uploadTooltipButton_clicked();
 
 private:
+    void ModelViewRefresh();
     void UpdateCurrentBucket();
     void UpdateCurrentItem();
     void UpdateCurrentBuyout();

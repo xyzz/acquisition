@@ -317,7 +317,8 @@ void BooleanFilter::Initialize(QLayout *parent) {
     group->setLayout(layout);
     parent->addWidget(group);
     label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
-    QObject::connect(checkbox_, SIGNAL(stateChanged(int)),
+
+    QObject::connect(checkbox_, SIGNAL(clicked(bool)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
 }
 

@@ -29,6 +29,7 @@
 #include "filters.h"
 #include "porting.h"
 #include "QsLog.h"
+#include <QMessageBox>
 
 Search::Search(BuyoutManager &bo_manager, const std::string &caption,
                const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view) :
@@ -86,11 +87,29 @@ const std::vector<std::unique_ptr<Bucket> > &Search::buckets() const {
     if (current_mode_ == ByTab) {
         return buckets_;
     } else {
-        return {bucket_};
+        return bucket_;
     }
 }
 
+const std::unique_ptr<Bucket> &Search::bucket(int row) const {
+    auto const &active_buckets = (current_mode_ == ByTab) ? buckets_:bucket_;
+
+    if (row < 0 || row >= active_buckets.size()) {
+        QMessageBox::critical(0, "Fatal Error", QString("Bucket row out of bounds: ") +
+                              QString::number(row) + " bucket size: " + QString::number(active_buckets.size()) +
+                              " mode:" + QString::number(current_mode_) +
+                              ". Program will abort.");
+        abort();
+    }
+    return active_buckets[row];
+}
+
 void Search::FilterItems(const Items &items) {
+    // If we're just changing tabs we don't need to update anything
+    if (refresh_reason_ == RefreshReason::TabChanged)
+        return;
+
+    QLOG_DEBUG() << "FilterItems: reason(" << refresh_reason_ << ")";
     items_.clear();
     for (const auto &item : items) {
         bool matches = true;
@@ -132,6 +151,8 @@ void Search::FilterItems(const Items &items) {
     for (auto &element : bucketed_tabs)
         buckets_.push_back(std::move(element.second));
 
+    // Let the model know that current sort order has been invalidated
+    model_->SetSorted(false);
 }
 
 QString Search::GetCaption() {
@@ -145,19 +166,26 @@ ItemLocation Search::GetTabLocation(const QModelIndex & index) const {
     if (index.internalId() > 0) {
         // If index represents an item, get location from item as view may be on 'item' view
         // where bucket location doesn't match items location
-        return buckets()[index.parent().row()]->items()[index.row()]->location();
+        return bucket(index.parent().row())->item(index.row())->location();
     } else {
         // Otherwise index represents a tab already, get location from there
-        return buckets()[index.row()]->location();
+        return bucket(index.row())->location();
     }
 }
 
 void Search::SetViewMode(ViewMode mode)
 {
     if (mode != current_mode_) {
+        if (mode == ByItem)
+            SaveViewProperties();
+
         current_mode_ = mode;
+        // Force immediate view update
+        view_->doItemsLayout();
         model_->sort();
-        view_->setExpanded(model_->index(0,0), current_mode_==ByItem);
+
+        if (mode == ByTab)
+            RestoreViewProperties();
     }
 }
 
@@ -176,21 +204,26 @@ void Search::Activate(const Items &items) {
 
 void Search::SaveViewProperties() {
     expanded_property_.clear();
-
-    for( int row = 0; row < model_->rowCount(); ++row ) {
+    auto rowCount = model_->rowCount();
+    for( int row = 0; row < rowCount; ++row ) {
         QModelIndex index = model_->index( row, 0, QModelIndex());
-        if (view_->isExpanded(index)) {
-            expanded_property_.insert(index.data(Qt::DisplayRole).toString().remove(QRegularExpression("\\s*\\[.*?\\]")));
+        if (index.isValid() && view_->isExpanded(index)) {
+            expanded_property_.insert(bucket(row)->location().GetHeader());
         }
     }
 }
 
 void Search::RestoreViewProperties() {
     if (!expanded_property_.empty()) {
-        for( int row = 0; row < model_->rowCount(); ++row ) {
+        auto rowCount = model_->rowCount();
+        for( int row = 0; row < rowCount; ++row ) {
             QModelIndex index = model_->index( row, 0, QModelIndex());
-            if (expanded_property_.contains(index.data(Qt::DisplayRole).toString().remove(QRegularExpression("\\s*\\[.*?\\]"))))
+            // Block signals else columns will be resized on every expand which can be super slow.
+            view_->blockSignals(true);
+            if (expanded_property_.count(bucket(row)->location().GetHeader())) {
                 view_->expand(index);
+            }
+            view_->blockSignals(false);
         }
     }
 }

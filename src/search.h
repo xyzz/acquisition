@@ -21,11 +21,12 @@
 
 #include <memory>
 #include <vector>
-#include <QSet>
+#include <set>
 
 #include "item.h"
 #include "column.h"
 #include "bucket.h"
+#include "util.h"
 
 class BuyoutManager;
 class Filter;
@@ -61,6 +62,8 @@ public:
     ItemLocation GetTabLocation(const QModelIndex & index) const;
     void SetViewMode(ViewMode mode);
     int GetViewMode() { return current_mode_; };
+    const std::unique_ptr<Bucket> &bucket(int row) const;
+    void SetRefreshReason(RefreshReason::Type reason) { refresh_reason_ = reason;};
 private:
     void UpdateItemCounts(const Items &items);
 
@@ -75,6 +78,7 @@ private:
     std::vector<std::unique_ptr<Bucket>> bucket_;
     uint unfiltered_item_count_{0};
     uint filtered_item_count_total_{0};
-    QSet<QString> expanded_property_;
+    std::set<std::string> expanded_property_;
     ViewMode current_mode_{ByTab};
+    RefreshReason::Type refresh_reason_{RefreshReason::Unknown};
 };

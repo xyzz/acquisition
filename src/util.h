@@ -22,6 +22,8 @@
 #include <string>
 #include <QDateTime>
 #include "rapidjson/document.h"
+#include <QDebug>
+#include <QObject>
 
 #include "item.h"
 
@@ -36,6 +38,23 @@ enum class TextWidthId {
     WIDTH_RGB,
     WIDTH_GROUP
 };
+
+// Reflection example for an ENUM in QT 5.4.x
+class RefreshReason {
+    Q_GADGET
+    Q_ENUMS(Type)
+public:
+    enum Type {
+        Unknown,
+        ItemsChanged,
+        SearchFormChanged,
+        TabCreated,
+        TabChanged
+    };
+private:
+    Type type;
+};
+QDebug& operator<<(QDebug& os, const RefreshReason::Type& obj);
 
 namespace Util {
 std::string Md5(const std::string &value);
