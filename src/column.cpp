@@ -52,6 +52,9 @@ std::tuple<QVariant, QVariant, const Item&> Column::multivalue(const Item* item)
             sort_first_by = item->PrettyName().c_str();
             sort_second_by = match.captured(1).toDouble();
         }
+    } else {
+        sort_first_by = str;
+        sort_second_by = item->PrettyName().c_str();
     }
 
     return std::forward_as_tuple(sort_first_by, sort_second_by, *item);
