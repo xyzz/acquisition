@@ -148,11 +148,13 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutValueLineEdit, SIGNAL(textEdited(QString)), this, SLOT(OnBuyoutChange()));
 
     ui->viewComboBox->addItems({"By Tab", "By Item"});
-
-    connect(ui->viewComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [&](int mode) {
+    connect(ui->viewComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [&](int mode) {
         current_search_->SetViewMode(static_cast<Search::ViewMode>(mode));
-        if (mode == Search::ByTab)
+        if (mode == Search::ByItem) {
             OnExpandAll();
+        } else {
+            ResizeTreeColumns();
+        }
     });
 
     ui->buyoutTypeComboBox->setEnabled(false);
@@ -302,6 +304,7 @@ void MainWindow::CheckSelected(bool value) {
 }
 
 void MainWindow::ResizeTreeColumns() {
+    QLOG_DEBUG() << "ResizeTreeColumns";
     for (int i = 0; i < ui->treeView->header()->count(); ++i)
         ui->treeView->resizeColumnToContents(i);
 }
@@ -340,7 +343,7 @@ void MainWindow::OnBuyoutChange() {
         if (!index.parent().isValid()) {
             bo_manager.SetTab(tab, bo);
         } else {
-            auto &item = current_search_->buckets()[index.parent().row()]->items()[index.row()];
+            auto &item = current_search_->bucket(index.parent().row())->item(index.row());
             // Don't allow users to manually update locked items (game priced per item in note section)
             if (bo_manager.Get(*item).IsGameSet())
                 continue;
@@ -438,30 +441,38 @@ void MainWindow::SetCurrentSearch(Search *search) {
 }
 
 void MainWindow::OnSearchFormChange() {
+    current_search_->SetRefreshReason(RefreshReason::SearchFormChanged);
+    ModelViewRefresh();
+}
+
+void MainWindow::ModelViewRefresh() {
     app_->buyout_manager().Save();
 
     // Save view properties if no search fields are populated
-    if (previous_search_ && !previous_search_->IsAnyFilterActive())
+    // AND we're viewing in Tab mode
+    if (previous_search_ && !previous_search_->IsAnyFilterActive()
+            && previous_search_->GetViewMode() == Search::ByTab)
         previous_search_->SaveViewProperties();
 
     previous_search_ = current_search_;
 
     current_search_->Activate(app_->items_manager().items());
+
     ui->viewComboBox->setCurrentIndex(static_cast<int>(current_search_->GetViewMode()));
 
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
-    ui->treeView->reset();
 
-    if (current_search_->IsAnyFilterActive()) {
+    ui->treeView->reset();
+    if (current_search_->IsAnyFilterActive() || current_search_->GetViewMode() == Search::ByItem) {
         // Policy is to expand all tabs when any search fields are populated
+        // Also expand by default if we're in Item view mode
         ExpandCollapse(TreeState::kExpand);
     } else {
-      // Restore view properties if no search fields are populated
-       current_search_->RestoreViewProperties();
+      // Restore view properties if no search fields are populated AND current mode is tab mode
+        current_search_->RestoreViewProperties();
+        ResizeTreeColumns();
     }
-    ResizeTreeColumns();
-
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
 }
 
@@ -477,10 +488,10 @@ void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /*
     if (!current.parent().isValid()) {
         // clicked on a bucket
         current_item_ = nullptr;
-        current_bucket_ = *current_search_->buckets()[current.row()];
+        current_bucket_ = *current_search_->bucket(current.row());
         UpdateCurrentBucket();
     } else {
-        current_item_ = current_search_->buckets()[current.parent().row()]->items()[current.row()];
+        current_item_ = current_search_->bucket(current.parent().row())->item(current.row());
         delayed_update_current_item_.start(100);
     }
     UpdateCurrentBuyout();
@@ -492,8 +503,9 @@ void MainWindow::OnTabChange(int index) {
         NewSearch();
     } else {
         SetCurrentSearch(searches_[index]);
+        current_search_->SetRefreshReason(RefreshReason::TabChanged);
         current_search_->ToForm();
-        OnSearchFormChange();
+        ModelViewRefresh();
     }
 }
 
@@ -566,6 +578,7 @@ void MainWindow::InitializeSearchForm() {
 
 void MainWindow::NewSearch() {
     SetCurrentSearch(new Search(app_->buyout_manager(), QString("Search %1").arg(++search_count_).toStdString(), filters_, ui->treeView));
+    current_search_->SetRefreshReason(RefreshReason::TabCreated);
 
     tab_bar_->setTabText(tab_bar_->count() - 1, current_search_->GetCaption());
     tab_bar_->addTab("+");
@@ -573,7 +586,7 @@ void MainWindow::NewSearch() {
     // and remove all previous search data
     current_search_->ResetForm();
     searches_.push_back(current_search_);
-    OnSearchFormChange();
+    ModelViewRefresh();
 }
 
 void MainWindow::UpdateCurrentBucket() {
@@ -647,6 +660,7 @@ void MainWindow::UpdateCurrentBuyout() {
 void MainWindow::OnItemsRefreshed() {
     int tab = 0;
     for (auto search : searches_) {
+        search->SetRefreshReason(RefreshReason::ItemsChanged);
         // Don't update current search - it will be updated in OnSearchFormChange
         if (search != current_search_) {
             search->FilterItems(app_->items_manager().items());
@@ -654,7 +668,7 @@ void MainWindow::OnItemsRefreshed() {
         }
         tab++;
     }
-    OnSearchFormChange();
+    ModelViewRefresh();
 }
 
 MainWindow::~MainWindow() {

@@ -517,6 +517,11 @@ bool Buyout::IsGameSet() const {
     return (source == BUYOUT_SOURCE_GAME);
 }
 
+bool Buyout::RequiresRefresh() const
+{
+    return !(type == BUYOUT_TYPE_IGNORE || type == BUYOUT_TYPE_INHERIT);
+}
+
 BuyoutSource Buyout::TagAsBuyoutSource(std::string tag) {
     auto &m = buyout_source_as_tag_;
     auto const &it = std::find_if(m.begin(), m.end(), [&](BuyoutSourceMap::value_type const &x){ return x.second == tag;});

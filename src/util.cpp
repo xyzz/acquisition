@@ -35,6 +35,7 @@
 #include "buyoutmanager.h"
 #include "porting.h"
 #include <boost/algorithm/string/join.hpp>
+#include <QMetaEnum>
 
 std::string Util::Md5(const std::string &value) {
     QString hash = QString(QCryptographicHash::hash(value.c_str(), QCryptographicHash::Md5).toHex());
@@ -209,4 +210,11 @@ std::string Util::Decode(const std::string &entity) {
     QTextDocument text;
     text.setHtml(entity.c_str());
     return text.toPlainText().toStdString();
+}
+
+QDebug &operator<<(QDebug &os, const RefreshReason::Type &obj)
+{
+    const QMetaObject *meta = &RefreshReason::staticMetaObject;
+    os << meta->enumerator(meta->indexOfEnumerator("Type")).key(obj);
+    return os;
 }

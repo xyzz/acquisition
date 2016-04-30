@@ -110,6 +110,7 @@ struct Buyout {
     bool IsPostable() const;
     bool IsPriced() const;
     bool IsGameSet() const;
+    bool RequiresRefresh() const;
 
     static BuyoutType TagAsBuyoutType(std::string tag);
     static BuyoutType IndexAsBuyoutType(int index);

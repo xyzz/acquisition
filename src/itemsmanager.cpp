@@ -110,16 +110,10 @@ void ItemsManager::PropagateTabBuyouts() {
     auto &bo = app_.buyout_manager();
     bo.ClearRefreshLocks();
     for (auto &item_ptr : items_) {
-        auto &item = *item_ptr;
+        Item &item = *item_ptr;
         std::string hash = item.location().GetUniqueHash();
         auto item_bo = bo.Get(item);
         auto tab_bo = bo.GetTab(hash);
-
-        // If any savable bo's are set on an item or the tab then lock
-        // the refresh state.
-        if (item_bo.IsSavable() || tab_bo.IsSavable()) {
-            bo.SetRefreshLocked(item.location());
-        }
 
         if (item_bo.IsInherited()) {
             if (tab_bo.IsActive()) {
@@ -131,6 +125,12 @@ void ItemsManager::PropagateTabBuyouts() {
                 // This effectively 'clears' buyout by setting back to 'inherit' state.
                 bo.Set(item, Buyout());
             }
+        }
+
+        // If any savable bo's are set on an item or the tab then lock
+        // the refresh state.
+        if (bo.Get(item).RequiresRefresh() || tab_bo.RequiresRefresh()) {
+            bo.SetRefreshLocked(item.location());
         }
     }
 }
