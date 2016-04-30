@@ -442,8 +442,6 @@ Currency BuyoutManager::StringToCurrencyType(std::string currency) const {
     auto const &it = string_to_currency_type_.find(currency);
     if (it != string_to_currency_type_.end()) {
         return it->second;
-    } else {
-        QLOG_WARN() << "Cannot map string: '" << QString(currency.c_str()) << "' to currency type.  This should not happen - please report.";
     }
     return CURRENCY_NONE;
 }
@@ -452,8 +450,6 @@ BuyoutType BuyoutManager::StringToBuyoutType(std::string bo_str) const {
     auto const &it = string_to_buyout_type_.find(bo_str);
     if (it != string_to_buyout_type_.end()) {
         return it->second;
-    } else {
-        QLOG_WARN() << "Cannot map string: '" << QString(bo_str.c_str()) << "' to buyout type.  This should not happen - please report.";
     }
     return BUYOUT_TYPE_INHERIT;
 }
@@ -461,7 +457,7 @@ BuyoutType BuyoutManager::StringToBuyoutType(std::string bo_str) const {
 Buyout BuyoutManager::StringToBuyout(std::string format) {
     // Parse format string and initialize buyout object, if string does not match any known format
     // then the buyout object will not be valid (IsValid will return false).
-    std::regex exp("(~\\S+)\\s+(\\d+\\.?\\d*)\\s+(\\S+)");
+    std::regex exp("(~\\S+)\\s+(\\d+\\.?\\d*)\\s+(\\w+)");
 
     std::smatch sm;
 
@@ -502,7 +498,7 @@ bool Buyout::IsValid() const {
 }
 
 bool Buyout::IsActive() const {
-    return (type == BUYOUT_TYPE_INHERIT) ? false:true;
+    return IsValid() && type != BUYOUT_TYPE_INHERIT;
 }
 
 bool Buyout::IsPostable() const {
