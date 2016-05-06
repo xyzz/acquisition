@@ -184,17 +184,18 @@ QModelIndex ItemsModel::parent(const QModelIndex &index) const {
 }
 
 QModelIndex ItemsModel::index(int row, int column, const QModelIndex &parent) const {
-    // bucket
-    if (row < 0 || row >= rowCount(parent) || column < 0 || column >= columnCount(parent)) {
-        QLOG_WARN() << "Unexpected Index request: row(" << row << ") maxrow(" << rowCount(parent)
-                       << ") col(" << column << ") maxcol(" << columnCount(parent);
-        return QModelIndex();
-    }
-
     if (parent.isValid()) {
+        if (parent.row() >= (signed)search_.buckets().size()) {
+            QLOG_WARN() << "Should not happen: Index request parent contains invalid row";
+            return QModelIndex();
+        }
         // item, we pass parent's (bucket's) row through ID parameter
         return createIndex(row, column, static_cast<quintptr>(parent.row() + 1));
     } else {
+        if (row >= (signed)search_.buckets().size()) {
+            QLOG_WARN() << "Index request asking for invalid row";
+            return QModelIndex();
+        }
         return createIndex(row, column, static_cast<quintptr>(0));
     }
 }

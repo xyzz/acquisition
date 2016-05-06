@@ -181,7 +181,8 @@ void Search::SetViewMode(ViewMode mode)
 
         current_mode_ = mode;
         // Force immediate view update
-        view_->doItemsLayout();
+        view_->reset();
+        model_->SetSorted(false);
         model_->sort();
 
         if (mode == ByTab)
