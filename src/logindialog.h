@@ -44,6 +44,7 @@ public:
     explicit LoginDialog(std::unique_ptr<Application> app);
     ~LoginDialog();
 public slots:
+    void OnLeaguesRequestFinished();
     void OnLoginButtonClicked();
     void OnLoginPageFinished();
     void OnLoggedIn();
@@ -59,6 +60,7 @@ private:
     void DisplayError(const QString &error);
     void LoginWithCookie(const QString &cookie);
     void InitSteamDialog();
+    void LeaguesApiError(const QString &error, const QByteArray &reply);
     std::unique_ptr<Application> app_;
     Ui::LoginDialog *ui;
     MainWindow *mw;

@@ -38,11 +38,13 @@
 #include "application.h"
 #include "filesystem.h"
 #include "mainwindow.h"
+#include "replytimeout.h"
+#include "selfdestructingreply.h"
 #include "steamlogindialog.h"
 #include "util.h"
 #include "version.h"
 
-const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues";
+const char* POE_LEAGUE_LIST_URL = "http://api.pathofexile.com/leagues?type=main&compact=1";
 const char* POE_LOGIN_URL = "https://www.pathofexile.com/login";
 const char* POE_MAIN_PAGE = "https://www.pathofexile.com/";
 const char* POE_MY_ACCOUNT = "https://www.pathofexile.com/my-account";
@@ -67,10 +69,6 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
 #if defined(Q_OS_LINUX)
     setWindowIcon(QIcon(":/icons/assets/icon.svg"));
 #endif
-    QStringList leagues = { "Perandus Flashback", "Perandus Flashback HC", "Perandus", "Hardcore Perandus", "Standard", "Hardcore" };
-    ui->leagueComboBox->clear();
-    ui->leagueComboBox->addItems(leagues);
-    ui->leagueComboBox->setEnabled(true);
 
     settings_path_ = Filesystem::UserDir() + "/settings.ini";
     LoadSettings();
@@ -85,6 +83,10 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
         asked_to_update_ = true;
         UpdateChecker::AskUserToUpdate(this);
     });
+
+    QNetworkReply *leagues_reply = login_manager_->get(QNetworkRequest(QUrl(QString(POE_LEAGUE_LIST_URL))));
+    connect(leagues_reply, &QNetworkReply::finished, this, &LoginDialog::OnLeaguesRequestFinished);
+    new QReplyTimeout(leagues_reply, kPoeApiTimeout);
 }
 
 void LoginDialog::OnLoginButtonClicked() {
@@ -102,6 +104,37 @@ void LoginDialog::InitSteamDialog() {
 
 void LoginDialog::OnSteamDialogClosed() {
     DisplayError("Login was not completed");
+}
+
+void LoginDialog::LeaguesApiError(const QString &error, const QByteArray &reply) {
+    DisplayError("Leagues API returned malformed data: " + error);
+    QLOG_ERROR() << "Leagues API says: " << reply;
+}
+
+void LoginDialog::OnLeaguesRequestFinished() {
+    SelfDestructingReply reply(qobject_cast<QNetworkReply *>(QObject::sender()));
+    QByteArray bytes = reply->readAll();
+
+    rapidjson::Document doc;
+    doc.Parse(bytes.constData());
+
+    if (doc.HasParseError() || !doc.IsArray())
+        return LeaguesApiError("Failed to parse the document", bytes);
+
+    ui->leagueComboBox->clear();
+    for (auto &league : doc) {
+        if (!league.IsObject())
+            return LeaguesApiError("Object expected", bytes);
+        if (!league.HasMember("id"))
+            return LeaguesApiError("Missing league 'id'", bytes);
+        if (!league["id"].IsString())
+            return LeaguesApiError("String expected", bytes);
+        ui->leagueComboBox->addItem(league["id"].GetString());
+    }
+    ui->leagueComboBox->setEnabled(true);
+
+    if (saved_league_.size() > 0)
+        ui->leagueComboBox->setCurrentText(saved_league_);
 }
 
 // All characters except + should be handled by QUrlQuery, see http://doc.qt.io/qt-5/qurlquery.html#encoding
