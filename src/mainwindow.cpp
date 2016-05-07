@@ -178,12 +178,15 @@ void MainWindow::InitializeUi() {
     scroll_area->setMinimumWidth(150); // TODO(xyz): remove magic numbers
     scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
+    ui->scrollArea->setFrameShape(QFrame::NoFrame);
+    ui->scrollArea->setWidgetResizable(true);
+
     ui->horizontalLayout_2->insertWidget(0, scroll_area);
     search_form_container->show();
 
-    ui->horizontalLayout_2->setStretchFactor(scroll_area, 1);
-    ui->horizontalLayout_2->setStretchFactor(ui->itemListAndSearchFormLayout, 4);
-    ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 2);
+    ui->horizontalLayout_2->setStretchFactor(0, 2);
+    ui->horizontalLayout_2->setStretchFactor(1, 5);
+    ui->horizontalLayout_2->setStretchFactor(2, 0);
 
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -237,11 +240,6 @@ void MainWindow::InitializeUi() {
         tabs->widget(idx)->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         tabs->widget(idx)->resize(tabs->widget(idx)->minimumSizeHint());
         tabs->widget(idx)->adjustSize();
-
-        if (idx == 0)
-            ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 2);
-        else
-            ui->horizontalLayout_2->setStretchFactor(ui->itemLayout, 1);
 
         app_->data().SetInt("preferred_tooltip_type", idx);
     });
