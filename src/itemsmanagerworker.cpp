@@ -173,18 +173,30 @@ void ItemsManagerWorker::OnCharacterListReceived() {
     }
 
     QLOG_DEBUG() << "Received character list, there are" << doc.Size() << "characters";
+    auto char_count = 0;
     for (auto &character : doc) {
         if (!character.HasMember("league") || !character.HasMember("name") || !character["league"].IsString() || !character["name"].IsString()) {
             QLOG_ERROR() << "Malformed character entry, the reply is most likely invalid" << bytes.constData();
             continue;
         }
         if (character["league"].GetString() == league_) {
+            char_count++;
             std::string name = character["name"].GetString();
             ItemLocation location;
             location.set_type(ItemLocationType::CHARACTER);
             location.set_character(name);
             QueueRequest(MakeCharacterRequest(name, location), location);
         }
+    }
+    CurrentStatusUpdate status;
+    status.state = ProgramState::CharactersReceived;
+    status.total = char_count;
+
+    emit StatusUpdate(status);
+
+    if (char_count == 0) {
+        updating_ = false;
+        return;
     }
 
     // Fetch a single tab and also request tabs list.  We can fetch any tab here with tabs list

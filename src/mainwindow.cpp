@@ -206,6 +206,14 @@ void MainWindow::InitializeUi() {
         context_menu_.popup(ui->treeView->viewport()->mapToGlobal(pos));
     });
 
+    refresh_button_.setStyleSheet("color: blue; font-weight: bold;");
+    refresh_button_.setFlat(true);
+    refresh_button_.hide();
+    statusBar()->addPermanentWidget(&refresh_button_);
+    connect(&refresh_button_, &QPushButton::clicked, [=](){
+        on_actionRefresh_selected_triggered();
+    });
+
     statusBar()->addPermanentWidget(&online_label_);
     UpdateOnlineGui();
 
@@ -358,6 +366,14 @@ void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
     QString title;
     bool need_progress = false;
     switch (status.state) {
+    case ProgramState::CharactersReceived:
+        if (status.total == 0) {
+            refresh_button_.setText("No characters detected yet in this league, click to refresh");
+            refresh_button_.show();
+        } else {
+            refresh_button_.hide();
+        }
+        break;
     case ProgramState::ItemsReceive:
     case ProgramState::ItemsPaused:
         title = QString("Receiving stash data, %1/%2 [%3 from cache]").arg(status.progress).arg(status.total).arg(status.cached);

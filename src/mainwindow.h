@@ -62,6 +62,8 @@ enum class TreeState {
 };
 
 enum class ProgramState {
+    Unknown,
+    CharactersReceived,
     ItemsReceive,
     ItemsPaused,
     ItemsCompleted,
@@ -71,7 +73,7 @@ enum class ProgramState {
 
 struct CurrentStatusUpdate {
     ProgramState state;
-    int progress, total, cached;
+    int progress{}, total{}, cached{};
 };
 
 class MainWindow : public QMainWindow {
@@ -153,6 +155,7 @@ private:
     QMenu context_menu_;
     UpdateChecker update_checker_;
     QPushButton update_button_;
+    QPushButton refresh_button_;
     AutoOnline auto_online_;
     QLabel online_label_;
     QNetworkAccessManager *network_manager_;
