@@ -56,7 +56,8 @@ const Currency::CurrencyTypeMap Currency::currency_type_as_string_ = {
     {CURRENCY_DIVINE_ORB, "Divine Orb"},
     {CURRENCY_VAAL_ORB, "Vaal Orb"},
     {CURRENCY_PERANDUS_COIN, "Perandus Coin"},
-    {CURRENCY_MIRROR_OF_KALANDRA, "Mirror of Kalandra"}
+    {CURRENCY_MIRROR_OF_KALANDRA, "Mirror of Kalandra"},
+    {CURRENCY_SILVER_COIN, "Silver Coin"},
 };
 
 const Currency::CurrencyTypeMap Currency::currency_type_as_tag_ = {
@@ -78,7 +79,8 @@ const Currency::CurrencyTypeMap Currency::currency_type_as_tag_ = {
     {CURRENCY_DIVINE_ORB, "divine"},
     {CURRENCY_VAAL_ORB, "vaal"},
     {CURRENCY_PERANDUS_COIN, "coin"},
-    {CURRENCY_MIRROR_OF_KALANDRA, "mirror"}
+    {CURRENCY_MIRROR_OF_KALANDRA, "mirror"},
+    {CURRENCY_SILVER_COIN, "silver"},
 };
 
 const Currency::CurrencyRankMap Currency::currency_type_as_rank_ = {
@@ -100,7 +102,8 @@ const Currency::CurrencyRankMap Currency::currency_type_as_rank_ = {
     {CURRENCY_GCP, 15},
     {CURRENCY_DIVINE_ORB, 16},
     {CURRENCY_EXALTED_ORB, 17},
-    {CURRENCY_MIRROR_OF_KALANDRA, 18}
+    {CURRENCY_MIRROR_OF_KALANDRA, 18},
+    {CURRENCY_SILVER_COIN, 19},
 };
 
 const std::string Buyout::buyout_type_error_;
@@ -189,6 +192,7 @@ const std::map<std::string, Currency> BuyoutManager::string_to_currency_type_ = 
     {"scouring", CURRENCY_ORB_OF_SCOURING},
     {"shekel", CURRENCY_PERANDUS_COIN},
     {"vaal", CURRENCY_VAAL_ORB},
+    {"silver", CURRENCY_SILVER_COIN},
 };
 
 BuyoutManager::BuyoutManager(DataStore &data) :
