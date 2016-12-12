@@ -22,6 +22,8 @@
 #include <cmath>
 #include <QVector>
 #include <QRegularExpression>
+#include <QApplication>
+#include <QPalette>
 
 #include "buyoutmanager.h"
 #include "util.h"
@@ -31,7 +33,7 @@ const QRegularExpression sort_double_match("^\\+?([\\d.]+)%?$");
 const QRegularExpression sort_two_values("^(\\d+)([-/])(\\d+)$");
 
 QColor Column::color(const Item & /* item */) const {
-    return QColor();
+    return QApplication::palette().color(QPalette::WindowText);
 }
 
 std::tuple<QVariant, QVariant, const Item&> Column::multivalue(const Item* item) const {
@@ -74,8 +76,8 @@ QVariant NameColumn::value(const Item &item) const {
 
 QColor NameColumn::color(const Item &item) const {
     switch(item.frameType()) {
-    case FRAME_TYPE_NORMAL:
-        return QColor();
+    case FRAME_TYPE_NORMAL: 
+        return QApplication::palette().color(QPalette::WindowText);
     case FRAME_TYPE_MAGIC:
         return QColor(Qt::blue);
     case FRAME_TYPE_RARE:
@@ -201,7 +203,7 @@ QVariant PriceColumn::value(const Item &item) const {
 
 QColor PriceColumn::color(const Item &item) const {
     const Buyout &bo = bo_manager_.Get(item);
-    return bo.IsInherited() ? QColor(0xaa, 0xaa, 0xaa):QColor();
+    return bo.IsInherited() ? QColor(0xaa, 0xaa, 0xaa):QApplication::palette().color(QPalette::WindowText);
 }
 
 std::tuple<int, double, const Item&> PriceColumn::multivalue(const Item* item) const {
