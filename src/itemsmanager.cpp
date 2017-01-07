@@ -103,7 +103,10 @@ void ItemsManager::ApplyAutoItemBuyouts() {
         }
     }
 
-    bo.CompressItemBuyouts(items_);
+    // Commenting this out for robustness (iss381) to make it as unlikely as possible that users
+    // pricing data will be removed.  Side effect is that stale pricing data will pile up and
+    // could be applied to future items with the same hash (which includes tab name).
+    // bo.CompressItemBuyouts(items_);
 }
 
 void ItemsManager::PropagateTabBuyouts() {
