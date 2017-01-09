@@ -66,8 +66,6 @@ ItemsManagerWorker::ItemsManagerWorker(Application &app, QThread *thread) :
     network_manager_.setCache(tab_cache_);
     network_manager_.cookieJar()->setCookiesFromUrl(app.logged_in_nm().cookieJar()->cookiesForUrl(poe), poe);
     network_manager_.moveToThread(thread);
-
-    connect(this, SIGNAL(ItemsRefreshed(Items, std::vector<ItemLocation>, bool)), tab_cache_, SLOT(OnItemsRefreshed()));
 }
 
 ItemsManagerWorker::~ItemsManagerWorker() {
@@ -87,6 +85,7 @@ void ItemsManagerWorker::Init() {
 
     tabs_.clear();
     std::string tabs = data_.Get("tabs");
+    tabs_signature_ = CreateTabsSignatureVector(tabs);
     if (tabs.size() != 0) {
         rapidjson::Document doc;
         if (doc.Parse(tabs.c_str()).HasParseError()) {
@@ -108,21 +107,23 @@ void ItemsManagerWorker::Init() {
     emit ItemsRefreshed(items_, tabs_, true);
 }
 
-void ItemsManagerWorker::Update(TabCache::Policy policy, const std::vector<ItemLocation> &tab_names) {
+void ItemsManagerWorker::Update(TabSelection::Type type, const std::vector<ItemLocation> &locations) {
     if (updating_) {
         QLOG_WARN() << "ItemsManagerWorker::Update called while updating";
         return;
     }
 
-    if (policy == TabCache::ManualCache) {
-        for (auto const &tab: tab_names)
-            tab_cache_->AddManualRefresh(tab);
+    selected_tabs_.clear();
+    for (auto const &tab: locations) {
+        selected_tabs_.insert(tab.GetHeader());
     }
 
-    tab_cache_->OnPolicyUpdate(policy);
+    tab_selection_ = type;
 
-    QLOG_DEBUG() << "Updating stash tabs";
+    QLOG_DEBUG() <<  "Updating" << tab_selection_ << "stash tabs";
     updating_ = true;
+
+    cancel_update_ = false;
     // remove all mappings (from previous requests)
     if (signal_mapper_)
         delete signal_mapper_;
@@ -142,11 +143,16 @@ void ItemsManagerWorker::Update(TabCache::Policy policy, const std::vector<ItemL
 
 void ItemsManagerWorker::OnMainPageReceived() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
-    std::string page(reply->readAll().constData());
 
-    selected_character_ = Util::FindTextBetween(page, "activeCharacter\":{\"name\":\"", "\",\"league");
-    if (selected_character_.empty()) {
-        QLOG_WARN() << "Can't extract selected character name from the page";
+    if (reply->error()) {
+        QLOG_WARN() << "Couldn't fetch main page: " << reply->url().toDisplayString() << " due to error: " << reply->errorString();
+    } else {
+        std::string page(reply->readAll().constData());
+
+        selected_character_ = Util::FindTextBetween(page, "activeCharacter\":{\"name\":\"", "\",\"league");
+        if (selected_character_.empty()) {
+            QLOG_WARN() << "Couldn't extract currently selected character name from GGG homepage (maintenence?) Text was: " << page.c_str();
+        }
     }
 
     // now get character list
@@ -162,14 +168,21 @@ void ItemsManagerWorker::OnCharacterListReceived() {
     rapidjson::Document doc;
     doc.Parse(bytes.constData());
 
-    if (doc.HasParseError() || !doc.IsArray()) {
-        QLOG_ERROR() << "Received invalid reply instead of character list. The reply was"
-            << bytes.constData();
-        if (doc.HasParseError()) {
-            QLOG_ERROR() << "The error was" << rapidjson::GetParseError_En(doc.GetParseError());
-        }
+    if (reply->error()) {
+        QLOG_WARN() << "Couldn't fetch character list: " << reply->url().toDisplayString()
+                    << " due to error: " << reply->errorString() << " Aborting update.";
         updating_ = false;
         return;
+    } else {
+        if (doc.HasParseError() || !doc.IsArray()) {
+            QLOG_ERROR() << "Received invalid reply instead of character list. The reply was: "
+                         << bytes.constData();
+            if (doc.HasParseError()) {
+                QLOG_ERROR() << "The error was" << rapidjson::GetParseError_En(doc.GetParseError());
+            }
+            updating_ = false;
+            return;
+        }
     }
 
     QLOG_DEBUG() << "Received character list, there are" << doc.Size() << "characters";
@@ -203,19 +216,30 @@ void ItemsManagerWorker::OnCharacterListReceived() {
     // appended, so prefer one that the user has already 'checked'.  Default to index '1' which is
     // first user visible tab.
     first_fetch_tab_ = 1;
-    for (auto const &tab : tabs_) {
-        if (bo_manager_.GetRefreshChecked(tab)) {
-            first_fetch_tab_ = tab.get_tab_id();
-            break;
+    if (tab_selection_ == TabSelection::Checked) {
+        for (auto const &tab : tabs_) {
+            if (bo_manager_.GetRefreshChecked(tab)) {
+                first_fetch_tab_ = tab.get_tab_id();
+                break;
+            }
+        }
+    }
+    // If we're refreshing a manual selection of tabs choose one of them to save a tab fetch
+    if (tab_selection_ == TabSelection::Selected) {
+        for (auto const &tab : tabs_) {
+            if (selected_tabs_.count(tab.GetHeader())) {
+                first_fetch_tab_ = tab.get_tab_id();
+                break;
+            }
         }
     }
 
-    QNetworkReply *first_tab = network_manager_.get(MakeTabRequest(first_fetch_tab_, ItemLocation(), true));
+    QNetworkReply *first_tab = network_manager_.get(MakeTabRequest(first_fetch_tab_, ItemLocation(), true, true));
     connect(first_tab, SIGNAL(finished()), this, SLOT(OnFirstTabReceived()));
     reply->deleteLater();
 }
 
-QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, const ItemLocation &location, bool tabs) {
+QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, const ItemLocation &location, bool tabs, bool refresh) {
     QUrlQuery query;
     query.addQueryItem("league", league_.c_str());
     query.addQueryItem("tabs", tabs ? "1" : "0");
@@ -225,11 +249,8 @@ QNetworkRequest ItemsManagerWorker::MakeTabRequest(int tab_index, const ItemLoca
     QUrl url(kStashItemsUrl);
     url.setQuery(query);
 
-    TabCache::Flags flags;
-    if (tabs) flags |= TabCache::Refresh;
-
-    if (!location.IsValid() || bo_manager_.GetRefreshChecked(location))
-        flags |= TabCache::Refresh;
+    // If refresh is explicity request then force unconditionally
+    TabCache::Flags flags = (refresh) ? TabCache::Refresh : TabCache::None;
 
     return Request(url, location, flags);
 }
@@ -242,15 +263,24 @@ QNetworkRequest ItemsManagerWorker::MakeCharacterRequest(const std::string &name
     QUrl url(kCharacterItemsUrl);
     url.setQuery(query);
 
-    TabCache::Flags flags;
-    if (!location.IsValid() || bo_manager_.GetRefreshChecked(location))
-        flags |= TabCache::Refresh;
-
-    return Request(url, location, flags);
+    return Request(url, location, TabCache::None);
 }
 
 QNetworkRequest ItemsManagerWorker::Request(QUrl url, const ItemLocation &location, TabCache::Flags flags) {
-    return tab_cache_->Request(url, location, flags);
+    switch (tab_selection_) {
+    case TabSelection::All:
+        flags |= TabCache::Refresh;
+        break;
+    case TabSelection::Checked:
+        if (!location.IsValid() || bo_manager_.GetRefreshChecked(location))
+            flags |= TabCache::Refresh;
+        break;
+    case TabSelection::Selected:
+        if (!location.IsValid() || selected_tabs_.count(location.GetHeader()))
+            flags |= TabCache::Refresh;
+        break;
+    }
+    return tab_cache_->Request(url, flags);
 }
 
 void ItemsManagerWorker::QueueRequest(const QNetworkRequest &request, const ItemLocation &location) {
@@ -297,6 +327,13 @@ void ItemsManagerWorker::OnFirstTabReceived() {
         updating_ = false;
         return;
     }
+
+    if (doc.HasMember("error")) {
+        QLOG_ERROR() << "Aborting update since first fetch failed due to 'error': " << Util::RapidjsonSerialize(doc["error"]).c_str();
+        updating_ = false;
+        return;
+    }
+
     if (!doc.HasMember("tabs") || doc["tabs"].Size() == 0) {
         QLOG_WARN() << "There are no tabs, this should not happen, bailing out.";
         updating_ = false;
@@ -304,8 +341,15 @@ void ItemsManagerWorker::OnFirstTabReceived() {
     }
 
     tabs_as_string_ = Util::RapidjsonSerialize(doc["tabs"]);
+    tabs_signature_ = CreateTabsSignatureVector(tabs_as_string_);
 
     QLOG_DEBUG() << "Received tabs list, there are" << doc["tabs"].Size() << "tabs";
+
+    std::set<std::string> old_tab_headers;
+    for (auto const &tab: tabs_) {
+        // Remember old tab headers before clearing tabs
+        old_tab_headers.insert(tab.GetHeader());
+    }
     tabs_.clear();
 
     // Create tab location objects
@@ -319,11 +363,19 @@ void ItemsManagerWorker::OnFirstTabReceived() {
 
     // Immediately parse items received from this tab (first_fetch_tab_) and Queue requests for the others
     for (auto const &tab: tabs_) {
+        bool refresh = false;
+
         auto index = tab.get_tab_id();
         if (index == first_fetch_tab_) {
             ParseItems(&doc["items"], tab, doc.GetAllocator());
         } else {
-            QueueRequest(MakeTabRequest(index, tab), tab);
+            // Force refreshes for any tabs that were moved or renamed regardless of what user
+            // requests for refresh.
+            if (!old_tab_headers.count(tab.GetHeader())) {
+                QLOG_DEBUG() << "Forcing refresh of moved or renamed tab: " << tab.GetHeader().c_str();
+                refresh = true;
+            }
+            QueueRequest(MakeTabRequest(index, tab, true, refresh), tab);
         }
     }
 
@@ -357,9 +409,9 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 
     ItemsReply reply = replies_[request_id];
 
-    bool cache_status = reply.network_reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool();
+    bool reply_from_cache = reply.network_reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool();
 
-    if (cache_status) {
+    if (reply_from_cache) {
         QLOG_DEBUG() << "Received a cached reply for" << reply.request.location.GetHeader().c_str();
         ++cached_requests_completed_;
         ++total_cached_;
@@ -377,8 +429,54 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
         error = true;
     } else if (doc.HasMember("error")) {
         // this can happen if user is browsing stash in background and we can't know about it
-        QLOG_WARN() << request_id << "got 'error' instead of stash tab contents";
+        QLOG_WARN() << request_id << "got 'error' instead of stash tab contents: " << Util::RapidjsonSerialize(doc["error"]).c_str();
         error = true;
+    }
+
+    // We index expected tabs and their locations as part of the first fetch.  It's possible for users
+    // to move or rename tabs during the update which will result in the item data being out-of-sync with
+    // expected index/tab name map.  We need to detect this case and abort the update.
+    if (!cancel_update_ && !error && (reply.request.location.get_type() == ItemLocationType::STASH)) {
+        if (!doc.HasMember("tabs") || doc["tabs"].Size() == 0) {
+            QLOG_ERROR() << "Full tab information missing from stash tab fetch.  Cancelling update. Full fetch URL: "
+                         << reply.request.network_request.url().toDisplayString();
+            cancel_update_ = true;
+        } else {
+            std::string tabs_as_string = Util::RapidjsonSerialize(doc["tabs"]);
+            auto tabs_signature_current = CreateTabsSignatureVector(tabs_as_string);
+
+            auto tab_id = reply.request.location.get_tab_id();
+            if (tabs_signature_[tab_id] != tabs_signature_current[tab_id]) {
+                if (reply_from_cache) {
+                    // Here we unexpectedly are seeing a cached document that is out-of-sync with current tab state
+                    // This is not fatal but unexpected as we shouldn't get here if everything else is done right.
+                    // If we do see, set 'error' condition which causes us to flush from catch and re-fetch from server.
+                    QLOG_WARN() << "Unexpected hit on stale cached tab.  Flushing and re-fetching request: "
+                                << reply.request.network_request.url().toDisplayString();
+                    error = true;
+                    // Isn't really cached since we're erroring out and replaying so fix up stats
+                    total_cached_--;
+                } else {
+                    std::string reason;
+                    if (tabs_signature_current.size() != tabs_signature_.size())
+                        reason += "[Tab size mismatch:" + std::to_string(tabs_signature_current.size()) + " != "
+                                + std::to_string(tabs_signature_.size()) + "]";
+
+                    auto &x = tabs_signature_current[tab_id];
+                    auto &y = tabs_signature_[tab_id];
+                    reason += "[tab_index=" + std::to_string(tab_id) + "/" + std::to_string(tabs_signature_current.size()) + "(#" + std::to_string(tab_id+1) + ")]";
+                    if (x.first != y.first)
+                        reason += "[name:" + x.first + " != " + y.first + "]";
+                    if (x.second != y.second)
+                        reason += "[id:" + x.second + " != " + y.second + "]";
+
+                    QLOG_ERROR() << "You renamed or re-ordered tabs in game while acquisition was in the middle of the update,"
+                                 << " aborting to prevent synchronization problems and pricing data loss. Mismatch reason(s) -> "
+                                 << reason.c_str() << ". For request: " << reply.request.network_request.url().toDisplayString();
+                    cancel_update_ = true;
+                }
+            }
+        }
     }
 
     // re-queue a failed request
@@ -395,16 +493,21 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
         ++total_completed_;
 
     bool throttled = false;
-    if (requests_completed_ == requests_needed_ && queue_.size() > 0) {
-        if (cached_requests_completed_ > 0) {
-            // We basically don't want cached requests to count against throttle limit
-            // so if we did get any cached requests fetch up to that number without a
-            // large delay
-            QTimer::singleShot(1, [&]() { FetchItems(cached_requests_completed_); });
-        } else {
-            throttled = true;
-            QLOG_DEBUG() << "Sleeping one minute to prevent throttling.";
-            QTimer::singleShot(kThrottleSleep * 1000, this, SLOT(FetchItems()));
+
+    if (requests_completed_ == requests_needed_) {
+        if (cancel_update_) {
+            updating_ = false;
+        } else if (queue_.size() > 0) {
+            if (cached_requests_completed_ > 0) {
+                // We basically don't want cached requests to count against throttle limit
+                // so if we did get any cached requests fetch up to that number without a
+                // large delay
+                QTimer::singleShot(1, [&]() { FetchItems(cached_requests_completed_); });
+            } else {
+                throttled = true;
+                QLOG_DEBUG() << "Sleeping one minute to prevent throttling.";
+                QTimer::singleShot(kThrottleSleep * 1000, this, SLOT(FetchItems()));
+            }
         }
     }
     CurrentStatusUpdate status = CurrentStatusUpdate();
@@ -414,6 +517,8 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
     status.cached = total_cached_;
     if (total_completed_ == total_needed_)
         status.state = ProgramState::ItemsCompleted;
+    if (cancel_update_)
+        status.state = ProgramState::UpdateCancelled;
     emit StatusUpdate(status);
 
     if (error)
@@ -421,7 +526,7 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 
     ParseItems(&doc["items"], reply.request.location, doc.GetAllocator());
 
-    if (total_completed_ == total_needed_) {
+    if ((total_completed_ == total_needed_) && !cancel_update_) {
         // It's possible that we receive character vs stash tabs out of order, or users
         // move items around in a tab and we get them in a different order. For
         // consistency we want to present the tab data in a deterministic way to the rest
@@ -462,6 +567,24 @@ void ItemsManagerWorker::OnTabReceived(int request_id) {
 void ItemsManagerWorker::PreserveSelectedCharacter() {
     if (selected_character_.empty())
         return;
-    tab_cache_->OnPolicyUpdate(TabCache::DefaultCache);
     network_manager_.get(MakeCharacterRequest(selected_character_, ItemLocation()));
 }
+
+
+std::vector<std::pair<std::string, std::string> > ItemsManagerWorker::CreateTabsSignatureVector(std::string tabs) {
+    std::vector<std::pair<std::string, std::string> > tmp;
+    rapidjson::Document doc;
+
+    if (doc.Parse(tabs.c_str()).HasParseError()) {
+        QLOG_ERROR() << "Malformed tabs data:" << tabs.c_str() << "The error was"
+            << rapidjson::GetParseError_En(doc.GetParseError());
+    } else {
+        for (auto &tab : doc) {
+            std::string name = (tab.HasMember("n") && tab["n"].IsString()) ? tab["n"].GetString(): "UNKNOWN_NAME";
+            std::string uid = (tab.HasMember("id") && tab["id"].IsString()) ? tab["id"].GetString(): "UNKNOWN_ID";
+            tmp.emplace_back(name,uid);
+        }
+    }
+    return tmp;
+}
+

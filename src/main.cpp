@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
     qRegisterMetaType<std::vector<ItemLocation>>("std::vector<ItemLocation>");
     qRegisterMetaType<QsLogging::Level>("QsLogging::Level");
-    qRegisterMetaType<TabCache::Policy>("TabCache::Policy");
+    qRegisterMetaType<TabSelection::Type>("TabSelection::Type");
 
     QLocale::setDefault(QLocale::C);
     std::setlocale(LC_ALL, "C");
