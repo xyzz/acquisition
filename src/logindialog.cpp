@@ -69,6 +69,7 @@ LoginDialog::LoginDialog(std::unique_ptr<Application> app) :
 #if defined(Q_OS_LINUX)
     setWindowIcon(QIcon(":/icons/assets/icon.svg"));
 #endif
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     settings_path_ = Filesystem::UserDir() + "/settings.ini";
     LoadSettings();
@@ -107,13 +108,16 @@ void LoginDialog::OnSteamDialogClosed() {
 }
 
 void LoginDialog::LeaguesApiError(const QString &error, const QByteArray &reply) {
-    DisplayError("Leagues API returned malformed data: " + error);
+    DisplayError("Leagues API returned malformed data: " + error, true);
     QLOG_ERROR() << "Leagues API says: " << reply;
 }
 
 void LoginDialog::OnLeaguesRequestFinished() {
     SelfDestructingReply reply(qobject_cast<QNetworkReply *>(QObject::sender()));
     QByteArray bytes = reply->readAll();
+
+    if (reply->error())
+        return LeaguesApiError(reply->errorString(), bytes);
 
     rapidjson::Document doc;
     doc.Parse(bytes.constData());
@@ -280,7 +284,7 @@ void LoginDialog::SaveSettings() {
     settings.setValue("use_system_proxy_checked", ui->proxyCheckBox->isChecked());
 }
 
-void LoginDialog::DisplayError(const QString &error) {
+void LoginDialog::DisplayError(const QString &error, bool disable_login) {
     ui->errorLabel->setText(error);
     ui->errorLabel->show();
     ui->loginButton->setEnabled(true);

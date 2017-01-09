@@ -57,7 +57,7 @@ protected:
 private:
     void SaveSettings();
     void LoadSettings();
-    void DisplayError(const QString &error);
+    void DisplayError(const QString &error, bool disable_login = false);
     void LoginWithCookie(const QString &cookie);
     void InitSteamDialog();
     void LeaguesApiError(const QString &error, const QByteArray &reply);
