@@ -314,7 +314,7 @@
     <property name="title">
      <string>Tabs</string>
     </property>
-    <addaction name="actionRefresh_selected"/>
+    <addaction name="actionRefresh_checked"/>
     <addaction name="actionRefresh"/>
     <addaction name="separator"/>
     <addaction name="actionAutomatically_refresh_items"/>
@@ -421,7 +421,7 @@
     <string>Export to CSV...</string>
    </property>
   </action>
-  <action name="actionRefresh_selected">
+  <action name="actionRefresh_checked">
    <property name="text">
     <string>Refresh checked tabs</string>
    </property>

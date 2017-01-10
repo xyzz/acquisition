@@ -61,7 +61,7 @@ void Application::InitLogin(std::unique_ptr<QNetworkAccessManager> login_manager
     currency_manager_ = std::make_unique<CurrencyManager>(*this);
     connect(items_manager_.get(), &ItemsManager::ItemsRefreshed, this, &Application::OnItemsRefreshed);
     items_manager_->Start();
-    items_manager_->Update();
+    items_manager_->Update(TabSelection::Checked);
 }
 
 void Application::OnItemsRefreshed(bool initial_refresh) {

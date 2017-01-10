@@ -211,7 +211,7 @@ void MainWindow::InitializeUi() {
     refresh_button_.hide();
     statusBar()->addPermanentWidget(&refresh_button_);
     connect(&refresh_button_, &QPushButton::clicked, [=](){
-        on_actionRefresh_selected_triggered();
+        on_actionRefresh_triggered();
     });
 
     statusBar()->addPermanentWidget(&online_label_);
@@ -297,7 +297,7 @@ void MainWindow::OnRefreshSelected() {
         locations.push_back(current_search_->GetTabLocation(index));
     }
 
-    app_->items_manager().Update(TabCache::ManualCache, locations);
+    app_->items_manager().Update(TabSelection::Selected, locations);
 }
 
 
@@ -383,6 +383,7 @@ void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
         break;
     case ProgramState::ItemsCompleted:
         title = QString("Received %1 tabs [%2 from cache]").arg(status.total).arg(status.cached);
+        QLOG_INFO() << title;
         break;
     case ProgramState::ShopSubmitting:
         title = QString("Sending your shops to the forum, %1/%2").arg(status.progress).arg(status.total);
@@ -390,6 +391,10 @@ void MainWindow::OnStatusUpdate(const CurrentStatusUpdate &status) {
         break;
     case ProgramState::ShopCompleted:
         title = QString("Shop threads updated");
+        QLOG_INFO() << title;
+        break;
+    case ProgramState::UpdateCancelled:
+        title = QString("Shop updated cancelled due to tab movement or rename mid-update");
         break;
     default:
         title = "Unknown";
@@ -746,12 +751,12 @@ void MainWindow::on_actionItems_refresh_interval_triggered() {
 }
 
 void MainWindow::on_actionRefresh_triggered() {
-    // NeverCache policy forces refresh of all requests
-    app_->items_manager().Update(TabCache::NeverCache);
+    // Refresh all tabs
+    app_->items_manager().Update(TabSelection::All);
 }
 
-void MainWindow::on_actionRefresh_selected_triggered() {
-    app_->items_manager().Update();
+void MainWindow::on_actionRefresh_checked_triggered() {
+    app_->items_manager().Update(TabSelection::Checked);
 }
 
 void MainWindow::on_actionAutomatically_refresh_items_triggered() {

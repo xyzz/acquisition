@@ -24,6 +24,7 @@
 #include <QNetworkRequest>
 #include <QObject>
 
+#include "util.h"
 #include "item.h"
 #include "mainwindow.h"
 
@@ -37,7 +38,7 @@ class TabCache;
 
 const int kThrottleRequests = 45;
 const int kThrottleSleep = 60;
-const int kMaxCacheSize = (10*1024*1024); // 10MB
+const int kMaxCacheSize = (1000*1024*1024); // 1GB
 
 struct ItemsRequest {
     int id;
@@ -57,7 +58,7 @@ public:
     ~ItemsManagerWorker();
 public slots:
     void Init();
-    void Update(TabCache::Policy policy, const std::vector<ItemLocation> &tab_names = std::vector<ItemLocation>());
+    void Update(TabSelection::Type type, const std::vector<ItemLocation> &tab_names = std::vector<ItemLocation>());
 public slots:
     void OnMainPageReceived();
     void OnCharacterListReceived();
@@ -75,10 +76,11 @@ signals:
     void StatusUpdate(const CurrentStatusUpdate &status);
 private:
 
-    QNetworkRequest MakeTabRequest(int tab_index, const ItemLocation &location, bool tabs = false);
+    QNetworkRequest MakeTabRequest(int tab_index, const ItemLocation &location, bool tabs = false, bool refresh = false);
     QNetworkRequest MakeCharacterRequest(const std::string &name, const ItemLocation &location);
     void QueueRequest(const QNetworkRequest &request, const ItemLocation &location);
     void ParseItems(rapidjson::Value *value_ptr, const ItemLocation &base_location, rapidjson_allocator &alloc);
+    std::vector<std::pair<std::string, std::string> > CreateTabsSignatureVector(std::string tabs);
 
     QNetworkRequest Request(QUrl url, const ItemLocation &location, TabCache::Flags flags = TabCache::None);
     DataStore &data_;
@@ -87,6 +89,9 @@ private:
     std::vector<ItemLocation> tabs_;
     std::queue<ItemsRequest> queue_;
     std::map<int, ItemsReply> replies_;
+    // tabs_signature_ captures <"n", "id"> from JSON tab list, used as consistency check
+    std::vector<std::pair<std::string, std::string> > tabs_signature_;
+    bool cancel_update_{false};
     Items items_;
     int total_completed_, total_needed_, total_cached_;
     int requests_completed_, requests_needed_;
@@ -103,4 +108,6 @@ private:
     TabCache *tab_cache_{new TabCache()};
     const BuyoutManager &bo_manager_;
     std::string account_name_;
+    TabSelection::Type tab_selection_;
+    std::set<std::string> selected_tabs_;
 };

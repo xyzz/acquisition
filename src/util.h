@@ -56,6 +56,20 @@ private:
 };
 QDebug& operator<<(QDebug& os, const RefreshReason::Type& obj);
 
+class TabSelection {
+    Q_GADGET
+    Q_ENUMS(Type)
+public:
+    enum Type {
+        All,
+        Checked,
+        Selected,
+    };
+private:
+    Type type;
+};
+QDebug& operator<<(QDebug& os, const TabSelection::Type& obj);
+
 namespace Util {
 std::string Md5(const std::string &value);
 double AverageDamage(const std::string &s);

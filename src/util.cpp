@@ -218,3 +218,11 @@ QDebug &operator<<(QDebug &os, const RefreshReason::Type &obj)
     os << meta->enumerator(meta->indexOfEnumerator("Type")).key(obj);
     return os;
 }
+
+QDebug &operator<<(QDebug &os, const TabSelection::Type &obj)
+{
+    const QMetaObject *meta = &TabSelection::staticMetaObject;
+    os << meta->enumerator(meta->indexOfEnumerator("Type")).key(obj);
+    return os;
+}
+

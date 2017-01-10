@@ -68,7 +68,8 @@ enum class ProgramState {
     ItemsPaused,
     ItemsCompleted,
     ShopSubmitting,
-    ShopCompleted
+    ShopCompleted,
+    UpdateCancelled
 };
 
 struct CurrentStatusUpdate {
@@ -107,7 +108,7 @@ private slots:
     void on_actionCopy_shop_data_to_clipboard_triggered();
     void on_actionItems_refresh_interval_triggered();
     void on_actionRefresh_triggered();
-    void on_actionRefresh_selected_triggered();
+    void on_actionRefresh_checked_triggered();
     void on_actionAutomatically_refresh_items_triggered();
     void on_actionUpdate_shop_triggered();
     void on_actionShop_template_triggered();

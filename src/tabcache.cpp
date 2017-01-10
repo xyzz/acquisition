@@ -1,6 +1,5 @@
 #include "tabcache.h"
 #include "QsLog.h"
-#include "itemlocation.h"
 
 #include <QDir>
 #include <QDateTime>
@@ -59,69 +58,25 @@ TabCache::TabCache(QObject* parent)
 {
 }
 
-QNetworkRequest TabCache::Request(const QUrl &url, const ItemLocation &location, Flags flags) {
+QNetworkRequest TabCache::Request(const QUrl &url, Flags flags) {
     QNetworkRequest request{url};
+    bool evicted = false;
 
-    // The cache policy exists so it can override normal behavior for a given refresh.
-    // Based on the current policy we may ignore refresh requests, or force refreshes
-    // even if none was specifed with 'flags'.
-    switch (cache_policy_) {
-    case DefaultCache:
-        // This is the default policy, where we honor cache policy as specified by 'flags'
-        // Evict this request from the cache if refresh is requested
-        if (flags.testFlag(Refresh))
-            remove(url);
-        break;
-    case AlwaysCache:
-        // By default we always try to hit in the cache, so this policy just allows
-        // the normal cache mechanism to do its job and it will basically grab everything
-        // from the cache that is available for all network requests
-        break;
-    case NeverCache:
-        // We've already fully flushed the cache in OnPolicyUpdate, so nothing to do here.
-        break;
-    case ManualCache:
-        // The case involves refreshing only an explicitily specified set of named tabs, customers
-        // use AddManualRefresh to indicate what set of tabs to refresh before triggering a refresh
-        // all other network requests will come from the cache if available
-        if (location.IsValid() && manual_refresh_.count(location.GetUniqueHash()))
-            remove(url);
-        break;
-    default:
-        QLOG_ERROR() << "TabCache::Request Failed to handle all cache policy cases";
-        break;
-    };
+    if (flags.testFlag(Refresh)) {
+        remove(url);
+        evicted = true;
+    }
 
     // At this point we've evicted any request that should be refreshed, so we always
     // tell the 'real' request to prefer but not require the entry be in the cache.
     // If it is not in the cache it will be fetched from the network regardless.
     request.setAttribute(QNetworkRequest::CacheSaveControlAttribute, QNetworkRequest::PreferCache);
+    QLOG_DEBUG() << "Evicted:" << evicted << ":" << url.toDisplayString();
 
     return request;
 }
 
-
-void TabCache::OnPolicyUpdate(Policy policy) {
-    // Handle NeverCache policy here, basically just flush cache.
-    if (policy == NeverCache)
-        clear();
-
-    cache_policy_ = policy;
-}
-
-void TabCache::AddManualRefresh( const ItemLocation &location) {
-    if (location.IsValid())
-        manual_refresh_.insert(location.GetUniqueHash());
-}
-
-
-void TabCache::OnItemsRefreshed() {
-    // Clear any manually set tabs here
-    manual_refresh_.clear();
-}
-
 QIODevice *TabCache::prepare(const QNetworkCacheMetaData &metaData) {
-    QLOG_DEBUG() << "TabCache::prepare";
     QNetworkCacheMetaData local{metaData};
 
     //Default policy based on received HTTP headers is to not save to disk.

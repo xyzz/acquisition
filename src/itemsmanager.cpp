@@ -54,7 +54,7 @@ void ItemsManager::Start() {
     thread_ = std::make_unique<QThread>();
     worker_ = std::make_unique<ItemsManagerWorker>(app_, thread_.get());
     connect(thread_.get(), SIGNAL(started()), worker_.get(), SLOT(Init()));
-    connect(this, SIGNAL(UpdateSignal(TabCache::Policy, const std::vector<ItemLocation> &)), worker_.get(), SLOT(Update(TabCache::Policy, const std::vector<ItemLocation> &)));
+    connect(this, SIGNAL(UpdateSignal(TabSelection::Type, const std::vector<ItemLocation> &)), worker_.get(), SLOT(Update(TabSelection::Type, const std::vector<ItemLocation> &)));
     connect(worker_.get(), &ItemsManagerWorker::StatusUpdate, this, &ItemsManager::OnStatusUpdate);
     connect(worker_.get(), SIGNAL(ItemsRefreshed(Items, std::vector<ItemLocation>, bool)), this, SLOT(OnItemsRefreshed(Items, std::vector<ItemLocation>, bool)));
     worker_->moveToThread(thread_.get());
@@ -150,8 +150,8 @@ void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<ItemLo
     emit ItemsRefreshed(initial_refresh);
 }
 
-void ItemsManager::Update(TabCache::Policy policy, const std::vector<ItemLocation> &locations) {
-    emit UpdateSignal(policy, locations);
+void ItemsManager::Update(TabSelection::Type type, const std::vector<ItemLocation> &locations) {
+    emit UpdateSignal(type, locations);
 }
 
 void ItemsManager::SetAutoUpdate(bool update) {
@@ -172,7 +172,7 @@ void ItemsManager::SetAutoUpdateInterval(int minutes) {
 }
 
 void ItemsManager::OnAutoRefreshTimer() {
-    Update();
+    Update(TabSelection::Selected);
 }
 
 void ItemsManager::MigrateBuyouts() {
