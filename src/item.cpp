@@ -91,6 +91,10 @@ Item::Item(const rapidjson::Value &json) :
     // to handle elsewhere
     boost::algorithm::replace_last(icon_, "quad=1", "quad=0");
 
+    if (json.HasMember("talismanTier")) {
+       talisman_tier_ = json["talismanTier"].GetUint();
+    }
+
     if (json.HasMember("id")) {
         uid_ = json["id"].GetString();
     }
