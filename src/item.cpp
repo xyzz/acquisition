@@ -21,6 +21,7 @@
 
 #include <utility>
 #include <QString>
+#include <boost/algorithm/string/replace.hpp>
 #include "rapidjson/document.h"
 
 #include "modlist.h"
@@ -85,6 +86,10 @@ Item::Item(const rapidjson::Value &json) :
                 mods.push_back(mod.GetString());
         }
     }
+
+    // Other code assumes icon is proper size so force quad=1 to quad=0 here as it's clunky
+    // to handle elsewhere
+    boost::algorithm::replace_last(icon_, "quad=1", "quad=0");
 
     if (json.HasMember("id")) {
         uid_ = json["id"].GetString();
