@@ -118,6 +118,7 @@ CONFIG += c++11
 
 DEPENDPATH *= $${INCLUDEPATH}
 
-RESOURCES += resources.qrc
+RESOURCES += resources.qrc \
+    deps/qdarkstyle/style.qrc
 
 RC_FILE = resources.rc

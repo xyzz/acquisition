@@ -79,7 +79,7 @@ QColor NameColumn::color(const Item &item) const {
     case FRAME_TYPE_NORMAL: 
         return QApplication::palette().color(QPalette::WindowText);
     case FRAME_TYPE_MAGIC:
-        return QColor(Qt::blue);
+        return QColor(0x00, 0x66, 0x99);
     case FRAME_TYPE_RARE:
         return QColor(Qt::darkYellow);
     case FRAME_TYPE_UNIQUE:

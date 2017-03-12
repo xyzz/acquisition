@@ -233,15 +233,14 @@ void GenerateItemTooltip(const Item &item, Ui::MainWindow *ui) {
         ui->itemHeaderLeft->setFixedSize(44, 54);
         ui->itemHeaderRight->setFixedSize(44, 54);
     }
-
-    ui->itemHeaderLeft->setStyleSheet(("border-image: url(:/tooltip/ItemHeader" + key + suffix + "Left.png);").c_str());
-    ui->itemNameContainerWidget->setStyleSheet(("border-image: url(:/tooltip/ItemHeader" + key + suffix + "Middle.png);").c_str());
-    ui->itemHeaderRight->setStyleSheet(("border-image: url(:/tooltip/ItemHeader" + key + suffix + "Right.png);").c_str());
+    ui->itemHeaderLeft->setStyleSheet(("border-radius: 0px; border: 0px; border-image: url(:/tooltip/ItemHeader" + key + suffix + "Left.png);").c_str());
+    ui->itemNameContainerWidget->setStyleSheet(("border-radius: 0px; border: 0px; border-image: url(:/tooltip/ItemHeader" + key + suffix + "Middle.png);").c_str());
+    ui->itemHeaderRight->setStyleSheet(("border-radius: 0px; border: 0px; border-image: url(:/tooltip/ItemHeader" + key + suffix + "Right.png);").c_str());
 
     ui->itemNameFirstLine->setText(item.name().c_str());
     ui->itemNameSecondLine->setText(item.typeLine().c_str());
 
-    std::string css = "border-image: none; font-size: 20px; color: " + FrameToColor[frame];
+    std::string css = "border-image: none; background-color: transparent; font-size: 20px; color: " + FrameToColor[frame];
     ui->itemNameFirstLine->setStyleSheet(css.c_str());
     ui->itemNameSecondLine->setStyleSheet(css.c_str());
 }
