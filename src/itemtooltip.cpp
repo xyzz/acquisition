@@ -99,11 +99,13 @@ static std::string GenerateProperties(const Item &item) {
 static std::string GenerateRequirements(const Item &item) {
     std::string text;
     bool first = true;
+    // Talisman level is not really a requirement but it lives in the requirements section
+    if (item.talisman_tier())
+        text += "Talisman Tier: " + std::to_string(item.talisman_tier()) + "<br>";
     for (auto &requirement : item.text_requirements()) {
-        if (!first)
-            text += ", ";
+        text += first ? "Requires " : ", ";
         first = false;
-        text += requirement.name + ": " + ColorPropertyValue(requirement.value);
+        text += requirement.name + " " + ColorPropertyValue(requirement.value);
     }
     return text;
 }
@@ -140,7 +142,7 @@ static std::string GenerateItemInfo(const Item &item, const std::string &key, bo
 
     std::string requirements_text = GenerateRequirements(item);
     if (requirements_text.size() > 0)
-        sections.push_back("Requires " + requirements_text);
+        sections.push_back(requirements_text);
 
     std::vector<std::string> mods = GenerateMods(item);
     sections.insert(sections.end(), mods.begin(), mods.end());

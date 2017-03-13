@@ -91,6 +91,7 @@ public:
     const ItemLocation &location() const { return location_; }
     const std::string& json() { return json_; };
     const std::string& note() const { return note_; };
+    uint talisman_tier() const { return talisman_tier_; };
     int count() const { return count_; };
     bool has_mtx() const { return has_mtx_; }
     const ModTable &mod_table() const { return mod_table_; }
@@ -130,6 +131,7 @@ private:
     std::string note_;
     ModTable mod_table_;
     std::string uid_;
+    uint talisman_tier_{0};
 };
 
 typedef std::vector<std::shared_ptr<Item>> Items;
