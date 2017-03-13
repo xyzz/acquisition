@@ -151,7 +151,7 @@ void ItemsManagerWorker::OnMainPageReceived() {
 
         selected_character_ = Util::FindTextBetween(page, "activeCharacter\":{\"name\":\"", "\",\"league");
         if (selected_character_.empty()) {
-            QLOG_WARN() << "Couldn't extract currently selected character name from GGG homepage (maintenence?) Text was: " << page.c_str();
+            // QLOG_WARN() << "Couldn't extract currently selected character name from GGG homepage (maintenence?) Text was: " << page.c_str();
         }
     }
 
