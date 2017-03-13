@@ -253,6 +253,10 @@ void MainWindow::InitializeUi() {
     });
 
     ui->itemInfoTypeTabs->setCurrentIndex(app_->data().GetInt("preferred_tooltip_type"));
+
+    auto theme = app_->data().Get("theme", "light");
+    if (theme == "dark") on_actionDark_triggered(true);
+    if (theme == "light") on_actionLight_triggered(true);
 }
 
 void MainWindow::ExpandCollapse(TreeState state) {
@@ -807,6 +811,40 @@ void MainWindow::on_actionAutomatically_refresh_online_status_triggered() {
 void MainWindow::on_actionList_currency_triggered() {
     app_->currency_manager().DisplayCurrency();
 }
+
+void MainWindow::on_actionDark_triggered(bool toggle) {
+    // Credits: https://github.com/ColinDuquesnoy/QDarkStyleSheet
+    if (toggle) {
+        QFile f(":qdarkstyle/style.qss");
+        if (!f.exists()) {
+            printf("Unable to set stylesheet, file not found\n");
+        } else {
+            f.open(QFile::ReadOnly | QFile::Text);
+            QTextStream ts(&f);
+            qApp->setStyleSheet(ts.readAll());
+
+            QPalette pal = QApplication::palette();
+            pal.setColor(QPalette::WindowText, Qt::white);
+            QApplication::setPalette(pal);
+        }
+        app_->data().Set("theme", "dark");
+        ui->actionLight->setChecked(!toggle);
+    }
+    ui->actionDark->setChecked(true);
+}
+
+void MainWindow::on_actionLight_triggered(bool toggle) {
+    if (toggle) {
+        qApp->setStyleSheet("");
+        QPalette pal = QApplication::palette();
+        pal.setColor(QPalette::WindowText, Qt::black);
+        QApplication::setPalette(pal);
+        ui->actionDark->setChecked(!toggle);
+        app_->data().Set("theme", "light");
+    }
+    ui->actionLight->setChecked(true);
+}
+
 void MainWindow::on_actionExport_currency_triggered() {
     app_->currency_manager().ExportCurrency();
 }

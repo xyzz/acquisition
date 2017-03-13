@@ -117,6 +117,8 @@ private slots:
     void on_actionRemoteScript_triggered();
     void on_actionAutomatically_refresh_online_status_triggered();
     void on_actionList_currency_triggered();
+    void on_actionDark_triggered(bool toggle);
+    void on_actionLight_triggered(bool toggle);
     void on_actionExport_currency_triggered();
     void on_uploadTooltipButton_clicked();
 

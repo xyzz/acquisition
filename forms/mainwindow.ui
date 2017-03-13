@@ -335,10 +335,18 @@
     <addaction name="actionList_currency"/>
     <addaction name="actionExport_currency"/>
    </widget>
+   <widget class="QMenu" name="menuTheme">
+    <property name="title">
+     <string>Theme</string>
+    </property>
+    <addaction name="actionDark"/>
+    <addaction name="actionLight"/>
+   </widget>
    <addaction name="menuItems"/>
    <addaction name="menuShop"/>
    <addaction name="menuAuto_online"/>
    <addaction name="menuCurrency"/>
+   <addaction name="menuTheme"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionForum_shop_thread">
@@ -424,6 +432,22 @@
   <action name="actionRefresh_checked">
    <property name="text">
     <string>Refresh checked tabs</string>
+   </property>
+  </action>
+  <action name="actionDark">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Dark</string>
+   </property>
+  </action>
+  <action name="actionLight">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Light</string>
    </property>
   </action>
  </widget>
