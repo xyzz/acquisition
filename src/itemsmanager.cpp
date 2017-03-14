@@ -172,7 +172,7 @@ void ItemsManager::SetAutoUpdateInterval(int minutes) {
 }
 
 void ItemsManager::OnAutoRefreshTimer() {
-    Update(TabSelection::Selected);
+    Update(TabSelection::Checked);
 }
 
 void ItemsManager::MigrateBuyouts() {
