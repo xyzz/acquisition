@@ -129,7 +129,7 @@ std::string Util::StringReplace(const std::string &haystack, const std::string &
 }
 
 std::string Util::StringJoin(const std::vector<std::string> &arr, const std::string &separator) {
-    return boost::algorithm::join(arr, separator);
+    return boost::join(arr, separator);
 }
 
 std::vector<std::string> Util::StringSplit(const std::string &str, char delim) {

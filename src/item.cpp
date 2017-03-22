@@ -21,13 +21,33 @@
 
 #include <utility>
 #include <QString>
-#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string.hpp>
+#include <regex>
 #include "rapidjson/document.h"
 
 #include "modlist.h"
 #include "util.h"
 #include "porting.h"
 #include "itemlocation.h"
+
+const std::array<Item::CategoryReplaceMap, Item::k_CategoryLevels> Item::replace_map_ = {
+    // Category hierarchy 0 replacement map
+    Item::CategoryReplaceMap(),
+    // Category hierarchy 1 replacement map
+    Item::CategoryReplaceMap({{"BodyArmours", "Body"},
+                              {"VaalGems", "Vaal"},
+                              {"AtlasMaps", "Atlas"},
+                              {"act4maps", "Act4"},
+                              {"OneHandWeapons", "OneHand"},
+                              {"TwoHandWeapons", "TwoHand"}}),
+    // Category hierarchy 2 replacement map
+    Item::CategoryReplaceMap({{"OneHandAxes", "Axes"},
+                              {"OneHandMaces", "Maces"},
+                              {"OneHandSwords", "Swords"},
+                              {"TwoHandAxes", "Axes"},
+                              {"TwoHandMaces", "Maces"},
+                              {"TwoHandSwords", "Swords"}})
+};
 
 const std::vector<std::string> ITEM_MOD_TYPES = {
     "implicitMods", "enchantMods", "explicitMods", "craftedMods", "cosmeticMods"
@@ -89,7 +109,24 @@ Item::Item(const rapidjson::Value &json) :
 
     // Other code assumes icon is proper size so force quad=1 to quad=0 here as it's clunky
     // to handle elsewhere
-    boost::algorithm::replace_last(icon_, "quad=1", "quad=0");
+    boost::replace_last(icon_, "quad=1", "quad=0");
+
+    // Derive item type 'category' hierarchy from icon path.
+    std::smatch sm;
+    if (std::regex_search(icon_, sm, std::regex("Art/.*?/(.*)/"))) {
+        std::string match = sm.str(1);
+        boost::split(category_vector_,match,boost::is_any_of("/"));
+        //Compress terms with redundant identifiers
+        //Weapons.OneHandWeapons.OneHandMaces -> Weapons.OneHand.Maces
+        size_t min = std::min(category_vector_.size(), replace_map_.size());
+        for (size_t i = 1; i < min; i++) {
+            auto it = replace_map_[i].find(category_vector_[i]);
+            if (it != replace_map_[i].end())
+                category_vector_[i] = it->second;
+        }
+        category_ = boost::join(category_vector_, ".");
+        boost::to_lower(category_);
+    }
 
     if (json.HasMember("talismanTier")) {
        talisman_tier_ = json["talismanTier"].GetUint();

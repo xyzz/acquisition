@@ -30,6 +30,9 @@
 class QLineEdit;
 class QCheckBox;
 class FilterData;
+class QComboBox;
+class QCompleter;
+class QAbstractListModel;
 
 /*
  * Objects of subclasses of this class do the following:
@@ -95,6 +98,21 @@ public:
     void Initialize(QLayout *parent);
 private:
     QLineEdit *textbox_;
+};
+
+class CategorySearchFilter : public Filter {
+public:
+    explicit CategorySearchFilter(QLayout *parent, QAbstractListModel *model);
+    void FromForm(FilterData *data);
+    void ToForm(FilterData *data);
+    void ResetForm();
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
+    void Initialize(QLayout *parent);
+    static const std::string k_Default;
+private:
+    QComboBox *combobox_;
+    QCompleter *completer_;
+    QAbstractListModel *model_;
 };
 
 class MinMaxFilter : public Filter {
