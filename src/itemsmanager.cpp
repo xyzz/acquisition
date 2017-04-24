@@ -31,6 +31,7 @@
 #include "shop.h"
 #include "util.h"
 #include "mainwindow.h"
+#include "filters.h"
 
 ItemsManager::ItemsManager(Application &app) :
     auto_update_timer_(std::make_unique<QTimer>()),
@@ -146,8 +147,22 @@ void ItemsManager::OnItemsRefreshed(const Items &items, const std::vector<ItemLo
     ApplyAutoTabBuyouts();
     ApplyAutoItemBuyouts();
     PropagateTabBuyouts();
+    UpdateCategories();
 
     emit ItemsRefreshed(initial_refresh);
+}
+
+void ItemsManager::UpdateCategories() {
+    categories_.clear();
+    for (auto const &item: items_) {
+        QString tmp;
+        for (auto const &level: item->category_vector()) {
+            tmp = tmp.isEmpty() ? level.c_str(): tmp + "." + level.c_str();
+            categories_.insert(tmp);
+        }
+    }
+    // Need a 'default' string option for unconstrained search
+    categories_.insert(CategorySearchFilter::k_Default.c_str());
 }
 
 void ItemsManager::Update(TabSelection::Type type, const std::vector<ItemLocation> &locations) {

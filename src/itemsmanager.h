@@ -54,6 +54,8 @@ public:
     void ApplyAutoTabBuyouts();
     void ApplyAutoItemBuyouts();
     void PropagateTabBuyouts();
+    void UpdateCategories();
+    const QSet<QString>& categories() const { return categories_; };
 public slots:
     // called by auto_update_timer_
     void OnAutoRefreshTimer();
@@ -79,4 +81,5 @@ private:
     Shop &shop_;
     Application &app_;
     Items items_;
+    QSet<QString> categories_;
 };

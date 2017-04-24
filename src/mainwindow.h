@@ -49,6 +49,7 @@ class Filter;
 class FlowLayout;
 class ImageCache;
 class Search;
+class QStringListModel;
 
 struct Buyout;
 
@@ -164,6 +165,7 @@ private:
     QNetworkAccessManager *network_manager_;
     QTimer delayed_update_current_item_;
     QTimer delayed_search_form_change_;
+    QStringListModel *category_string_model_;
 #ifdef Q_OS_WIN32
     QWinTaskbarButton *taskbar_button_;
 #endif

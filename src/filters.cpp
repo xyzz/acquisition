@@ -21,11 +21,16 @@
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QLineEdit>
+#include <QCompleter>
+#include <QComboBox>
+#include <boost/algorithm/string/case_conv.hpp>
 
 #include "buyoutmanager.h"
 #include "filters.h"
 #include "util.h"
 #include "porting.h"
+
+const std::string CategorySearchFilter::k_Default = "<any>";
 
 std::unique_ptr<FilterData> Filter::CreateData() {
     return std::make_unique<FilterData>(this);
@@ -78,10 +83,68 @@ bool NameSearchFilter::Matches(const std::shared_ptr<Item> &item, FilterData *da
     return name.find(query) != std::string::npos;
 }
 
-void NameSearchFilter::Initialize(QLayout *parent) {
+void NameSearchFilter::Initialize(QLayout *parent) {   
+    QWidget *group = new QWidget;
+    QHBoxLayout *layout = new QHBoxLayout;
+    layout->setMargin(0);
+    QLabel *label = new QLabel("Name");
+    label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
+    label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     textbox_ = new QLineEdit;
-    parent->addWidget(textbox_);
+    layout->addWidget(label);
+    layout->addWidget(textbox_);
+    group->setLayout(layout);
+    parent->addWidget(group);
     QObject::connect(textbox_, SIGNAL(textEdited(const QString&)),
+                     parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
+}
+
+CategorySearchFilter::CategorySearchFilter(QLayout *parent, QAbstractListModel *model):
+    model_(model)
+{
+    Initialize(parent);
+}
+
+void CategorySearchFilter::FromForm(FilterData *data) {
+    std::string current_text = combobox_->currentText().toStdString();
+    boost::to_lower(current_text);
+    data->text_query = (current_text == k_Default) ? "":current_text;
+}
+
+void CategorySearchFilter::ToForm(FilterData *data) {
+    auto index = combobox_->findText(data->text_query.c_str(), Qt::MatchFixedString);
+    combobox_->setCurrentIndex(std::max(0, index));
+}
+
+void CategorySearchFilter::ResetForm() {
+    combobox_->setCurrentText(k_Default.c_str());
+}
+
+bool CategorySearchFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    return item->category().find(data->text_query) != std::string::npos;
+}
+
+void CategorySearchFilter::Initialize(QLayout *parent) {
+    QWidget *group = new QWidget;
+    QHBoxLayout *layout = new QHBoxLayout;
+    layout->setMargin(0);
+    QLabel *label = new QLabel("Type");
+    label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
+    label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    combobox_ = new QComboBox;
+    combobox_->setModel(model_);
+    combobox_->setEditable(true);
+    combobox_->setInsertPolicy(QComboBox::NoInsert);
+    completer_ = new QCompleter(combobox_->model());
+    completer_->setCompletionMode(QCompleter::PopupCompletion);
+    completer_->setFilterMode(Qt::MatchContains);
+    completer_->setCaseSensitivity(Qt::CaseInsensitive);
+    combobox_->setCompleter(completer_);
+    layout->addWidget(label);
+    layout->addWidget(combobox_);
+    group->setLayout(layout);
+    parent->addWidget(group);
+    QObject::connect(combobox_, SIGNAL(currentIndexChanged(const QString&)),
                      parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
 }
 

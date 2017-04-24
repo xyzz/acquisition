@@ -35,6 +35,7 @@
 #include <QScrollArea>
 #include <QStringList>
 #include <QTabBar>
+#include <QStringListModel>
 #include "QsLog.h"
 
 #include "application.h"
@@ -544,7 +545,9 @@ void MainWindow::AddSearchGroup(QLayout *layout, const std::string &name="") {
 }
 
 void MainWindow::InitializeSearchForm() {
+    category_string_model_ = new QStringListModel;
     auto name_search = std::make_unique<NameSearchFilter>(search_form_layout_);
+    auto category_search = std::make_unique<CategorySearchFilter>(search_form_layout_, category_string_model_);
     auto offense_layout = new FlowLayout;
     auto defense_layout = new FlowLayout;
     auto sockets_layout = new FlowLayout;
@@ -564,6 +567,7 @@ void MainWindow::InitializeSearchForm() {
     using move_only = std::unique_ptr<Filter>;
     move_only init[] = {
         std::move(name_search),
+        std::move(category_search),
         // Offense
         // new DamageFilter(offense_layout, "Damage"),
         std::make_unique<SimplePropertyFilter>(offense_layout, "Critical Strike Chance", "Crit."),
@@ -691,6 +695,12 @@ void MainWindow::OnItemsRefreshed() {
         }
         tab++;
     }
+    QList<QString> categories = app_->items_manager().categories().toList();
+    qSort(categories);
+    category_string_model_->setStringList(categories);
+    // Must re-populate category form after model re-init which clears selection
+    current_search_->ToForm();
+
     ModelViewRefresh();
 }
 

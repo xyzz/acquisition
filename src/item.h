@@ -23,6 +23,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <array>
 #include <vector>
 #include "rapidjson/document.h"
 
@@ -61,6 +62,8 @@ typedef std::unordered_map<std::string, double> ModTable;
 
 class Item {
 public:
+    typedef const std::unordered_map<std::string, std::string> CategoryReplaceMap;
+
     explicit Item(const rapidjson::Value &json);
     Item(const std::string &name, const ItemLocation &location); // used by tests
     std::string name() const { return name_; }
@@ -91,12 +94,16 @@ public:
     const ItemLocation &location() const { return location_; }
     const std::string& json() { return json_; };
     const std::string& note() const { return note_; };
+    const std::string& category() const { return category_; };
+    const std::vector<std::string>& category_vector() const { return category_vector_; };
     uint talisman_tier() const { return talisman_tier_; };
     int count() const { return count_; };
     bool has_mtx() const { return has_mtx_; }
     const ModTable &mod_table() const { return mod_table_; }
     int ilvl() const { return ilvl_; }
     bool operator<(const Item &other) const;
+    static const size_t k_CategoryLevels = 3;
+    static const std::array<CategoryReplaceMap, k_CategoryLevels> replace_map_;
 
 private:
     // The point of GenerateMods is to create combined (e.g. implicit+explicit) poe.trade-like mod map to be searched by mod filter.
@@ -107,6 +114,8 @@ private:
     std::string name_;
     ItemLocation location_;
     std::string typeLine_;
+    std::string category_;
+    std::vector<std::string> category_vector_;
     bool corrupted_;
     bool identified_;
     int w_, h_;
