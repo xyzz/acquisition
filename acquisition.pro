@@ -1,7 +1,7 @@
 TARGET = acquisition
 TEMPLATE = app
 
-QT += core gui network webenginewidgets testlib
+QT += core gui network testlib
 
 win32 {
     QT += winextras
@@ -11,6 +11,12 @@ win32 {
 unix {
     LIBS += -ldl
     QMAKE_CXXFLAGS += -Wno-inconsistent-missing-override
+}
+
+nowebengine {
+  DEFINES += NO_WEBENGINE
+} else {
+  QT += webenginewidgets
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets

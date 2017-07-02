@@ -23,6 +23,9 @@
 #include <QNetworkCookie>
 #include <QNetworkAccessManager>
 #include <memory>
+#ifndef NO_WEBENGINE
+#include <QWebEngineView>
+#endif
 
 namespace Ui {
 class SteamLoginDialog;
@@ -44,6 +47,8 @@ protected:
 private:
     Ui::SteamLoginDialog *ui;
     bool completed_;
-
+#ifndef NO_WEBENGINE
+    QWebEngineView* webView;
+#endif
     QNetworkAccessManager network_manager_;
 };
