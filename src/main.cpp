@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     logger.addDestination(debugDestination);
     logger.addDestination(fileDestination);
 
-    QLOG_DEBUG() << "--------------------------------------------------------------------------------";
+    QLOG_DEBUG() << "-------------------------------------------------------------------------------";
     QLOG_DEBUG() << "Built with Qt" << QT_VERSION_STR << "running on" << qVersion();
 
     LoginDialog login(std::make_unique<Application>());
