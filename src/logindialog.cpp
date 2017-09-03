@@ -32,6 +32,10 @@
 #include <QSettings>
 #include <QUrl>
 #include <QUrlQuery>
+#ifndef NO_WEBENGINE
+#include <QWebEngineProfile>
+#include <QWebEngineCookieStore>
+#endif
 #include <iostream>
 #include "QsLog.h"
 
@@ -282,6 +286,20 @@ void LoginDialog::SaveSettings() {
     }
     settings.setValue("remember_me_checked", ui->rembmeCheckBox->isChecked() && !session_id_.isEmpty());
     settings.setValue("use_system_proxy_checked", ui->proxyCheckBox->isChecked());
+
+    // Clear any saved cookies (steamMachineAuth in particular) if user doesn't want
+    // us to remember login info.
+    //
+    // For details see: https://dev.doctormckay.com/topic/365-cookies/
+    //
+    // By default WebEngine stores cookies like a normal browser and steamMachineAuth
+    // cookie does not naturally expire.  Without this cookie the user will be required to
+    // re-verify access through e-mail.
+#ifndef NO_WEBENGINE
+    if (!settings.value("remember_me_checked").toBool()) {
+        QWebEngineProfile::defaultProfile()->cookieStore()->deleteAllCookies();
+    }
+#endif
 }
 
 void LoginDialog::DisplayError(const QString &error, bool disable_login) {

@@ -13,25 +13,8 @@
   <property name="windowTitle">
    <string>Steam login</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QWebView" name="webView">
-     <property name="url">
-      <url>
-       <string>about:blank</string>
-      </url>
-     </property>
-    </widget>
-   </item>
-  </layout>
+  <layout class="QVBoxLayout" name="verticalLayout"/>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QWebView</class>
-   <extends>QWidget</extends>
-   <header>QtWebKitWidgets/QWebView</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
