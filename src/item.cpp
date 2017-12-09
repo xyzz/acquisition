@@ -185,7 +185,14 @@ Item::Item(const rapidjson::Value &json) :
         sockets_cnt_ = json["sockets"].Size();
         int counter = 0, prev_group = -1;
         for (auto &socket : json["sockets"]) {
-            ItemSocket current_socket = { static_cast<unsigned char>(socket["group"].GetInt()), socket["attr"].GetString()[0] };
+            char attr = '\0';
+            if (socket["attr"].IsString())
+                attr = socket["attr"].GetString()[0];
+            else if (socket["sColour"].IsString())
+                attr = socket["sColour"].GetString()[0];
+            if (!attr)
+                continue;
+            ItemSocket current_socket = { static_cast<unsigned char>(socket["group"].GetInt()), attr };
             text_sockets_.push_back(current_socket);
             if (prev_group != current_socket.group) {
                 counter = 0;
@@ -288,8 +295,11 @@ void Item::CalculateHash(const rapidjson::Value &json) {
     unique_common += item_unique_properties(json, "additionalProperties") + "~";
 
     if (json.HasMember("sockets"))
-        for (auto &socket : json["sockets"])
+        for (auto &socket : json["sockets"]) {
+            if (!socket.HasMember("group") || !socket.HasMember("attr") || !socket["group"].IsInt() || !socket["attr"].IsString())
+                continue;
             unique_common += std::to_string(socket["group"].GetInt()) + "~" + socket["attr"].GetString() + "~";
+        }
 
     unique_old += unique_common;
     unique_new += unique_common;

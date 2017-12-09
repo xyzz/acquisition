@@ -6,6 +6,7 @@
         <file alias="linkV.png">assets/Socket_Link_Vertical.png</file>
         <file alias="S.png">assets/Socket_S.png</file>
         <file alias="G.png">assets/Socket_G.png</file>
+        <file alias="A.png">assets/Socket_A.png</file>
     </qresource>
     <qresource prefix="/icons">
         <file>assets/icon.svg</file>
