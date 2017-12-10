@@ -45,13 +45,15 @@ void ItemLocation::FromItemJson(const rapidjson::Value &root) {
             y_ = root["_y"].GetInt();
         }
     }
-    if (root.HasMember("x") && root.HasMember("y")) {
+    if (root.HasMember("x") && root.HasMember("y") && root["x"].IsInt() && root["y"].IsInt()) {
         x_ = root["x"].GetInt();
         y_ = root["y"].GetInt();
     }
-    w_ = root["w"].GetInt();
-    h_ = root["h"].GetInt();
-    if (root.HasMember("inventoryId"))
+    if (root.HasMember("w") && root.HasMember("h") && root["w"].IsInt() && root["h"].IsInt()) {
+        w_ = root["w"].GetInt();
+        h_ = root["h"].GetInt();
+    }
+    if (root.HasMember("inventoryId") && root["inventoryId"].IsString())
         inventory_id_ = root["inventoryId"].GetString();
 }
 

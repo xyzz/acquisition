@@ -82,15 +82,12 @@ Item::Item(const std::string &name, const ItemLocation &location) :
 {}
 
 Item::Item(const rapidjson::Value &json) :
-    name_(fixup_name(json["name"].GetString())),
+    corrupted_(false),
+    identified_(true),
+    w_(0),
+    h_(0),
+    frameType_(0),
     location_(ItemLocation(json)),
-    typeLine_(fixup_name(json["typeLine"].GetString())),
-    corrupted_(json["corrupted"].GetBool()),
-    identified_(json["identified"].GetBool()),
-    w_(json["w"].GetInt()),
-    h_(json["h"].GetInt()),
-    frameType_(json["frameType"].GetInt()),
-    icon_(json["icon"].GetString()),
     sockets_cnt_(0),
     links_cnt_(0),
     sockets_({ 0, 0, 0, 0 }),
@@ -98,12 +95,35 @@ Item::Item(const rapidjson::Value &json) :
     has_mtx_(false),
     ilvl_(0)
 {
+    if (json.HasMember("name") && json["name"].IsString())
+        name_ = fixup_name(json["name"].GetString());
+    if (json.HasMember("typeLine") && json["typeLine"].IsString())
+        typeLine_ = fixup_name(json["typeLine"].GetString());
+
+    if (json.HasMember("corrupted") && json["corrupted"].IsBool())
+        corrupted_ = json["corrupted"].GetBool();
+    if (json.HasMember("identified") && json["identified"].IsBool())
+        identified_ = json["identified"].GetBool();
+
+    if (json.HasMember("w") && json["w"].IsInt())
+        w_ = json["w"].GetInt();
+    if (json.HasMember("h") && json["h"].IsInt())
+        h_ = json["h"].GetInt();
+
+    if (json.HasMember("frameType") && json["frameType"].IsInt())
+        frameType_ = json["frameType"].GetInt();
+
+    if (json.HasMember("icon") && json["icon"].IsString())
+        icon_ = json["icon"].GetString();
+
     for (auto &mod_type : ITEM_MOD_TYPES) {
         text_mods_[mod_type] = std::vector<std::string>();
-        if (json.HasMember(mod_type.c_str())) {
+        const char *mod_type_s = mod_type.c_str();
+        if (json.HasMember(mod_type_s) && json[mod_type_s].IsArray()) {
             auto &mods = text_mods_[mod_type];
-            for (auto &mod : json[mod_type.c_str()])
-                mods.push_back(mod.GetString());
+            for (auto &mod : json[mod_type_s])
+                if (mod.IsString())
+                    mods.push_back(mod.GetString());
         }
     }
 
@@ -128,30 +148,35 @@ Item::Item(const rapidjson::Value &json) :
         boost::to_lower(category_);
     }
 
-    if (json.HasMember("talismanTier")) {
+    if (json.HasMember("talismanTier") && json["talismanTier"].IsUint()) {
        talisman_tier_ = json["talismanTier"].GetUint();
     }
 
-    if (json.HasMember("id")) {
+    if (json.HasMember("id") && json["id"].IsString()) {
         uid_ = json["id"].GetString();
     }
 
-    if (json.HasMember("note")) {
+    if (json.HasMember("note") && json["note"].IsString()) {
         note_ = json["note"].GetString();
     }
 
-    if (json.HasMember("properties")) {
+    if (json.HasMember("properties") && json["properties"].IsArray()) {
         for (auto prop_it = json["properties"].Begin(); prop_it != json["properties"].End(); ++prop_it) {
             auto &prop = *prop_it;
+            if (!prop.HasMember("name") || !prop["name"].IsString() || !prop.HasMember("values") || !prop["values"].IsArray())
+                continue;
             std::string name = prop["name"].GetString();
             if (name == "Map Level")
                 name = "Level";
             if (name == "Elemental Damage") {
-                for (auto value_it = prop["values"].Begin(); value_it != prop["values"].End(); ++value_it)
-                    elemental_damage_.push_back(std::make_pair((*value_it)[0].GetString(), (*value_it)[1].GetInt()));
-            }
-            else {
-                if (prop["values"].Size())
+                for (auto value_it = prop["values"].Begin(); value_it != prop["values"].End(); ++value_it) {
+                    auto &value = *value_it;
+                    if (value.IsArray() && value.Size() >= 2 && value[0].IsString() && value[1].IsInt())
+                        elemental_damage_.push_back(std::make_pair(value[0].GetString(), value[1].GetInt()));
+                }
+            } else {
+                if (prop["values"].Size() > 0 && prop["values"][0].IsArray() && prop["values"][0].Size() > 0 &&
+                        prop["values"][0][0].IsString())
                     properties_[name] = prop["values"][0][0].GetString();
             }
 
@@ -159,39 +184,51 @@ Item::Item(const rapidjson::Value &json) :
             property.name = name;
             property.display_mode = prop["displayMode"].GetInt();
             for (auto &value : prop["values"]) {
-                ItemPropertyValue v;
-                v.str = value[0].GetString();
-                v.type = value[1].GetInt();
-                property.values.push_back(v);
+                if (value.IsArray() && value.Size() >= 2 && value[0].IsString() && value[1].IsInt()) {
+                    ItemPropertyValue v;
+                    v.str = value[0].GetString();
+                    v.type = value[1].GetInt();
+                    property.values.push_back(v);
+                }
             }
             text_properties_.push_back(property);
         }
     }
 
-    if (json.HasMember("requirements")) {
+    if (json.HasMember("requirements") && json["requirements"].IsArray()) {
         for (auto &req : json["requirements"]) {
-            std::string name = req["name"].GetString();
-            std::string value = req["values"][0][0].GetString();
-            requirements_[name] = std::atoi(value.c_str());
-            ItemPropertyValue v;
-            v.str = value;
-            v.type = req["values"][0][1].GetInt();
-            text_requirements_.push_back({ name, v });
+            if (req.IsObject() && req.HasMember("name") && req["name"].IsString() &&
+                    req.HasMember("values") && req["values"].IsArray() && req["values"].Size() >= 1 &&
+                    req["values"][0].IsArray() && req["values"][0].Size() >= 2 &&
+                    req["values"][0][0].IsString() && req["values"][0][1].IsInt()) {
+                std::string name = req["name"].GetString();
+                std::string value = req["values"][0][0].GetString();
+                requirements_[name] = std::atoi(value.c_str());
+                ItemPropertyValue v;
+                v.str = value;
+                v.type = req["values"][0][1].GetInt();
+                text_requirements_.push_back({ name, v });
+            }
         }
     }
 
-    if (json.HasMember("sockets")) {
+    if (json.HasMember("sockets") && json["sockets"].IsArray()) {
         ItemSocketGroup current_group = { 0, 0, 0, 0 };
         sockets_cnt_ = json["sockets"].Size();
         int counter = 0, prev_group = -1;
         for (auto &socket : json["sockets"]) {
+            if (!socket.IsObject() || !socket.HasMember("group") || !socket["group"].IsInt())
+                continue;
+
             char attr = '\0';
             if (socket["attr"].IsString())
                 attr = socket["attr"].GetString()[0];
             else if (socket["sColour"].IsString())
                 attr = socket["sColour"].GetString()[0];
+
             if (!attr)
                 continue;
+
             ItemSocket current_socket = { static_cast<unsigned char>(socket["group"].GetInt()), attr };
             text_sockets_.push_back(current_socket);
             if (prev_group != current_socket.group) {
@@ -237,7 +274,7 @@ Item::Item(const rapidjson::Value &json) :
 
     has_mtx_ = json.HasMember("cosmeticMods");
 
-    if (json.HasMember("ilvl"))
+    if (json.HasMember("ilvl") && json["ilvl"].IsInt())
         ilvl_ = json["ilvl"].GetInt();
 
     GenerateMods(json);
@@ -279,22 +316,27 @@ void Item::GenerateMods(const rapidjson::Value &json) {
 
 void Item::CalculateHash(const rapidjson::Value &json) {
     std::string unique_old(name_ + "~" + typeLine_ + "~");
-    std::string unique_new(std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~");
+    std::string unique_new = unique_old;
+
+    if (json.HasMember("name") && json.HasMember("typeLine") && json["name"].IsString() && json["typeLine"].IsString())
+        unique_new = std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~";
 
     std::string unique_common;
 
-    if (json.HasMember("explicitMods"))
+    if (json.HasMember("explicitMods") && json["explicitMods"].IsArray())
         for (auto &mod : json["explicitMods"])
-            unique_common += std::string(mod.GetString()) + "~";
+            if (mod.IsString())
+                unique_common += std::string(mod.GetString()) + "~";
 
-    if (json.HasMember("implicitMods"))
+    if (json.HasMember("implicitMods") && json["implicitMods"].IsArray())
         for (auto &mod : json["implicitMods"])
-            unique_common += std::string(mod.GetString()) + "~";
+            if (mod.IsString())
+                unique_common += std::string(mod.GetString()) + "~";
 
     unique_common += item_unique_properties(json, "properties") + "~";
     unique_common += item_unique_properties(json, "additionalProperties") + "~";
 
-    if (json.HasMember("sockets"))
+    if (json.HasMember("sockets") && json["sockets"].IsArray())
         for (auto &socket : json["sockets"]) {
             if (!socket.HasMember("group") || !socket.HasMember("attr") || !socket["group"].IsInt() || !socket["attr"].IsString())
                 continue;

@@ -144,9 +144,12 @@ void SumModGenerator::Generate(const rapidjson::Value &json, ModTable *output) {
     bool mod_present = false;
     double sum = 0;
     for (auto &type : { "implicitMods", "explicitMods" }) {
-        if (!json.HasMember(type))
+        if (!json.HasMember(type) || !json[type].IsArray())
             continue;
         for (auto &mod : json[type]) {
+            if (!mod.IsString())
+                continue;
+
             double result;
             if (Match(mod.GetString(), &result)) {
                 sum += result;
