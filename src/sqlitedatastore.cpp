@@ -30,7 +30,7 @@
 SqliteDataStore::SqliteDataStore(const std::string &filename) :
     filename_(filename)
 {
-    QDir dir((filename + "/..").c_str());
+    QDir dir(QDir::cleanPath((filename + "/..").c_str()));
     if (!dir.exists())
         QDir().mkpath(dir.path());
     if (sqlite3_open(filename_.c_str(), &db_) != SQLITE_OK) {
