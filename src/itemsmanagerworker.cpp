@@ -397,7 +397,8 @@ void ItemsManagerWorker::ParseItems(rapidjson::Value *value_ptr, const ItemLocat
         location.ToItemJson(&item, alloc);
         items_.push_back(std::make_shared<Item>(item));
         location.set_socketed(true);
-        ParseItems(&item["socketedItems"], location, alloc);
+        if (item.HasMember("socketedItems") && item["socketedItems"].IsArray())
+            ParseItems(&item["socketedItems"], location, alloc);
     }
 }
 
