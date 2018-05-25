@@ -36,7 +36,7 @@
 #include <QNetworkReply>
 #elif defined(USE_WEBKIT)
 #include <QSettings>
-#include <QWebView>
+#include <qwebview.h>
 #endif
 
 #include "filesystem.h"
