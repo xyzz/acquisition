@@ -79,7 +79,7 @@ void PopulateBuyoutCurrencyComboBox(QComboBox *combobox);
 int TextWidth(TextWidthId id);
 
 void ParseJson(QNetworkReply *reply, rapidjson::Document *doc);
-std::string GetCsrfToken(const std::string &page, const std::string &name);
+std::string GetCsrfToken(const std::string &page, const std::string &name, size_t sz = 32);
 std::string FindTextBetween(const std::string &page, const std::string &left, const std::string &right);
 
 std::string BuyoutAsText(const Buyout &bo);
