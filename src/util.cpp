@@ -86,11 +86,16 @@ void Util::ParseJson(QNetworkReply *reply, rapidjson::Document *doc) {
     doc->Parse(bytes.constData());
 }
 
-std::string Util::GetCsrfToken(const std::string &page, const std::string &name, size_t sz) {
+std::string Util::GetCsrfToken(const std::string &page, const std::string &name) {
     std::string needle = "name=\"" + name + "\" value=\"";
-    if (page.find(needle) == std::string::npos)
+    auto pos = page.find(needle);
+    if (pos == std::string::npos)
         return "";
-    return page.substr(page.find(needle) + needle.size(), sz);
+    auto start = pos + needle.size();  // Right after the opening "
+    auto end = page.find("\"", start); // Closing "
+    if (end == std::string::npos)
+        return "";
+    return page.substr(start, end - start);
 }
 
 std::string Util::FindTextBetween(const std::string &page, const std::string &left, const std::string &right) {

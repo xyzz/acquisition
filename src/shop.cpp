@@ -190,7 +190,7 @@ void Shop::OnEditPageFinished() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
     std::string page(bytes.constData(), bytes.size());
-    std::string hash = Util::GetCsrfToken(page, "forum_thread", 128);
+    std::string hash = Util::GetCsrfToken(page, "forum_thread");
     if (hash.empty()) {
         QLOG_ERROR() << "Can't update shop -- cannot extract CSRF token from the page. Check if thread ID is valid."
             << "If you're using Steam to login make sure you use the same login method (steam or login/password) in Acquisition, Path of Exile website and Path of Exile game client."
