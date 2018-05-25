@@ -172,6 +172,7 @@ void LoginDialog::OnLoginPageFinished() {
             query.addQueryItem("login_password", EncodeSpecialCharacters(ui->passwordLineEdit->text()));
             query.addQueryItem("hash", QString(hash.c_str()));
             query.addQueryItem("login", "Login");
+            query.addQueryItem("remember_me", "1");
 
             QUrl url(POE_LOGIN_URL);
             QByteArray data(query.query().toUtf8());
