@@ -9,7 +9,7 @@ windeployqt.exe ../release/acquisition.exe --release --no-compiler-runtime --dir
 cp ../release/acquisition.exe .
 cp ../redist/* .
 rm -rf bearer
-echo "[Paths]\nLibraries=./plugins" > qt.conf
+printf "[Paths]\nLibraries=./plugins" > qt.conf
 
 EXE_TIME=$(stat -c %Y ../release/acquisition.exe)
 PDB_TIME=$(stat -c %Y ../release/acquisition.pdb)
