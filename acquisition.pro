@@ -13,10 +13,14 @@ unix {
     QMAKE_CXXFLAGS += -Wno-inconsistent-missing-override
 }
 
-nowebengine {
-  DEFINES += NO_WEBENGINE
-} else {
-  QT += webenginewidgets
+webengine {
+    QT += webenginewidgets
+    DEFINES += USE_WEBENGINE
+}
+
+webkit {
+    QT += webkitwidgets
+    DEFINES += USE_WEBKIT
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets

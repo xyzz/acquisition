@@ -22,18 +22,22 @@
 
 #include <QCloseEvent>
 #include "QsLog.h"
-#include <memory>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#ifndef NO_WEBENGINE
-#include <QWebEngineProfile>
-#include <QWebEngineCookieStore>
-#endif
 #include <QNetworkCookie>
 #include <QNetworkCookieJar>
 #include <QNetworkRequest>
 #include <QUrlQuery>
 #include <QFile>
+
+#if defined(USE_WEBENGINE)
+#include <QWebEngineProfile>
+#include <QWebEngineCookieStore>
+#include <memory>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#elif defined(USE_WEBKIT)
+#include <QSettings>
+#include <QWebView>
+#endif
 
 #include "filesystem.h"
 
@@ -44,7 +48,8 @@ SteamLoginDialog::SteamLoginDialog(QWidget *parent) :
     ui(new Ui::SteamLoginDialog)
 {
     ui->setupUi(this);
-#ifndef NO_WEBENGINE
+
+#if defined(USE_WEBENGINE)
     webView = new QWebEngineView();
     ui->verticalLayout->addWidget(webView);
 
@@ -66,6 +71,9 @@ SteamLoginDialog::SteamLoginDialog(QWidget *parent) :
             close();
         }
     });
+#elif defined(USE_WEBKIT)
+    webkitView = new QWebView();
+    ui->verticalLayout->addWidget(webkitView);
 #endif
 }
 
@@ -81,10 +89,21 @@ void SteamLoginDialog::closeEvent(QCloseEvent *e) {
 
 void SteamLoginDialog::Init() {
     completed_ = false;
-#ifndef NO_WEBENGINE
+
+#ifdef USE_WEBKIT
+    disconnect(this, SLOT(OnLoadFinished()));
+    // clear all previous cookies
+    webkitView->page()->networkAccessManager()->setCookieJar(new QNetworkCookieJar());
+    webkitView->setContent("Loading, please wait...");
+#endif
+
+#if defined(USE_WEBKIT) || defined(USE_WEBENGINE)
     QByteArray data("x=0&y=0");
     QNetworkRequest request(QUrl("https://www.pathofexile.com/login/steam"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+#endif
+
+#ifdef USE_WEBENGINE
     QNetworkReply *reply = network_manager_.post(request, data);
 
     auto conn = std::shared_ptr<QMetaObject::Connection>(new QMetaObject::Connection());
@@ -95,4 +114,89 @@ void SteamLoginDialog::Init() {
         disconnect(*conn);
     });
 #endif
+
+#ifdef USE_WEBKIT
+    webkitView->load(request, QNetworkAccessManager::PostOperation, data);
+
+    settings_path_ = Filesystem::UserDir() + "/settings.ini";
+    SetSteamCookie(LoadSteamCookie());
+
+    connect(webkitView, SIGNAL(loadFinished(bool)), this, SLOT(OnLoadFinished()));
+#endif
 }
+
+#ifdef USE_WEBKIT
+void SteamLoginDialog::OnLoadFinished() {
+    if (completed_)
+        return;
+    QString url = webkitView->url().toString();
+    if (url.startsWith("https://www.pathofexile.com/")) {
+        QNetworkCookieJar *cookie_jar = webkitView->page()->networkAccessManager()->cookieJar();
+        QList<QNetworkCookie> cookies = cookie_jar->cookiesForUrl(QUrl("https://www.pathofexile.com/"));
+        QString session_id;
+
+        QNetworkCookieJar *steam_jar = webkitView->page()->networkAccessManager()->cookieJar();
+        QList<QNetworkCookie> steam_cookies = steam_jar->cookiesForUrl(QUrl("https://steamcommunity.com/openid/"));
+
+        QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
+        bool rembme = settings.value("remember_me_checked").toBool();
+
+        for(auto cookie: steam_cookies) {
+            if(cookie.name().startsWith("steamMachineAuth")) {
+                if(rembme && !settings.contains("steamMachineAuth")) {
+                    SaveSteamCookie(cookie);
+                } else if(rembme && cookie != LoadSteamCookie()) {
+                    SaveSteamCookie(cookie);
+                }
+            }
+        }
+
+        for (auto &cookie : cookies)
+            if (cookie.name() == POE_COOKIE_NAME)
+                session_id = QString(cookie.value());
+        webkitView->stop();
+
+        completed_ = true;
+        emit CookieReceived(session_id);
+
+        close();
+    }
+}
+
+void SteamLoginDialog::SetSteamCookie(QNetworkCookie steam_cookie) {
+    // Sets a cookie on the steamcommunity.com url so that users don't have to
+    // do the email verification every time that they sign in on with steam.
+
+    QList<QNetworkCookie> cookie;
+    cookie << steam_cookie;
+
+    QNetworkCookieJar *steam_community = webkitView->page()->networkAccessManager()->cookieJar();
+    steam_community->setCookiesFromUrl(cookie, QUrl("https://steamcommunity.com/openid/"));
+}
+
+void SteamLoginDialog::SaveSteamCookie(QNetworkCookie cookie) {
+    // Saves the file to a file located in the acquisition directory.
+
+    QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
+    settings.setValue("steam-id", cookie.name().remove(0, 16));
+    settings.setValue(cookie.name(), cookie.value());
+}
+
+QNetworkCookie SteamLoginDialog::LoadSteamCookie() {
+    // Function to load the cookie from a file located in the acquisition
+    // directory.
+
+    QString cookie_name = "steamMachineAuth";
+    QString cookie_value;
+    QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
+
+    cookie_name.append(settings.value("steam-id").toString());
+    cookie_value = settings.value(cookie_name).toString();
+
+    QNetworkCookie cookie(cookie_name.toUtf8(), cookie_value.toUtf8());
+    cookie.setPath("/");
+    cookie.setDomain("steamcommunity.com");
+
+    return cookie;
+}
+#endif

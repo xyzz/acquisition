@@ -23,8 +23,10 @@
 #include <QNetworkCookie>
 #include <QNetworkAccessManager>
 #include <memory>
-#ifndef NO_WEBENGINE
+#if defined(USE_WEBENGINE)
 #include <QWebEngineView>
+#elif defined(USE_WEBKIT)
+class QWebView;
 #endif
 
 namespace Ui {
@@ -47,8 +49,18 @@ protected:
 private:
     Ui::SteamLoginDialog *ui;
     bool completed_;
-#ifndef NO_WEBENGINE
+
+#if defined(USE_WEBENGINE)
     QWebEngineView* webView;
-#endif
     QNetworkAccessManager network_manager_;
+#elif defined(USE_WEBKIT)
+    void SetSteamCookie(QNetworkCookie);
+    void SaveSteamCookie(QNetworkCookie);
+    QNetworkCookie LoadSteamCookie();
+
+    std::string settings_path_;
+    QWebView *webkitView;
+private slots:
+    void OnLoadFinished();
+#endif
 };
