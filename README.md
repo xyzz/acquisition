@@ -10,7 +10,7 @@ Check the [website](http://get.acquisition.today) for screenshots and video tuto
 
 ### Windows
 
-On Windows you can use either Visual Studio or MinGW version of Qt Creator. Alternatively you can also use Visual Studio with Qt Add-in. Note that only Visual Studio 2013 Update 3 is supported.
+On Windows you can use either Visual Studio or MinGW version of Qt Creator. Alternatively you can also use Visual Studio with Qt Add-in.
 
 ### Linux
 
