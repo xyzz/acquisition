@@ -76,8 +76,6 @@ QVariant NameColumn::value(const Item &item) const {
 
 QColor NameColumn::color(const Item &item) const {
     switch(item.frameType()) {
-    case FRAME_TYPE_NORMAL: 
-        return QApplication::palette().color(QPalette::WindowText);
     case FRAME_TYPE_MAGIC:
         return QColor(0x00, 0x66, 0x99);
     case FRAME_TYPE_RARE:
@@ -88,8 +86,17 @@ QColor NameColumn::color(const Item &item) const {
         return QColor(0x1b, 0xa2, 0x9b);
     case FRAME_TYPE_CURRENCY:
         return QColor(0x77, 0x6e, 0x59);
+    case FRAME_TYPE_DIVINATION_CARD:
+        return QColor(QRgb(0x01bcba));
+    case FRAME_TYPE_QUEST_ITEM:
+        return QColor(QRgb(0x4ae63a));
+    case FRAME_TYPE_PROPHECY:
+        return QColor(181,75,255);
+    case FRAME_TYPE_RELIC:
+        return QColor(QRgb(0x82ad6a));
+    default:
+        return QApplication::palette().color(QPalette::WindowText);
     }
-    return QColor();
 }
 
 std::string CorruptedColumn::name() const {
