@@ -190,7 +190,7 @@ void Shop::OnEditPageFinished() {
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(QObject::sender());
     QByteArray bytes = reply->readAll();
     std::string page(bytes.constData(), bytes.size());
-    std::string hash = Util::GetCsrfToken(page, "forum_thread");
+    std::string hash = Util::GetCsrfToken(page, "hash");
     if (hash.empty()) {
         QLOG_ERROR() << "Can't update shop -- cannot extract CSRF token from the page. Check if thread ID is valid."
             << "If you're using Steam to login make sure you use the same login method (steam or login/password) in Acquisition, Path of Exile website and Path of Exile game client."
@@ -203,7 +203,7 @@ void Shop::OnEditPageFinished() {
     // now submit our edit
 
     // holy shit give me some html parser library please
-    std::string title = Util::FindTextBetween(page, "<input type=\"text\" name=\"title\" id=\"title\" value=\"", "\" class=\"textInput\">");
+    std::string title = Util::FindTextBetween(page, "<input type=\"text\" name=\"title\" id=\"title\" onkeypress=\"return&#x20;event.keyCode&#x21;&#x3D;13\" value=\"", "\">");
     if (title.empty()) {
         QLOG_ERROR() << "Can't update shop -- title is empty. Check if thread ID is valid.";
         submitting_ = false;
@@ -211,7 +211,7 @@ void Shop::OnEditPageFinished() {
     }
 
     QUrlQuery query;
-    query.addQueryItem("forum_thread", hash.c_str());
+    query.addQueryItem("hash", hash.c_str());
     query.addQueryItem("title", Util::Decode(title).c_str());
     query.addQueryItem("content", requests_completed_ < shop_data_.size() ? shop_data_[requests_completed_].c_str() : "Empty");
     query.addQueryItem("submit", "Submit");
