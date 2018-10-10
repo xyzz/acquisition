@@ -426,6 +426,11 @@ bool MainWindow::eventFilter(QObject *o, QEvent *e) {
             // remove tab and Search if it's not "+"
             if (index >= 0 && index < tab_bar_->count() - 1) {
                 tab_bar_->removeTab(index);
+                auto search = searches_[index];
+                if (previous_search_ == search)
+                    previous_search_ = nullptr;
+                if (current_search_ == search)
+                    current_search_ = nullptr;
                 delete searches_[index];
                 searches_.erase(searches_.begin() + index);
                 if (static_cast<size_t>(tab_bar_->currentIndex()) == searches_.size())
