@@ -315,11 +315,9 @@ void Item::GenerateMods(const rapidjson::Value &json) {
 }
 
 void Item::CalculateHash(const rapidjson::Value &json) {
-    std::string unique_old(name_ + "~" + typeLine_ + "~");
-    std::string unique_new = unique_old;
-
-    if (json.HasMember("name") && json.HasMember("typeLine") && json["name"].IsString() && json["typeLine"].IsString())
-        unique_new = std::string(json["name"].GetString()) + "~" + json["typeLine"].GetString() + "~";
+    std::string unique_new = name_ + "~" + typeLine_ + "~";
+    // GGG removed the <<set>> things in patch 3.4.3e but our hashes all include them, oops
+    std::string unique_old = "<<set:MS>><<set:M>><<set:S>>" + unique_new;
 
     std::string unique_common;
 
