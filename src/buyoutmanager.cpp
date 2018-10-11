@@ -482,7 +482,8 @@ void BuyoutManager::MigrateItem(const Item &item) {
     std::string old_hash = item.old_hash();
     std::string hash = item.hash();
     auto it = buyouts_.find(old_hash);
-    if (it != buyouts_.end()) {
+    auto new_it = buyouts_.find(hash);
+    if (it != buyouts_.end() && (new_it == buyouts_.end() || new_it->second.source != BUYOUT_SOURCE_MANUAL)) {
         buyouts_[hash] = it->second;
         buyouts_.erase(it);
         save_needed_ = true;

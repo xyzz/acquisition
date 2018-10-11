@@ -341,11 +341,12 @@ void Item::CalculateHash(const rapidjson::Value &json) {
             unique_common += std::to_string(socket["group"].GetInt()) + "~" + socket["attr"].GetString() + "~";
         }
 
+    unique_common += "~" + location_.GetUniqueHash();
+
     unique_old += unique_common;
     unique_new += unique_common;
 
     old_hash_ = Util::Md5(unique_old);
-    unique_new += "~" + location_.GetUniqueHash();
     hash_ = Util::Md5(unique_new);
 }
 
