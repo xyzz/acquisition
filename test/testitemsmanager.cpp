@@ -208,7 +208,7 @@ void TestItemsManager::ItemHashMigration() {
 
     // very hacky way to set a buyout with old itemhash
     auto buyout = Buyout(1.23, BUYOUT_TYPE_BUYOUT, CURRENCY_ORB_OF_ALTERATION, QDateTime::fromTime_t(567));
-    app_.data().Set("buyouts", "{\"5f083f2f5ceb10ed720bd4c1771ed09d\": {\"currency\": \"alt\", \"type\": \"b/o\", \"value\": 1.23, \"last_update\": 567}}");
+    app_.data().Set("buyouts", "{\"36f0097563123e5296dc2eed54e9d6f3\": {\"currency\": \"alt\", \"type\": \"b/o\", \"value\": 1.23, \"last_update\": 567}}");
     bo.Load();
 
     QVERIFY2(!bo.Get(item).IsActive(), "Before migration: the buyout should exist but be inactive");
