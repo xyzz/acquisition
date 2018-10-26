@@ -102,6 +102,7 @@ const std::vector<std::vector<std::string>> simple_sum = {
     { "#% increased Damage" },
     { "Hits can't be Evaded" },
     { "Area is inhabited by # additional Invasion Boss" },
+    { "This Map's Modifiers to Quantity of Items found also apply to Rarity" },
     // Master meta-crafting
     { "Prefixes Cannot Be Changed" },
     { "Can have multiple Crafted Mods" },
