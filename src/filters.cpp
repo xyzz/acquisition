@@ -401,10 +401,6 @@ bool BooleanFilter::Matches(const std::shared_ptr<Item> & /* item */, FilterData
     return true;
 }
 
-bool MTXFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
-    return !data->checked || item->has_mtx();
-}
-
 bool AltartFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     static std::vector<std::string> altart = {
         // season 1
