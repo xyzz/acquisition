@@ -236,13 +236,6 @@ protected:
     std::string property_, caption_;
 };
 
-class MTXFilter : public BooleanFilter {
-public:
-    MTXFilter(QLayout *parent, std::string property, std::string caption):
-        BooleanFilter(parent, property, caption) {}
-    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
-};
-
 class AltartFilter : public BooleanFilter {
 public:
     AltartFilter(QLayout *parent, std::string property, std::string caption):

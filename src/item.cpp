@@ -94,7 +94,6 @@ Item::Item(const rapidjson::Value &json) :
     links_cnt_(0),
     sockets_({ 0, 0, 0, 0 }),
     json_(Util::RapidjsonSerialize(json)),
-    has_mtx_(false),
     ilvl_(0)
 {
     if (json.HasMember("name") && json["name"].IsString())
@@ -278,8 +277,6 @@ Item::Item(const rapidjson::Value &json) :
             count_ = std::stoi(size);
         }
     }
-
-    has_mtx_ = json.HasMember("cosmeticMods");
 
     if (json.HasMember("ilvl") && json["ilvl"].IsInt())
         ilvl_ = json["ilvl"].GetInt();
