@@ -576,6 +576,7 @@ void MainWindow::InitializeSearchForm() {
         std::make_unique<ItemMethodFilter>(offense_layout, [](Item* item) { return item->DPS(); }, "DPS"),
         std::make_unique<ItemMethodFilter>(offense_layout, [](Item* item) { return item->pDPS(); }, "pDPS"),
         std::make_unique<ItemMethodFilter>(offense_layout, [](Item* item) { return item->eDPS(); }, "eDPS"),
+        std::make_unique<ItemMethodFilter>(offense_layout, [](Item* item) { return item->cDPS(); }, "cDPS"),
         std::make_unique<SimplePropertyFilter>(offense_layout, "Attacks per Second", "APS"),
         // Defense
         std::make_unique<SimplePropertyFilter>(defense_layout, "Armour"),

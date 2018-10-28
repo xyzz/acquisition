@@ -287,7 +287,7 @@ std::string Item::PrettyName() const {
 }
 
 double Item::DPS() const {
-    return pDPS() + eDPS();
+    return pDPS() + eDPS() + cDPS();
 }
 
 double Item::pDPS() const {
@@ -307,6 +307,15 @@ double Item::eDPS() const {
         damage += Util::AverageDamage(x.first);
     double aps = std::stod(properties_.at("Attacks per Second"));
     return aps * damage;
+}
+
+double Item::cDPS() const {
+    if (!properties_.count("Chaos Damage") || !properties_.count("Attacks per Second"))
+        return 0;
+    double aps = std::stod(properties_.at("Attacks per Second"));
+    std::string cd = properties_.at("Chaos Damage");
+
+    return aps * Util::AverageDamage(cd);
 }
 
 void Item::GenerateMods(const rapidjson::Value &json) {
