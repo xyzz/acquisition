@@ -109,6 +109,18 @@ QVariant CorruptedColumn::value(const Item &item) const {
     return QVariant();
 }
 
+std::string WarColumn::name() const {
+    return "War";
+}
+
+QVariant WarColumn::value(const Item &item) const {
+    if (item.shaper())
+        return "S";
+    if (item.elder())
+        return "E";
+    return QVariant();
+}
+
 PropertyColumn::PropertyColumn(const std::string &name):
     name_(name),
     property_(name)
