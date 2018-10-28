@@ -556,6 +556,7 @@ void MainWindow::InitializeSearchForm() {
     auto requirements_layout = new FlowLayout;
     auto misc_layout = new FlowLayout;
     auto misc_flags_layout = new FlowLayout;
+    auto misc_flags2_layout = new FlowLayout;
     auto mods_layout = new QHBoxLayout;
 
     AddSearchGroup(offense_layout, "Offense");
@@ -564,6 +565,7 @@ void MainWindow::InitializeSearchForm() {
     AddSearchGroup(requirements_layout, "Requirements");
     AddSearchGroup(misc_layout, "Misc");
     AddSearchGroup(misc_flags_layout);
+    AddSearchGroup(misc_flags2_layout);
     AddSearchGroup(mods_layout, "Mods");
 
     using move_only = std::unique_ptr<Filter>;
@@ -599,6 +601,7 @@ void MainWindow::InitializeSearchForm() {
         std::make_unique<ItemlevelFilter>(misc_layout, "ilvl"),
         std::make_unique<AltartFilter>(misc_flags_layout, "", "Alt. art"),
         std::make_unique<PricedFilter>(misc_flags_layout, "", "Priced", app_->buyout_manager()),
+        std::make_unique<WarFilter>(misc_flags2_layout, "", "Shaper/Elder"),
         std::make_unique<ModsFilter>(mods_layout)
     };
     filters_ = std::vector<move_only>(std::make_move_iterator(std::begin(init)), std::make_move_iterator(std::end(init)));
