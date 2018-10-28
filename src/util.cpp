@@ -61,7 +61,7 @@ void Util::PopulateBuyoutCurrencyComboBox(QComboBox *combobox) {
 
 static std::vector<std::string> width_strings = {
     "max#",
-    "R. Level",
+    "Map Tier",
     "R##",
     "Defense"
 };

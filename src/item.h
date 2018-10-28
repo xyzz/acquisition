@@ -69,8 +69,8 @@ public:
     std::string name() const { return name_; }
     std::string typeLine() const { return typeLine_; }
     std::string PrettyName() const;
-    bool corrupted() const { return corrupted_; }
     bool identified() const { return identified_; }
+    bool corrupted() const { return corrupted_; }
     int w() const { return w_; }
     int h() const { return h_; }
     int frameType() const { return frameType_; }
@@ -92,12 +92,12 @@ public:
     const ItemSocketGroup &sockets() const { return sockets_; }
     const std::vector<ItemSocketGroup> &socket_groups() const { return socket_groups_; }
     const ItemLocation &location() const { return location_; }
-    const std::string& json() { return json_; };
-    const std::string& note() const { return note_; };
-    const std::string& category() const { return category_; };
-    const std::vector<std::string>& category_vector() const { return category_vector_; };
-    uint talisman_tier() const { return talisman_tier_; };
-    int count() const { return count_; };
+    const std::string& json() { return json_; }
+    const std::string& note() const { return note_; }
+    const std::string& category() const { return category_; }
+    const std::vector<std::string>& category_vector() const { return category_vector_; }
+    uint talisman_tier() const { return talisman_tier_; }
+    int count() const { return count_; }
     const ModTable &mod_table() const { return mod_table_; }
     int ilvl() const { return ilvl_; }
     bool operator<(const Item &other) const;
@@ -115,8 +115,8 @@ private:
     std::string typeLine_;
     std::string category_;
     std::vector<std::string> category_vector_;
-    bool corrupted_;
     bool identified_;
+    bool corrupted_;
     int w_, h_;
     int frameType_;
     std::string icon_;

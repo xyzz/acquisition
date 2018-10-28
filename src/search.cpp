@@ -94,14 +94,20 @@ const std::vector<std::unique_ptr<Bucket> > &Search::buckets() const {
 const std::unique_ptr<Bucket> &Search::bucket(int row) const {
     auto const &active_buckets = (current_mode_ == ByTab) ? buckets_:bucket_;
 
-    if (row < 0 || row >= active_buckets.size()) {
-        QMessageBox::critical(0, "Fatal Error", QString("Bucket row out of bounds: ") +
-                              QString::number(row) + " bucket size: " + QString::number(active_buckets.size()) +
-                              " mode:" + QString::number(current_mode_) +
-                              ". Program will abort.");
-        abort();
+    if (row >= 0) {
+        std::vector<std::unique_ptr<Bucket>>::size_type row_t = (size_t) row;  // Assumes int max() always able to fit in unsigned long long
+
+        if (row_t < active_buckets.size()) {
+            return active_buckets[row_t];
+        }
     }
-    return active_buckets[row];
+
+    QMessageBox::critical(nullptr, "Fatal Error", QString("Bucket row out of bounds: ") +
+                          QString::number(row) + " bucket size: " + QString::number(active_buckets.size()) +
+                          " mode:" + QString::number(current_mode_) +
+                          ". Program will abort.");
+    abort();
+
 }
 
 void Search::FilterItems(const Items &items) {
@@ -190,7 +196,7 @@ void Search::SetViewMode(ViewMode mode)
     }
 }
 
-int Search::GetItemsCount() {
+uint Search::GetItemsCount() {
     return filtered_item_count_total_;
 }
 
