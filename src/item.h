@@ -99,7 +99,6 @@ public:
     const std::vector<std::string>& category_vector() const { return category_vector_; };
     uint talisman_tier() const { return talisman_tier_; };
     int count() const { return count_; };
-    bool has_mtx() const { return has_mtx_; }
     const ModTable &mod_table() const { return mod_table_; }
     int ilvl() const { return ilvl_; }
     bool operator<(const Item &other) const;
@@ -132,7 +131,6 @@ private:
     std::map<std::string, int> requirements_;
     std::string json_;
     int count_;
-    bool has_mtx_;
     int ilvl_;
     std::vector<ItemProperty> text_properties_;
     std::vector<ItemRequirement> text_requirements_;
