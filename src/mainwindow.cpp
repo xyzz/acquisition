@@ -597,7 +597,6 @@ void MainWindow::InitializeSearchForm() {
         std::make_unique<SimplePropertyFilter>(misc_layout, "Level"),
         std::make_unique<SimplePropertyFilter>(misc_layout, "Map Tier"),
         std::make_unique<ItemlevelFilter>(misc_layout, "ilvl"),
-        std::make_unique<MTXFilter>(misc_flags_layout, "", "MTX"),
         std::make_unique<AltartFilter>(misc_flags_layout, "", "Alt. art"),
         std::make_unique<PricedFilter>(misc_flags_layout, "", "Priced", app_->buyout_manager()),
         std::make_unique<ModsFilter>(mods_layout)
