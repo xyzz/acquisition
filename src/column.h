@@ -51,6 +51,18 @@ public:
     QVariant value(const Item &item) const;
 };
 
+class CraftedColumn : public Column {
+public:
+    std::string name() const;
+    QVariant value(const Item &item) const;
+};
+
+class EnchantedColumn : public Column {
+public:
+    std::string name() const;
+    QVariant value(const Item &item) const;
+};
+
 // Returns values from item -> properties
 class PropertyColumn : public Column {
 public:

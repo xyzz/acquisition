@@ -255,6 +255,22 @@ private:
     const BuyoutManager &bm_;
 };
 
+class CraftedFilter : public BooleanFilter {
+public:
+    CraftedFilter(QLayout *parent, std::string property, std::string caption):
+        BooleanFilter(parent, property, caption) {}
+    using BooleanFilter::BooleanFilter;
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
+};
+
+class EnchantedFilter : public BooleanFilter {
+public:
+    EnchantedFilter(QLayout *parent, std::string property, std::string caption):
+        BooleanFilter(parent, property, caption) {}
+    using BooleanFilter::BooleanFilter;
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
+};
+
 class ItemlevelFilter : public MinMaxFilter {
 public:
     ItemlevelFilter(QLayout *parent, std::string property) :

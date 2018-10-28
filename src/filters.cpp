@@ -379,7 +379,7 @@ void BooleanFilter::Initialize(QLayout *parent) {
     layout->addWidget(checkbox_);
     group->setLayout(layout);
     parent->addWidget(group);
-    label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
+    label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_BOOL_LABEL));
 
     QObject::connect(checkbox_, SIGNAL(clicked(bool)),
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
@@ -456,6 +456,18 @@ bool PricedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) 
     if (!data->checked)
         return true;
     return bm_.Get(*item).IsActive();
+}
+
+bool CraftedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    if (!data->checked)
+        return true;
+    return item->crafted();
+}
+
+bool EnchantedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    if (!data->checked)
+        return true;
+    return item->enchanted();
 }
 
 double ItemlevelFilter::GetValue(const std::shared_ptr<Item> &item) {

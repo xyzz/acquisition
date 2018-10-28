@@ -100,12 +100,32 @@ QColor NameColumn::color(const Item &item) const {
 }
 
 std::string CorruptedColumn::name() const {
-    return "Cr";
+    return "Corr";
 }
 
 QVariant CorruptedColumn::value(const Item &item) const {
     if (item.corrupted())
         return "C";
+    return QVariant();
+}
+
+std::string CraftedColumn::name() const {
+    return "Mast";
+}
+
+QVariant CraftedColumn::value(const Item &item) const {
+    if (item.crafted())
+        return "M";
+    return QVariant();
+}
+
+std::string EnchantedColumn::name() const {
+    return "Ench";
+}
+
+QVariant EnchantedColumn::value(const Item &item) const {
+    if (item.enchanted())
+        return "En";
     return QVariant();
 }
 

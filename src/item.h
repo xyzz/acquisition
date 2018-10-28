@@ -69,8 +69,10 @@ public:
     std::string name() const { return name_; }
     std::string typeLine() const { return typeLine_; }
     std::string PrettyName() const;
-    bool corrupted() const { return corrupted_; }
     bool identified() const { return identified_; }
+    bool corrupted() const { return corrupted_; }
+    bool crafted() const { return crafted_; }
+    bool enchanted() const { return enchanted_; }
     int w() const { return w_; }
     int h() const { return h_; }
     int frameType() const { return frameType_; }
@@ -115,8 +117,10 @@ private:
     std::string typeLine_;
     std::string category_;
     std::vector<std::string> category_vector_;
-    bool corrupted_;
     bool identified_;
+    bool corrupted_;
+    bool crafted_;
+    bool enchanted_;
     int w_, h_;
     int frameType_;
     std::string icon_;
