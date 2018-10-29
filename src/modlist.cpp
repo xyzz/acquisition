@@ -144,7 +144,7 @@ bool SumModGenerator::Match(const char *mod, double *output) {
 void SumModGenerator::Generate(const rapidjson::Value &json, ModTable *output) {
     bool mod_present = false;
     double sum = 0;
-    for (auto &type : { "implicitMods", "explicitMods" }) {
+    for (auto &type : { "implicitMods", "explicitMods", "craftedMods" }) {
         if (!json.HasMember(type) || !json[type].IsArray())
             continue;
         for (auto &mod : json[type]) {
