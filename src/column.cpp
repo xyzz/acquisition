@@ -206,6 +206,7 @@ QVariant ChaosDamageColumn::value(const Item &item) const {
 }
 
 QColor ChaosDamageColumn::color(const Item &item) const {
+    Q_UNUSED(item);
     return QColor(0xd0, 0x20, 0x90);
 }
 
