@@ -91,6 +91,19 @@ private:
     size_t index_;
 };
 
+class ChaosDamageColumn : public Column {
+public:
+    std::string name() const;
+    QVariant value(const Item &item) const;
+    QColor color(const Item &item) const;
+};
+
+class cDPSColumn : public Column {
+public:
+    std::string name() const;
+    QVariant value(const Item &item) const;
+};
+
 class PriceColumn : public Column {
 public:
     explicit PriceColumn(const BuyoutManager &bo_manager);

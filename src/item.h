@@ -87,6 +87,7 @@ public:
     double DPS() const;
     double pDPS() const;
     double eDPS() const;
+    double cDPS() const;
     int sockets_cnt() const { return sockets_cnt_; }
     int links_cnt() const { return links_cnt_; }
     const ItemSocketGroup &sockets() const { return sockets_; }
