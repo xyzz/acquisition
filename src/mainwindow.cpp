@@ -603,6 +603,7 @@ void MainWindow::InitializeSearchForm() {
         std::make_unique<PricedFilter>(misc_flags_layout, "", "Priced", app_->buyout_manager()),
         std::make_unique<CraftedFilter>(misc_flags2_layout, "", "Master-crafted"),
         std::make_unique<EnchantedFilter>(misc_flags2_layout, "", "Enchanted"),
+        std::make_unique<WarFilter>(misc_flags2_layout, "", "Shaper/Elder"),
         std::make_unique<ModsFilter>(mods_layout)
     };
     filters_ = std::vector<move_only>(std::make_move_iterator(std::begin(init)), std::make_move_iterator(std::end(init)));

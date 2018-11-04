@@ -86,6 +86,8 @@ Item::Item(const rapidjson::Value &json) :
     corrupted_(false),
     crafted_(false),
     enchanted_(false),
+    shaper_(false),
+    elder_(false),
     w_(0),
     h_(0),
     frameType_(0),
@@ -110,6 +112,11 @@ Item::Item(const rapidjson::Value &json) :
         crafted_ = true;
     if (json.HasMember("enchantMods") && json["enchantMods"].IsArray())
         enchanted_ = true;
+	
+    if (json.HasMember("shaper") && json["shaper"].IsBool())
+        shaper_ = json["shaper"].GetBool();
+    if (json.HasMember("elder") && json["elder"].IsBool())
+        elder_ = json["elder"].GetBool();
 
     if (json.HasMember("w") && json["w"].IsInt())
         w_ = json["w"].GetInt();

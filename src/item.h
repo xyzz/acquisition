@@ -73,6 +73,8 @@ public:
     bool corrupted() const { return corrupted_; }
     bool crafted() const { return crafted_; }
     bool enchanted() const { return enchanted_; }
+    bool shaper() const { return shaper_; }
+    bool elder() const { return elder_; }
     int w() const { return w_; }
     int h() const { return h_; }
     int frameType() const { return frameType_; }
@@ -121,6 +123,8 @@ private:
     bool corrupted_;
     bool crafted_;
     bool enchanted_;
+    bool shaper_;
+    bool elder_;
     int w_, h_;
     int frameType_;
     std::string icon_;
