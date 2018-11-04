@@ -97,12 +97,12 @@ public:
     const ItemSocketGroup &sockets() const { return sockets_; }
     const std::vector<ItemSocketGroup> &socket_groups() const { return socket_groups_; }
     const ItemLocation &location() const { return location_; }
-    const std::string& json() { return json_; };
-    const std::string& note() const { return note_; };
-    const std::string& category() const { return category_; };
-    const std::vector<std::string>& category_vector() const { return category_vector_; };
-    uint talisman_tier() const { return talisman_tier_; };
-    int count() const { return count_; };
+    const std::string& json() { return json_; }
+    const std::string& note() const { return note_; }
+    const std::string& category() const { return category_; }
+    const std::vector<std::string>& category_vector() const { return category_vector_; }
+    uint talisman_tier() const { return talisman_tier_; }
+    int count() const { return count_; }
     const ModTable &mod_table() const { return mod_table_; }
     int ilvl() const { return ilvl_; }
     bool operator<(const Item &other) const;

@@ -496,7 +496,6 @@ bool Buyout::IsValid() const {
     case BUYOUT_TYPE_INHERIT:
     case BUYOUT_TYPE_NO_PRICE:
         return true;
-        break;
     default:
         return (currency != CURRENCY_NONE) && (source != BUYOUT_SOURCE_NONE);
     }
@@ -536,12 +535,15 @@ BuyoutType Buyout::TagAsBuyoutType(std::string tag) {
 }
 
 BuyoutType Buyout::IndexAsBuyoutType(int index) {
-    if (index >= buyout_type_as_tag_.size()) {
-        QLOG_WARN() << "Buyout type index out of bounds: " << index << ". This should never happen - please report.";
-        return BUYOUT_TYPE_INHERIT;
-    } else {
-        return static_cast<BuyoutType>(index);
+    if (index >= 0) {
+        size_t index_t = (size_t) index;
+        if ( index_t < buyout_type_as_tag_.size()) {
+            return static_cast<BuyoutType>(index_t);
+        }
     }
+
+    QLOG_WARN() << "Buyout type index out of bounds: " << index << ". This should never happen - please report.";
+    return BUYOUT_TYPE_INHERIT;
 }
 
 std::string Buyout::AsText() const {
@@ -614,7 +616,7 @@ std::vector<CurrencyType> Currency::Types() {
 }
 
 Currency Currency::FromIndex(int index) {
-    if (index >= currency_type_as_tag_.size()) {
+    if (static_cast<unsigned int>(index) >= currency_type_as_tag_.size()) {
         QLOG_WARN() << "Currency type index out of bounds: " << index << ". This should never happen - please report.";
         return CURRENCY_NONE;
     } else {

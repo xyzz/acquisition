@@ -14,14 +14,19 @@ void Bucket::AddItem(const std::shared_ptr<Item> & item) {
 }
 
 const std::shared_ptr<Item> &Bucket::item(int row) const
-{   
-    if (row < 0 || row >= items_.size()) {
-        QMessageBox::critical(0, "Fatal Error", QString("Item row out of bounds: ") +
-                              QString::number(row) + " item count: " + QString::number(items_.size()) +
-                              ". Program will abort.");
-        abort();
+{
+    if (row >= 0) {
+        std::vector<Items>::size_type row_t = (size_t) row;  // Assumes int max() always able to fit in unsigned long long
+        if (row_t < items_.size()) {
+            return items_[row_t];
+        }
     }
-    return items_[row];
+
+    QMessageBox::critical(nullptr, "Fatal Error", QString("Item row out of bounds: ") +
+                          QString::number(row) + " item count: " + QString::number(items_.size()) +
+                          ". Program will abort.");
+    abort();
+
 }
 
 void Bucket::Sort(const Column &column, Qt::SortOrder order)
