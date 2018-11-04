@@ -71,6 +71,8 @@ public:
     std::string PrettyName() const;
     bool identified() const { return identified_; }
     bool corrupted() const { return corrupted_; }
+    bool shaper() const { return shaper_; }
+    bool elder() const { return elder_; }
     int w() const { return w_; }
     int h() const { return h_; }
     int frameType() const { return frameType_; }
@@ -87,6 +89,7 @@ public:
     double DPS() const;
     double pDPS() const;
     double eDPS() const;
+    double cDPS() const;
     int sockets_cnt() const { return sockets_cnt_; }
     int links_cnt() const { return links_cnt_; }
     const ItemSocketGroup &sockets() const { return sockets_; }
@@ -117,6 +120,8 @@ private:
     std::vector<std::string> category_vector_;
     bool identified_;
     bool corrupted_;
+    bool shaper_;
+    bool elder_;
     int w_, h_;
     int frameType_;
     std::string icon_;

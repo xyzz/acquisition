@@ -36,7 +36,8 @@ enum class TextWidthId {
     WIDTH_MIN_MAX,
     WIDTH_LABEL,
     WIDTH_RGB,
-    WIDTH_GROUP
+    WIDTH_GROUP,    // Unused?
+    WIDTH_BOOL_LABEL
 };
 
 // Reflection example for an ENUM in QT 5.4.x

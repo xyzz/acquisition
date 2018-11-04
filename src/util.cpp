@@ -63,7 +63,8 @@ static std::vector<std::string> width_strings = {
     "max#",
     "Map Tier",
     "R##",
-    "Defense"
+    "Defense",
+    "Master-crafted"
 };
 
 int Util::TextWidth(TextWidthId id) {

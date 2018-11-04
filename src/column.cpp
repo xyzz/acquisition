@@ -109,6 +109,18 @@ QVariant CorruptedColumn::value(const Item &item) const {
     return QVariant();
 }
 
+std::string WarColumn::name() const {
+    return "War";
+}
+
+QVariant WarColumn::value(const Item &item) const {
+    if (item.shaper())
+        return "S";
+    if (item.elder())
+        return "E";
+    return QVariant();
+}
+
 PropertyColumn::PropertyColumn(const std::string &name):
     name_(name),
     property_(name)
@@ -193,6 +205,32 @@ QColor ElementalDamageColumn::color(const Item &item) const {
         }
     }
     return QColor();
+}
+
+std::string ChaosDamageColumn::name() const {
+    return "CD";
+}
+
+QVariant ChaosDamageColumn::value(const Item &item) const {
+    if (item.properties().count("Chaos Damage"))
+        return item.properties().find("Chaos Damage")->second.c_str();
+    return QVariant();
+}
+
+QColor ChaosDamageColumn::color(const Item &item) const {
+    Q_UNUSED(item);
+    return QColor(0xd0, 0x20, 0x90);
+}
+
+std::string cDPSColumn::name() const {
+    return "cDPS";
+}
+
+QVariant cDPSColumn::value(const Item &item) const {
+    double cdps = item.cDPS();
+    if (fabs(cdps) < EPS)
+        return QVariant();
+    return cdps;
 }
 
 PriceColumn::PriceColumn(const BuyoutManager &bo_manager):
