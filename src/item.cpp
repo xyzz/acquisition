@@ -108,9 +108,9 @@ Item::Item(const rapidjson::Value &json) :
     if (json.HasMember("identified") && json["identified"].IsBool())
         identified_ = json["identified"].GetBool();
 
-    if (json.HasMember("craftedMods") && json["craftedMods"].IsArray())
+    if (json.HasMember("craftedMods") && json["craftedMods"].IsArray() && !json["craftedMods"].Empty())
         crafted_ = true;
-    if (json.HasMember("enchantMods") && json["enchantMods"].IsArray())
+    if (json.HasMember("enchantMods") && json["enchantMods"].IsArray() && !json["enchantMods"].Empty())
         enchanted_ = true;
 	
     if (json.HasMember("shaper") && json["shaper"].IsBool())
