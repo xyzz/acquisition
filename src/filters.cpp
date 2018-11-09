@@ -458,6 +458,18 @@ bool PricedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) 
     return bm_.Get(*item).IsActive();
 }
 
+bool CraftedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    if (!data->checked)
+        return true;
+    return item->crafted();
+}
+
+bool EnchantedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    if (!data->checked)
+        return true;
+    return item->enchanted();
+}
+
 bool WarFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     if (!data->checked)
         return true;

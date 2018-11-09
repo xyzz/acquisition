@@ -602,6 +602,8 @@ void MainWindow::InitializeSearchForm() {
         std::make_unique<ItemlevelFilter>(misc_layout, "ilvl"),
         std::make_unique<AltartFilter>(misc_flags_layout, "", "Alt. art"),
         std::make_unique<PricedFilter>(misc_flags_layout, "", "Priced", app_->buyout_manager()),
+        std::make_unique<CraftedFilter>(misc_flags2_layout, "", "Master-crafted"),
+        std::make_unique<EnchantedFilter>(misc_flags2_layout, "", "Enchanted"),
         std::make_unique<WarFilter>(misc_flags2_layout, "", "Shaper/Elder"),
         std::make_unique<ModsFilter>(mods_layout)
     };

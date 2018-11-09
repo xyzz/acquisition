@@ -82,8 +82,10 @@ Item::Item(const std::string &name, const ItemLocation &location) :
 {}
 
 Item::Item(const rapidjson::Value &json) :
-    corrupted_(false),
     identified_(true),
+    corrupted_(false),
+    crafted_(false),
+    enchanted_(false),
     shaper_(false),
     elder_(false),
     w_(0),
@@ -106,6 +108,11 @@ Item::Item(const rapidjson::Value &json) :
     if (json.HasMember("identified") && json["identified"].IsBool())
         identified_ = json["identified"].GetBool();
 
+    if (json.HasMember("craftedMods") && json["craftedMods"].IsArray() && !json["craftedMods"].Empty())
+        crafted_ = true;
+    if (json.HasMember("enchantMods") && json["enchantMods"].IsArray() && !json["enchantMods"].Empty())
+        enchanted_ = true;
+	
     if (json.HasMember("shaper") && json["shaper"].IsBool())
         shaper_ = json["shaper"].GetBool();
     if (json.HasMember("elder") && json["elder"].IsBool())
