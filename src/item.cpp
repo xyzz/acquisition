@@ -50,7 +50,7 @@ const std::array<Item::CategoryReplaceMap, Item::k_CategoryLevels> Item::replace
 };
 
 const std::vector<std::string> ITEM_MOD_TYPES = {
-    "implicitMods", "enchantMods", "explicitMods", "craftedMods", "cosmeticMods"
+    "implicitMods", "enchantMods", "explicitMods", "craftedMods"
 };
 
 static std::string item_unique_properties(const rapidjson::Value &json, const std::string &name) {
@@ -82,6 +82,7 @@ Item::Item(const std::string &name, const ItemLocation &location) :
 {}
 
 Item::Item(const rapidjson::Value &json) :
+    location_(ItemLocation(json)),
     identified_(true),
     corrupted_(false),
     crafted_(false),
@@ -91,7 +92,6 @@ Item::Item(const rapidjson::Value &json) :
     w_(0),
     h_(0),
     frameType_(0),
-    location_(ItemLocation(json)),
     sockets_cnt_(0),
     links_cnt_(0),
     sockets_({ 0, 0, 0, 0 }),
@@ -103,10 +103,10 @@ Item::Item(const rapidjson::Value &json) :
     if (json.HasMember("typeLine") && json["typeLine"].IsString())
         typeLine_ = fixup_name(json["typeLine"].GetString());
 
-    if (json.HasMember("corrupted") && json["corrupted"].IsBool())
-        corrupted_ = json["corrupted"].GetBool();
     if (json.HasMember("identified") && json["identified"].IsBool())
         identified_ = json["identified"].GetBool();
+    if (json.HasMember("corrupted") && json["corrupted"].IsBool())
+        corrupted_ = json["corrupted"].GetBool();
 
     if (json.HasMember("craftedMods") && json["craftedMods"].IsArray() && !json["craftedMods"].Empty())
         crafted_ = true;

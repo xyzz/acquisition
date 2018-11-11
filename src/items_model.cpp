@@ -193,7 +193,7 @@ QModelIndex ItemsModel::index(int row, int column, const QModelIndex &parent) co
         return createIndex(row, column, static_cast<quintptr>(parent.row() + 1));
     } else {
         if (row >= (signed)search_.buckets().size()) {
-            QLOG_WARN() << "Index request asking for invalid row";
+            QLOG_WARN() << "Index request asking for invalid row:" + QString::number(row);
             return QModelIndex();
         }
         return createIndex(row, column, static_cast<quintptr>(0));

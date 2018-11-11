@@ -81,8 +81,9 @@ bool is_poe_running_remotely(const std::string& script) {
     process.waitForFinished(-1);
 
     return process.exitCode() == 0;
-#elif defined(Q_OS_WIN)
-    QLOG_ERROR() << "Script handling has not been implemented on Windows";
+#else
+    Q_UNUSED(script);
+    QLOG_ERROR() << "Script handling has not been implemented on this Operating System";
     return false;
 #endif
 }
