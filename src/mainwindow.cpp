@@ -59,7 +59,7 @@
 #include "util.h"
 #include "verticalscrollarea.h"
 
-const std::string POE_WEBCDN = "http://webcdn.pathofexile.com";
+const std::string POE_WEBCDN = "http://webcdn.pathofexile.com"; // Should be updated to https://web.poecdn.com ?
 
 MainWindow::MainWindow(std::unique_ptr<Application> app):
     app_(std::move(app)),
@@ -236,7 +236,7 @@ void MainWindow::InitializeUi() {
     ui->itemTextTooltip->setStyleSheet("QLabel { background-color: black; color: #7f7f7f; padding: 3px; }");
 
     ui->itemTooltipWidget->hide();
-    ui->uploadTooltipButton->hide();
+    ui->itemButtonsWidget->hide();
 
     connect(ui->itemInfoTypeTabs, &QTabWidget::currentChanged, [=](int idx){
         auto tabs = ui->itemInfoTypeTabs;
@@ -458,7 +458,7 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
     image_cache_->Set(url, image);
 
     if (current_item_ && (url == current_item_->icon() || url == POE_WEBCDN + current_item_->icon()))
-        GenerateItemIcon(*current_item_, image, ui);
+        ui->imageLabel->setPixmap( GenerateItemIcon(*current_item_, image) );
 }
 
 void MainWindow::SetCurrentSearch(Search *search) {
@@ -628,7 +628,7 @@ void MainWindow::UpdateCurrentBucket() {
     ui->minimapLabel->hide();
     ui->locationLabel->hide();
     ui->itemTooltipWidget->hide();
-    ui->uploadTooltipButton->hide();
+    ui->itemButtonsWidget->hide();
 
     ui->nameLabel->setText(current_bucket_.location().GetHeader().c_str());
     ui->nameLabel->show();
@@ -642,7 +642,7 @@ void MainWindow::UpdateCurrentItem() {
     ui->minimapLabel->show();
     ui->locationLabel->show();
     ui->itemTooltipWidget->show();
-    ui->uploadTooltipButton->show();
+    ui->itemButtonsWidget->show();
     ui->nameLabel->hide();
 
     ui->imageLabel->setText("Loading...");
@@ -651,7 +651,9 @@ void MainWindow::UpdateCurrentItem() {
 
     // Everything except item image now lives in itemtooltip.cpp
     // in future should move everything tooltip-related there
-    GenerateItemTooltip(*current_item_, ui);
+    UpdateItemTooltip(*current_item_, ui);
+
+    //ui->pobTooltipButton->setEnabled(current_item_->Wearable());
 
     std::string icon = current_item_->icon();
     if (icon.size() && icon[0] == '/')
@@ -659,7 +661,7 @@ void MainWindow::UpdateCurrentItem() {
     if (!image_cache_->Exists(icon))
         image_network_manager_->get(QNetworkRequest(QUrl(icon.c_str())));
     else
-        GenerateItemIcon(*current_item_, image_cache_->Get(icon), ui);
+        ui->imageLabel->setPixmap( GenerateItemIcon(*current_item_, image_cache_->Get(icon)) );
 
     ui->locationLabel->setText(current_item_->location().GetHeader().c_str());
 }
@@ -889,6 +891,20 @@ void MainWindow::on_uploadTooltipButton_clicked() {
     QNetworkReply *reply = network_manager_->post(request, data);
     new QReplyTimeout(reply, kImgurUploadTimeout);
     connect(reply, &QNetworkReply::finished, this, &MainWindow::OnUploadFinished);
+}
+
+void MainWindow::on_pobTooltipButton_clicked() {
+    if (current_item_ == nullptr) {
+        return;
+    }
+    // if category isn't wearable, including flasks, don't do anything
+    if(!current_item_->Wearable()) {
+        QLOG_WARN() << current_item_->PrettyName().c_str() << ", category:" << current_item_->category().c_str() << ", should not have been exportable.";
+        return;
+    }
+
+    QApplication::clipboard()->setText(GenerateItemPOBText(*current_item_));
+    QLOG_INFO() << current_item_->PrettyName().c_str() << "was copied to your clipboard in Path of Building's \"Create custom\" format.";
 }
 
 void MainWindow::OnUploadFinished() {

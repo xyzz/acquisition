@@ -2,9 +2,6 @@
 
 #include <map>
 
-const int PIXELS_PER_SLOT = 47;
-const int INVENTORY_SLOTS = 12;
-
 enum FRAME_TYPES {
     FRAME_TYPE_NORMAL = 0,
     FRAME_TYPE_MAGIC = 1,
@@ -24,11 +21,8 @@ enum ELEMENTAL_DAMAGE_TYPES {
     ED_LIGHTNING = 6,
 };
 
-const int LINKH_HEIGHT = 16;
-const int LINKH_WIDTH = 38;
-const int LINKV_HEIGHT = LINKH_WIDTH;
-const int LINKV_WIDTH = LINKH_HEIGHT;
-
+const int PIXELS_PER_SLOT = 47;
+const int INVENTORY_SLOTS = 12;
 const int PIXELS_PER_MINIMAP_SLOT = 10;
 const int MINIMAP_SIZE = INVENTORY_SLOTS * PIXELS_PER_MINIMAP_SLOT;
 

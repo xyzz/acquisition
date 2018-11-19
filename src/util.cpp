@@ -173,6 +173,10 @@ bool Util::MatchMod(const char *match, const char *mod, double *output) {
     return !*pmatch && !*pmod;
 }
 
+void Util::Capitalise(std::string &str) {
+    str[0] = static_cast<std::string::value_type>(toupper(str[0]));   //  Set the first character to upper case
+}
+
 std::string Util::TimeAgoInWords(const QDateTime buyout_time){
     QDateTime current_date = QDateTime::currentDateTime();
     qint64 secs = buyout_time.secsTo(current_date);
