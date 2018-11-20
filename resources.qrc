@@ -49,17 +49,17 @@
         <file alias="ShaperItemSymbol.png">assets/ShaperItemSymbol.png</file>
     </qresource>
     <qresource prefix="/backgrounds">
-        <file alias="ElderBackground 1x1.png">assets/ElderBackground 1x1.png</file>
-        <file alias="ElderBackground 1x3.png">assets/ElderBackground 1x3.png</file>
-        <file alias="ElderBackground 1x4.png">assets/ElderBackground 1x4.png</file>
-        <file alias="ElderBackground 2x2.png">assets/ElderBackground 2x2.png</file>
-        <file alias="ElderBackground 2x3.png">assets/ElderBackground 2x3.png</file>
-        <file alias="ElderBackground 2x4.png">assets/ElderBackground 2x4.png</file>
-        <file alias="ShaperBackground 1x1.png">assets/ShaperBackground 1x1.png</file>
-        <file alias="ShaperBackground 1x3.png">assets/ShaperBackground 1x3.png</file>
-        <file alias="ShaperBackground 1x4.png">assets/ShaperBackground 1x4.png</file>
-        <file alias="ShaperBackground 2x2.png">assets/ShaperBackground 2x2.png</file>
-        <file alias="ShaperBackground 2x3.png">assets/ShaperBackground 2x3.png</file>
-        <file alias="ShaperBackground 2x4.png">assets/ShaperBackground 2x4.png</file>
+        <file alias="ElderBackground_1x1.png">assets/ElderBackground_1x1.png</file>
+        <file alias="ElderBackground_1x3.png">assets/ElderBackground_1x3.png</file>
+        <file alias="ElderBackground_1x4.png">assets/ElderBackground_1x4.png</file>
+        <file alias="ElderBackground_2x2.png">assets/ElderBackground_2x2.png</file>
+        <file alias="ElderBackground_2x3.png">assets/ElderBackground_2x3.png</file>
+        <file alias="ElderBackground_2x4.png">assets/ElderBackground_2x4.png</file>
+        <file alias="ShaperBackground_1x1.png">assets/ShaperBackground_1x1.png</file>
+        <file alias="ShaperBackground_1x3.png">assets/ShaperBackground_1x3.png</file>
+        <file alias="ShaperBackground_1x4.png">assets/ShaperBackground_1x4.png</file>
+        <file alias="ShaperBackground_2x2.png">assets/ShaperBackground_2x2.png</file>
+        <file alias="ShaperBackground_2x3.png">assets/ShaperBackground_2x3.png</file>
+        <file alias="ShaperBackground_2x4.png">assets/ShaperBackground_2x4.png</file>
     </qresource>
 </RCC>
