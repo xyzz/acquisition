@@ -33,12 +33,14 @@ static const QImage link_v(":/sockets/linkV.png");
 static const QImage elder_1x1(":/backgrounds/ElderBackground_1x1.png");
 static const QImage elder_1x3(":/backgrounds/ElderBackground_1x3.png");
 static const QImage elder_1x4(":/backgrounds/ElderBackground_1x4.png");
+static const QImage elder_2x1(":/backgrounds/ElderBackground_2x1.png");
 static const QImage elder_2x2(":/backgrounds/ElderBackground_2x2.png");
 static const QImage elder_2x3(":/backgrounds/ElderBackground_2x3.png");
 static const QImage elder_2x4(":/backgrounds/ElderBackground_2x4.png");
 static const QImage shaper_1x1(":/backgrounds/ShaperBackground_1x1.png");
 static const QImage shaper_1x3(":/backgrounds/ShaperBackground_1x3.png");
 static const QImage shaper_1x4(":/backgrounds/ShaperBackground_1x4.png");
+static const QImage shaper_2x1(":/backgrounds/ShaperBackground_2x1.png");
 static const QImage shaper_2x2(":/backgrounds/ShaperBackground_2x2.png");
 static const QImage shaper_2x3(":/backgrounds/ShaperBackground_2x3.png");
 static const QImage shaper_2x4(":/backgrounds/ShaperBackground_2x4.png");
@@ -380,7 +382,7 @@ void GenerateItemIcon(const Item &item, const QImage &image, Ui::MainWindow *ui)
         if(item.elder()) {
             background += "Elder";
         }
-        background += "Background " + std::to_string(width) + "x" + std::to_string(height) + ".png";
+        background += "Background_" + std::to_string(width) + "x" + std::to_string(height) + ".png";
 
         QImage background_image(QString::fromStdString(background));
         overlay.drawImage(0, 0, background_image);
