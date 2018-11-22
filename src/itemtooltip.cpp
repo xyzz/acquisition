@@ -28,6 +28,23 @@
 #include "item.h"
 #include "util.h"
 
+static const QImage link_h(":/sockets/linkH.png");
+static const QImage link_v(":/sockets/linkV.png");
+static const QImage elder_1x1(":/backgrounds/ElderBackground_1x1.png");
+static const QImage elder_1x3(":/backgrounds/ElderBackground_1x3.png");
+static const QImage elder_1x4(":/backgrounds/ElderBackground_1x4.png");
+static const QImage elder_2x1(":/backgrounds/ElderBackground_2x1.png");
+static const QImage elder_2x2(":/backgrounds/ElderBackground_2x2.png");
+static const QImage elder_2x3(":/backgrounds/ElderBackground_2x3.png");
+static const QImage elder_2x4(":/backgrounds/ElderBackground_2x4.png");
+static const QImage shaper_1x1(":/backgrounds/ShaperBackground_1x1.png");
+static const QImage shaper_1x3(":/backgrounds/ShaperBackground_1x3.png");
+static const QImage shaper_1x4(":/backgrounds/ShaperBackground_1x4.png");
+static const QImage shaper_2x1(":/backgrounds/ShaperBackground_2x1.png");
+static const QImage shaper_2x2(":/backgrounds/ShaperBackground_2x2.png");
+static const QImage shaper_2x3(":/backgrounds/ShaperBackground_2x3.png");
+static const QImage shaper_2x4(":/backgrounds/ShaperBackground_2x4.png");
+
 /*
     PoE colors:
     Default: 0
@@ -43,7 +60,7 @@
     UniqueItem: 10
 */
 
-std::vector<std::string> kPoEColors = {
+static std::vector<std::string> kPoEColors = {
     "#fff",
     "#88f",
     "#d20000",
@@ -206,6 +223,42 @@ static void UpdateMinimap(const Item &item, Ui::MainWindow *ui) {
     ui->minimapLabel->setPixmap(pixmap);
 }
 
+void GenerateItemHeaderSide(const Item &item, Ui::MainWindow *ui, std::string header_path_prefix, bool singleline, bool leftNotRight) {
+    QImage header(QString::fromStdString(header_path_prefix + (leftNotRight ? "Left.png" : "Right.png")));
+    QSize header_size = singleline ? QSize(29, 34) : QSize(44, 54);
+    header = header.scaled(header_size);
+
+    QPixmap header_pixmap(header_size);
+    header_pixmap.fill(Qt::transparent);
+    QPainter header_painter(&header_pixmap);
+    header_painter.drawImage(0, 0, header);
+
+    if(item.shaper() || item.elder()){
+        std::string overlay = ":/tooltip/";
+        if(item.shaper()) {
+            overlay += "Shaper";
+        }
+        if(item.elder()) {
+            overlay += "Elder";
+        }
+        overlay += "ItemSymbol.png";
+
+        QImage overlay_image(QString::fromStdString(overlay));
+        overlay_image = overlay_image.scaled(27, 27);
+        int overlay_x = singleline ? (leftNotRight ? 2: 1) : (leftNotRight ? 2: 15);
+        int overlay_y = (int) ( 0.5 * (header.height() - overlay_image.height()) );
+        header_painter.drawImage(overlay_x, overlay_y, overlay_image);
+    }
+
+    if(leftNotRight) {
+        ui->itemHeaderLeft->setFixedSize(header_size);
+        ui->itemHeaderLeft->setPixmap(header_pixmap);
+    } else {
+        ui->itemHeaderRight->setFixedSize(header_size);
+        ui->itemHeaderRight->setPixmap(header_pixmap);
+    }
+}
+
 void GenerateItemTooltip(const Item &item, Ui::MainWindow *ui) {
     size_t frame = item.frameType();
     if (frame >= FrameToKey.size())
@@ -217,27 +270,23 @@ void GenerateItemTooltip(const Item &item, Ui::MainWindow *ui) {
     UpdateMinimap(item, ui);
 
     bool singleline = item.name().empty();
-    std::string suffix = "";
-    if (singleline && (frame == FRAME_TYPE_RARE || frame == FRAME_TYPE_UNIQUE))
-        suffix = "SingleLine";
-
     if (singleline) {
         ui->itemNameFirstLine->hide();
         ui->itemNameSecondLine->setAlignment(Qt::AlignCenter);
         ui->itemNameContainerWidget->setFixedSize(16777215, 34);
-        ui->itemHeaderLeft->setFixedSize(29, 34);
-        ui->itemHeaderRight->setFixedSize(29, 34);
     } else {
         ui->itemNameFirstLine->show();
         ui->itemNameFirstLine->setAlignment(Qt::AlignBottom | Qt::AlignHCenter);
         ui->itemNameSecondLine->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
         ui->itemNameContainerWidget->setFixedSize(16777215, 54);
-        ui->itemHeaderLeft->setFixedSize(44, 54);
-        ui->itemHeaderRight->setFixedSize(44, 54);
     }
-    ui->itemHeaderLeft->setStyleSheet(("border-radius: 0px; border: 0px; border-image: url(:/tooltip/ItemHeader" + key + suffix + "Left.png);").c_str());
-    ui->itemNameContainerWidget->setStyleSheet(("border-radius: 0px; border: 0px; border-image: url(:/tooltip/ItemHeader" + key + suffix + "Middle.png);").c_str());
-    ui->itemHeaderRight->setStyleSheet(("border-radius: 0px; border: 0px; border-image: url(:/tooltip/ItemHeader" + key + suffix + "Right.png);").c_str());
+    std::string suffix = (singleline && (frame == FRAME_TYPE_RARE || frame == FRAME_TYPE_UNIQUE)) ? "SingleLine" : "";
+    std::string header_path_prefix = ":/tooltip/ItemsHeader" + key + suffix;
+
+    GenerateItemHeaderSide(item, ui, header_path_prefix, singleline, true);
+    GenerateItemHeaderSide(item, ui, header_path_prefix, singleline, false);
+
+    ui->itemNameContainerWidget->setStyleSheet(("border-radius: 0px; border: 0px; border-image: url(" + header_path_prefix + "Middle.png);").c_str());
 
     ui->itemNameFirstLine->setText(item.name().c_str());
     ui->itemNameSecondLine->setText(item.typeLine().c_str());
@@ -257,8 +306,6 @@ void GenerateItemIcon(const Item &item, const QImage &image, Ui::MainWindow *ui)
     pixmap.fill(Qt::transparent);
     QPainter painter(&pixmap);
 
-    static const QImage link_h(":/sockets/linkH.png");
-    static const QImage link_v(":/sockets/linkV.png");
     ItemSocket prev = { 255, '-' };
     size_t i = 0;
 
@@ -326,6 +373,21 @@ void GenerateItemIcon(const Item &item, const QImage &image, Ui::MainWindow *ui)
     QPixmap base(image.width(), image.height());
     base.fill(Qt::transparent);
     QPainter overlay(&base);
+
+    if(item.shaper() || item.elder()){
+        std::string background = ":/backgrounds/";
+        if(item.shaper()) {
+            background += "Shaper";
+        }
+        if(item.elder()) {
+            background += "Elder";
+        }
+        background += "Background_" + std::to_string(width) + "x" + std::to_string(height) + ".png";
+
+        QImage background_image(QString::fromStdString(background));
+        overlay.drawImage(0, 0, background_image);
+    }
+
     overlay.drawImage(0, 0, image);
 
     overlay.drawPixmap((int)(0.5*(image.width() - cropped.width())),
