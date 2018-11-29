@@ -458,7 +458,7 @@ void MainWindow::OnImageFetched(QNetworkReply *reply) {
     image_cache_->Set(url, image);
 
     if (current_item_ && (url == current_item_->icon() || url == POE_WEBCDN + current_item_->icon()))
-        ui->imageLabel->setPixmap( GenerateItemIcon(*current_item_, image) );
+        ui->imageLabel->setPixmap(GenerateItemIcon(*current_item_, image));
 }
 
 void MainWindow::SetCurrentSearch(Search *search) {
@@ -661,7 +661,7 @@ void MainWindow::UpdateCurrentItem() {
     if (!image_cache_->Exists(icon))
         image_network_manager_->get(QNetworkRequest(QUrl(icon.c_str())));
     else
-        ui->imageLabel->setPixmap( GenerateItemIcon(*current_item_, image_cache_->Get(icon)) );
+        ui->imageLabel->setPixmap(GenerateItemIcon(*current_item_, image_cache_->Get(icon)));
 
     ui->locationLabel->setText(current_item_->location().GetHeader().c_str());
 }

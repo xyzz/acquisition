@@ -247,7 +247,7 @@ void GenerateItemHeaderSide(QLabel *itemHeader, bool leftNotRight, std::string h
     QPainter header_painter(&header_pixmap);
     header_painter.drawImage(0, 0, header);
 
-    if(base == Item::BASE_SHAPER || base == Item::BASE_ELDER) {
+    if (base == Item::BASE_SHAPER || base == Item::BASE_ELDER) {
         QImage overlay_image = base == Item::BASE_SHAPER ? shaper_icon : elder_icon;
         overlay_image = overlay_image.scaled(HEADER_OVERLAY_SIZE);
         int overlay_x = singleline ? (leftNotRight ? 2: 1) : (leftNotRight ? 2: 15);
@@ -382,10 +382,10 @@ QPixmap GenerateItemIcon(const Item &item, const QImage &image) {
     layered.fill(Qt::transparent);
     QPainter layered_painter(&layered);
 
-    if(item.shaper() || item.elder()){
+    if (item.shaper() || item.elder()){
         // Assumes width <= 2
         const QImage *background_image = nullptr;
-        if(item.shaper()) {
+        if (item.shaper()) {
             switch(height) {
                 case 1:
                     background_image = width == 1 ? &shaper_1x1 : &shaper_2x1;
@@ -420,7 +420,7 @@ QPixmap GenerateItemIcon(const Item &item, const QImage &image) {
                     break;
             }
         }
-        if(background_image) {
+        if (background_image) {
             layered_painter.drawImage(0, 0, *background_image);
         } else {
             QLOG_ERROR() << "Problem drawing background for " << item.PrettyName().c_str();
@@ -429,7 +429,7 @@ QPixmap GenerateItemIcon(const Item &item, const QImage &image) {
 
     layered_painter.drawImage(0, 0, image);
 
-    if(item.text_sockets().size() > 0) {
+    if (item.text_sockets().size() > 0) {
         QPixmap sockets = GenerateItemSockets(width, height, item.text_sockets());
 
         layered_painter.drawPixmap((int)(0.5*(image.width() - sockets.width())),

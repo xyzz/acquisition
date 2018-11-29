@@ -25,6 +25,7 @@
 #include <regex>
 #include "rapidjson/document.h"
 
+#include "QsLog.h"
 #include "modlist.h"
 #include "util.h"
 #include "porting.h"
@@ -93,10 +94,14 @@ Item::Item(const rapidjson::Value &json) :
     if (json.HasMember("enchantMods") && json["enchantMods"].IsArray() && !json["enchantMods"].Empty())
         enchanted_ = true;
 	
-    if (json.HasMember("shaper") && json["shaper"].IsBool())
+    if (json.HasMember("shaper") && json["shaper"].IsBool() && json["shaper"].GetBool())
         baseType_ = BASE_SHAPER;
-    if (json.HasMember("elder") && json["elder"].IsBool())
+    if (json.HasMember("elder") && json["elder"].IsBool() && json["elder"].GetBool()) {
+        if(baseType_ != BASE_NORMAL) {
+            QLOG_WARN() << PrettyName().c_str() << " has multiple conflicting base type attributes.";
+        }
         baseType_ = BASE_ELDER;
+    }
 
     if (json.HasMember("w") && json["w"].IsInt())
         w_ = json["w"].GetInt();
@@ -139,16 +144,12 @@ Item::Item(const rapidjson::Value &json) :
     }
 
     if (json.HasMember("properties") && json["properties"].IsArray()) {
-        for (auto prop_it = json["properties"].Begin(); prop_it != json["properties"].End(); ++prop_it) {
-            auto &prop = *prop_it;
+        for (auto &prop : json["properties"]) {
             if (!prop.HasMember("name") || !prop["name"].IsString() || !prop.HasMember("values") || !prop["values"].IsArray())
                 continue;
             std::string name = prop["name"].GetString();
-            if (name == "Map Level")    // I can find no example of this, should it be "Map Tier"?
-                name = "Level";
             if (name == "Elemental Damage") {
-                for (auto value_it = prop["values"].Begin(); value_it != prop["values"].End(); ++value_it) {
-                    auto &value = *value_it;
+                for (auto &value : prop["values"]) {
                     if (value.IsArray() && value.Size() >= 2 && value[0].IsString() && value[1].IsInt())
                         elemental_damage_.push_back(std::make_pair(value[0].GetString(), value[1].GetInt()));
                 }
@@ -268,7 +269,7 @@ void Item::CalculateCategories(const rapidjson::Value &json) {
         // This object contains a single array who's name is the item's category. The array may contain the item's sub-category
         rapidjson::Value::ConstMemberIterator itr = json["category"].MemberBegin();
         category_ = itr->name.GetString();
-        Util::Capitalise(category_);
+        category_ = Util::Capitalise(category_);
 
         if(category_ == "Cards") {
             category_ = "Divination cards";
@@ -289,7 +290,7 @@ void Item::CalculateCategories(const rapidjson::Value &json) {
             */
 
             category_ = itr->value[0].GetString();
-            Util::Capitalise(category_);
+            category_ = Util::Capitalise(category_);
 
             if(category_ == "Activegem") {
                 // Rename these sub-categories
@@ -339,7 +340,7 @@ void Item::CalculateCategories(const rapidjson::Value &json) {
                     category_vector_.push_back("3.1");
                     if(iconsubs.size() > 1) {
                         sub = iconsubs[1];  // Typically "New"
-                        Util::Capitalise(sub);
+                        sub = Util::Capitalise(sub);
                         category_vector_.push_back(sub);
                     }
                 } else if(sub == "AtlasMaps") {
@@ -363,14 +364,14 @@ void Item::CalculateCategories(const rapidjson::Value &json) {
                     category_vector_.push_back("Misc");
 
                     if(json.HasMember("properties") && json["properties"].IsArray()) {
-                        for(auto prop_it = json["properties"].Begin(); prop_it != json["properties"].End(); ++prop_it) {
-                            auto &prop = *prop_it;
+                        for(auto &prop : json["properties"]) {
                             if(!prop.HasMember("name") || !prop["name"].IsString() || !prop.HasMember("values") || !prop["values"].IsArray())
                                 continue;
                             std::string name = prop["name"].GetString();
                             if(name == "Map Tier") {
                                 category_vector_.pop_back();
                                 category_vector_.push_back("Older Uniques");    // Future ones might fall under a new /Maps/ icon path
+                                break;
                             }
                             // Else determine if Sacrifice/Mortal/Offering/etc fragment?
                         }
@@ -469,7 +470,7 @@ bool Item::operator<(const Item &rhs) const {
     return std::tie(name,uid_,hash_) < std::tie(rhs_name, rhs.uid_, hash_);
 }
 
-bool Item::Wearable() {
+bool Item::Wearable() const {
     return (category_ == "flasks"
             || category_ == "amulet" || category_ == "ring" || category_ == "belt"
             || category_.find("armour") != std::string::npos

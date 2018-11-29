@@ -113,7 +113,7 @@ public:
     const ModTable &mod_table() const { return mod_table_; }
     int ilvl() const { return ilvl_; }
     bool operator<(const Item &other) const;
-    bool Wearable();
+    bool Wearable() const;
 
 private:
     void CalculateCategories(const rapidjson::Value &json);

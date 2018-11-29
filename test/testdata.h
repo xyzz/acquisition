@@ -22,4 +22,15 @@
 #include <string>
 
 extern const std::string kItem1;
+extern const std::string kCategoriesItemCard;
+extern const std::string kCategoriesItemBelt;
+extern const std::string kCategoriesItemEssence;
+extern const std::string kCategoriesItemVaalGem;
+extern const std::string kCategoriesItemSupportGem;
+extern const std::string kCategoriesItemBow;
+extern const std::string kCategoriesItemClaw;
+extern const std::string kCategoriesItemFragment;
+extern const std::string kCategoriesItemWarMap;
+extern const std::string kCategoriesItemUniqueMap;
+extern const std::string kCategoriesItemBreachstone;
 extern const std::string kSocketedItem;
