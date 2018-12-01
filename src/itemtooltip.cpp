@@ -28,6 +28,8 @@
 #include "item.h"
 #include "util.h"
 
+int qInitResources_resources();
+Q_CONSTRUCTOR_FUNCTION(qInitResources_resources);
 
 static const int LINKH_HEIGHT = 16;
 static const int LINKH_WIDTH = 38;
