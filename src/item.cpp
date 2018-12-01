@@ -129,6 +129,8 @@ Item::Item(const rapidjson::Value &json) :
     // Other code assumes icon is proper size so force quad=1 to quad=0 here as it's clunky
     // to handle elsewhere
     boost::replace_last(icon_, "quad=1", "quad=0");
+    // quad stashes, currency stashes, etc
+    boost::replace_last(icon_, "scaleIndex=", "scaleIndex=0&");
 
     CalculateCategories(json);
 
