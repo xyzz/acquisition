@@ -306,7 +306,7 @@ void LoginDialog::SaveSettings() {
 void LoginDialog::DisplayError(const QString &error, bool disable_login) {
     ui->errorLabel->setText(error);
     ui->errorLabel->show();
-    ui->loginButton->setEnabled(disable_login);
+    ui->loginButton->setEnabled(!disable_login);
     ui->loginButton->setText("Login");
 }
 
