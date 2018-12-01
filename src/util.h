@@ -99,6 +99,8 @@ std::vector<std::string> StringSplit(const std::string &str, char delim);
 */
 bool MatchMod(const char *match, const char *mod, double *output);
 
+std::string Capitalise(const std::string &str);
+
 std::string TimeAgoInWords(const QDateTime buyout_time);
 
 std::string Decode(const std::string &entity);

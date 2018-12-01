@@ -42,3 +42,50 @@ void TestItem::Parse() {
     // This needs to match so that item hash migration is successful
     QCOMPARE(item.old_hash().c_str(), "36f0097563123e5296dc2eed54e9d6f3");
 }
+
+void TestItem::ParseCategories() {
+    rapidjson::Document doc;
+    doc.Parse(kCategoriesItemCard.c_str());
+    Item item(doc);
+    QCOMPARE(item.category().c_str(), "divination cards");
+
+    doc.Parse(kCategoriesItemBelt.c_str());
+    item = Item(doc);
+    QCOMPARE(item.category().c_str(), "belt");
+
+    doc.Parse(kCategoriesItemEssence.c_str());
+    item = Item(doc);
+    QCOMPARE(item.category().c_str(), "currency.essence");
+
+    doc.Parse(kCategoriesItemVaalGem.c_str());
+    item = Item(doc);
+    QCOMPARE(item.category().c_str(), "gems.skill.vaal");
+
+    doc.Parse(kCategoriesItemSupportGem.c_str());
+    item = Item(doc);
+    QCOMPARE(item.category().c_str(), "gems.support");
+
+    doc.Parse(kCategoriesItemBow.c_str());
+    item = Item(doc);
+    QCOMPARE(item.category().c_str(), "weapons.twohand.bow");
+
+    doc.Parse(kCategoriesItemClaw.c_str());
+    item = Item(doc);
+    QCOMPARE(item.category().c_str(), "weapons.onehand.claw");
+
+    doc.Parse(kCategoriesItemFragment.c_str());
+    item = Item(doc);
+    QCOMPARE(item.category().c_str(), "maps.misc");
+
+    doc.Parse(kCategoriesItemWarMap.c_str());
+    item = Item(doc);
+    QCOMPARE(item.category().c_str(), "maps.3.1.new");
+
+    doc.Parse(kCategoriesItemUniqueMap.c_str());
+    item = Item(doc);
+    QCOMPARE(item.category().c_str(), "maps.older uniques");
+
+    doc.Parse(kCategoriesItemBreachstone.c_str());
+    item = Item(doc);
+    QCOMPARE(item.category().c_str(), "currency.breach");
+}

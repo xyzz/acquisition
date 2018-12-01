@@ -28,6 +28,11 @@
 #include "item.h"
 #include "util.h"
 
+
+static const int LINKH_HEIGHT = 16;
+static const int LINKH_WIDTH = 38;
+static const int LINKV_HEIGHT = LINKH_WIDTH;
+static const int LINKV_WIDTH = LINKH_HEIGHT;
 static const QImage link_h(":/sockets/linkH.png");
 static const QImage link_v(":/sockets/linkV.png");
 static const QImage elder_1x1(":/backgrounds/ElderBackground_1x1.png");
@@ -44,6 +49,15 @@ static const QImage shaper_2x1(":/backgrounds/ShaperBackground_2x1.png");
 static const QImage shaper_2x2(":/backgrounds/ShaperBackground_2x2.png");
 static const QImage shaper_2x3(":/backgrounds/ShaperBackground_2x3.png");
 static const QImage shaper_2x4(":/backgrounds/ShaperBackground_2x4.png");
+static const QImage shaper_icon(":/tooltip/ShaperItemSymbol.png");
+static const QImage elder_icon(":/tooltip/ElderItemSymbol.png");
+static const int HEADER_SINGLELINE_WIDTH = 29;
+static const int HEADER_SINGLELINE_HEIGHT = 34;
+static const int HEADER_DOUBLELINE_WIDTH = 44;
+static const int HEADER_DOUBLELINE_HEIGHT = 54;
+static const QSize HEADER_SINGLELINE_SIZE(HEADER_SINGLELINE_WIDTH, HEADER_SINGLELINE_HEIGHT);
+static const QSize HEADER_DOUBLELINE_SIZE(HEADER_DOUBLELINE_WIDTH, HEADER_DOUBLELINE_HEIGHT);
+static const QSize HEADER_OVERLAY_SIZE(27, 27);
 
 /*
     PoE colors:
@@ -223,9 +237,9 @@ static void UpdateMinimap(const Item &item, Ui::MainWindow *ui) {
     ui->minimapLabel->setPixmap(pixmap);
 }
 
-void GenerateItemHeaderSide(const Item &item, Ui::MainWindow *ui, std::string header_path_prefix, bool singleline, bool leftNotRight) {
+void GenerateItemHeaderSide(QLabel *itemHeader, bool leftNotRight, std::string header_path_prefix, bool singleline, Item::BASE_TYPES base) {
     QImage header(QString::fromStdString(header_path_prefix + (leftNotRight ? "Left.png" : "Right.png")));
-    QSize header_size = singleline ? QSize(29, 34) : QSize(44, 54);
+    QSize header_size = singleline ? HEADER_SINGLELINE_SIZE : HEADER_DOUBLELINE_SIZE;
     header = header.scaled(header_size);
 
     QPixmap header_pixmap(header_size);
@@ -233,33 +247,19 @@ void GenerateItemHeaderSide(const Item &item, Ui::MainWindow *ui, std::string he
     QPainter header_painter(&header_pixmap);
     header_painter.drawImage(0, 0, header);
 
-    if(item.shaper() || item.elder()){
-        std::string overlay = ":/tooltip/";
-        if(item.shaper()) {
-            overlay += "Shaper";
-        }
-        if(item.elder()) {
-            overlay += "Elder";
-        }
-        overlay += "ItemSymbol.png";
-
-        QImage overlay_image(QString::fromStdString(overlay));
-        overlay_image = overlay_image.scaled(27, 27);
+    if (base == Item::BASE_SHAPER || base == Item::BASE_ELDER) {
+        QImage overlay_image = base == Item::BASE_SHAPER ? shaper_icon : elder_icon;
+        overlay_image = overlay_image.scaled(HEADER_OVERLAY_SIZE);
         int overlay_x = singleline ? (leftNotRight ? 2: 1) : (leftNotRight ? 2: 15);
         int overlay_y = (int) ( 0.5 * (header.height() - overlay_image.height()) );
         header_painter.drawImage(overlay_x, overlay_y, overlay_image);
     }
 
-    if(leftNotRight) {
-        ui->itemHeaderLeft->setFixedSize(header_size);
-        ui->itemHeaderLeft->setPixmap(header_pixmap);
-    } else {
-        ui->itemHeaderRight->setFixedSize(header_size);
-        ui->itemHeaderRight->setPixmap(header_pixmap);
-    }
+    itemHeader->setFixedSize(header_size);
+    itemHeader->setPixmap(header_pixmap);
 }
 
-void GenerateItemTooltip(const Item &item, Ui::MainWindow *ui) {
+void UpdateItemTooltip(const Item &item, Ui::MainWindow *ui) {
     size_t frame = item.frameType();
     if (frame >= FrameToKey.size())
         frame = 0;
@@ -273,18 +273,18 @@ void GenerateItemTooltip(const Item &item, Ui::MainWindow *ui) {
     if (singleline) {
         ui->itemNameFirstLine->hide();
         ui->itemNameSecondLine->setAlignment(Qt::AlignCenter);
-        ui->itemNameContainerWidget->setFixedSize(16777215, 34);
+        ui->itemNameContainerWidget->setFixedSize(16777215, HEADER_SINGLELINE_HEIGHT);
     } else {
         ui->itemNameFirstLine->show();
         ui->itemNameFirstLine->setAlignment(Qt::AlignBottom | Qt::AlignHCenter);
         ui->itemNameSecondLine->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
-        ui->itemNameContainerWidget->setFixedSize(16777215, 54);
+        ui->itemNameContainerWidget->setFixedSize(16777215, HEADER_DOUBLELINE_HEIGHT);
     }
     std::string suffix = (singleline && (frame == FRAME_TYPE_RARE || frame == FRAME_TYPE_UNIQUE)) ? "SingleLine" : "";
     std::string header_path_prefix = ":/tooltip/ItemsHeader" + key + suffix;
 
-    GenerateItemHeaderSide(item, ui, header_path_prefix, singleline, true);
-    GenerateItemHeaderSide(item, ui, header_path_prefix, singleline, false);
+    GenerateItemHeaderSide(ui->itemHeaderLeft, true, header_path_prefix, singleline, item.baseType());
+    GenerateItemHeaderSide(ui->itemHeaderRight, false, header_path_prefix, singleline, item.baseType());
 
     ui->itemNameContainerWidget->setStyleSheet(("border-radius: 0px; border: 0px; border-image: url(" + header_path_prefix + "Middle.png);").c_str());
 
@@ -296,20 +296,16 @@ void GenerateItemTooltip(const Item &item, Ui::MainWindow *ui) {
     ui->itemNameSecondLine->setStyleSheet(css.c_str());
 }
 
-void GenerateItemIcon(const Item &item, const QImage &image, Ui::MainWindow *ui) {
-    int height = item.h();
-    int width = item.w();
-    int socket_rows = 0;
-    int socket_columns = 0;
-    // this will ensure we have enough room to draw the slots
-    QPixmap pixmap(width * PIXELS_PER_SLOT, height * PIXELS_PER_SLOT);
+QPixmap GenerateItemSockets(const int width, const int height, const std::vector<ItemSocket> &sockets) {
+    QPixmap pixmap(width * PIXELS_PER_SLOT, height * PIXELS_PER_SLOT);  // This will ensure we have enough room to draw the slots
     pixmap.fill(Qt::transparent);
     QPainter painter(&pixmap);
 
+    int socket_rows = 0;
+    int socket_columns = 0;
     ItemSocket prev = { 255, '-' };
     size_t i = 0;
 
-    auto &sockets = item.text_sockets();
     if (sockets.size() == 0) {
         // Do nothing
     } else if (sockets.size() == 1) {
@@ -337,27 +333,34 @@ void GenerateItemIcon(const Item &item, const QImage &image, Ui::MainWindow *ui)
                 socket_rows = qMax(row + 1, socket_rows);
                 painter.drawImage(PIXELS_PER_SLOT * column, PIXELS_PER_SLOT * row, socket_image);
                 if (link) {
-                    if (i == 1 || i == 3 || i == 5) {
-                        // horizontal link
-                        painter.drawImage(
-                            PIXELS_PER_SLOT - LINKH_WIDTH / 2,
-                            row * PIXELS_PER_SLOT + PIXELS_PER_SLOT / 2 - LINKH_HEIGHT / 2,
-                            link_h
-                        );
-                    } else if (i == 2) {
-                        painter.drawImage(
-                            PIXELS_PER_SLOT * 1.5 - LINKV_WIDTH / 2,
-                            row * PIXELS_PER_SLOT - LINKV_HEIGHT / 2,
-                            link_v
-                        );
-                    } else if (i == 4) {
-                        painter.drawImage(
-                            PIXELS_PER_SLOT / 2 - LINKV_WIDTH / 2,
-                            row * PIXELS_PER_SLOT - LINKV_HEIGHT / 2,
-                            link_v
-                        );
-                    } else {
-                        QLOG_ERROR() << "No idea how to draw link for" << item.PrettyName().c_str();
+                    switch(i){
+                        case 1:
+                        case 3:
+                        case 5:
+                            // horizontal link
+                            painter.drawImage(
+                                PIXELS_PER_SLOT - LINKH_WIDTH / 2,
+                                row * PIXELS_PER_SLOT + PIXELS_PER_SLOT / 2 - LINKH_HEIGHT / 2,
+                                link_h
+                            );
+                            break;
+                        case 2:
+                            painter.drawImage(
+                                PIXELS_PER_SLOT * 1.5 - LINKV_WIDTH / 2,
+                                row * PIXELS_PER_SLOT - LINKV_HEIGHT / 2,
+                                link_v
+                            );
+                            break;
+                        case 4:
+                            painter.drawImage(
+                                PIXELS_PER_SLOT / 2 - LINKV_WIDTH / 2,
+                                row * PIXELS_PER_SLOT - LINKV_HEIGHT / 2,
+                                link_v
+                            );
+                            break;
+                        default:
+                            QLOG_ERROR() << "No idea how to draw link for socket " << i;
+                            break;
                     }
                 }
             }
@@ -367,31 +370,75 @@ void GenerateItemIcon(const Item &item, const QImage &image, Ui::MainWindow *ui)
         }
     }
 
-    QPixmap cropped = pixmap.copy(0, 0, PIXELS_PER_SLOT * socket_columns,
-                                        PIXELS_PER_SLOT * socket_rows);
+    return pixmap.copy(0, 0, PIXELS_PER_SLOT * socket_columns,
+                                            PIXELS_PER_SLOT * socket_rows);
+}
 
-    QPixmap base(image.width(), image.height());
-    base.fill(Qt::transparent);
-    QPainter overlay(&base);
+QPixmap GenerateItemIcon(const Item &item, const QImage &image) {
+    const int height = item.h();
+    const int width = item.w();
 
-    if(item.shaper() || item.elder()){
-        std::string background = ":/backgrounds/";
-        if(item.shaper()) {
-            background += "Shaper";
+    QPixmap layered(image.width(), image.height());
+    layered.fill(Qt::transparent);
+    QPainter layered_painter(&layered);
+
+    if (item.shaper() || item.elder()){
+        // Assumes width <= 2
+        const QImage *background_image = nullptr;
+        if (item.shaper()) {
+            switch(height) {
+                case 1:
+                    background_image = width == 1 ? &shaper_1x1 : &shaper_2x1;
+                    break;
+                case 2:
+                    background_image = width == 1 ? nullptr : &shaper_2x2;
+                    break;
+                case 3:
+                    background_image = width == 1 ? &shaper_1x3 : &shaper_2x3;
+                    break;
+                case 4:
+                    background_image = width == 1 ? &shaper_1x4 : &shaper_2x4;
+                    break;
+                default:
+                    break;
+            }
+        } else {    // Elder
+            switch(height) {
+                case 1:
+                    background_image = width == 1 ? &elder_1x1 : &elder_2x1;
+                    break;
+                case 2:
+                    background_image = width == 1 ? nullptr : &elder_2x2;
+                    break;
+                case 3:
+                    background_image = width == 1 ? &elder_1x3 : &elder_2x3;
+                    break;
+                case 4:
+                    background_image = width == 1 ? &elder_1x4 : &elder_2x4;
+                    break;
+                default:
+                    break;
+            }
         }
-        if(item.elder()) {
-            background += "Elder";
+        if (background_image) {
+            layered_painter.drawImage(0, 0, *background_image);
+        } else {
+            QLOG_ERROR() << "Problem drawing background for " << item.PrettyName().c_str();
         }
-        background += "Background_" + std::to_string(width) + "x" + std::to_string(height) + ".png";
-
-        QImage background_image(QString::fromStdString(background));
-        overlay.drawImage(0, 0, background_image);
     }
 
-    overlay.drawImage(0, 0, image);
+    layered_painter.drawImage(0, 0, image);
 
-    overlay.drawPixmap((int)(0.5*(image.width() - cropped.width())),
-                       (int)(0.5*(image.height() - cropped.height())), cropped);
+    if (item.text_sockets().size() > 0) {
+        QPixmap sockets = GenerateItemSockets(width, height, item.text_sockets());
 
-    ui->imageLabel->setPixmap(base);
+        layered_painter.drawPixmap((int)(0.5*(image.width() - sockets.width())),
+                       (int)(0.5*(image.height() - sockets.height())), sockets);    // Center sockets on overall image
+    }
+
+    return layered;
+}
+
+QString GenerateItemPOBText(const Item &item) {
+    return QString::fromStdString(item.PrettyName());
 }

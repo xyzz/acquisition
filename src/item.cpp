@@ -25,29 +25,11 @@
 #include <regex>
 #include "rapidjson/document.h"
 
+#include "QsLog.h"
 #include "modlist.h"
 #include "util.h"
 #include "porting.h"
 #include "itemlocation.h"
-
-const std::array<Item::CategoryReplaceMap, Item::k_CategoryLevels> Item::replace_map_ = {
-    // Category hierarchy 0 replacement map
-    Item::CategoryReplaceMap(),
-    // Category hierarchy 1 replacement map
-    Item::CategoryReplaceMap({{"BodyArmours", "Body"},
-                              {"VaalGems", "Vaal"},
-                              {"AtlasMaps", "Atlas"},
-                              {"act4maps", "Act4"},
-                              {"OneHandWeapons", "OneHand"},
-                              {"TwoHandWeapons", "TwoHand"}}),
-    // Category hierarchy 2 replacement map
-    Item::CategoryReplaceMap({{"OneHandAxes", "Axes"},
-                              {"OneHandMaces", "Maces"},
-                              {"OneHandSwords", "Swords"},
-                              {"TwoHandAxes", "Axes"},
-                              {"TwoHandMaces", "Maces"},
-                              {"TwoHandSwords", "Swords"}})
-};
 
 const std::vector<std::string> ITEM_MOD_TYPES = {
     "implicitMods", "enchantMods", "explicitMods", "craftedMods"
@@ -87,8 +69,7 @@ Item::Item(const rapidjson::Value &json) :
     corrupted_(false),
     crafted_(false),
     enchanted_(false),
-    shaper_(false),
-    elder_(false),
+    baseType_(BASE_NORMAL),
     w_(0),
     h_(0),
     frameType_(0),
@@ -113,10 +94,14 @@ Item::Item(const rapidjson::Value &json) :
     if (json.HasMember("enchantMods") && json["enchantMods"].IsArray() && !json["enchantMods"].Empty())
         enchanted_ = true;
 	
-    if (json.HasMember("shaper") && json["shaper"].IsBool())
-        shaper_ = json["shaper"].GetBool();
-    if (json.HasMember("elder") && json["elder"].IsBool())
-        elder_ = json["elder"].GetBool();
+    if (json.HasMember("shaper") && json["shaper"].IsBool() && json["shaper"].GetBool())
+        baseType_ = BASE_SHAPER;
+    if (json.HasMember("elder") && json["elder"].IsBool() && json["elder"].GetBool()) {
+        if (baseType_ != BASE_NORMAL) {
+            QLOG_WARN() << PrettyName().c_str() << " has multiple conflicting base type attributes.";
+        }
+        baseType_ = BASE_ELDER;
+    }
 
     if (json.HasMember("w") && json["w"].IsInt())
         w_ = json["w"].GetInt();
@@ -144,22 +129,7 @@ Item::Item(const rapidjson::Value &json) :
     // to handle elsewhere
     boost::replace_last(icon_, "quad=1", "quad=0");
 
-    // Derive item type 'category' hierarchy from icon path.
-    std::smatch sm;
-    if (std::regex_search(icon_, sm, std::regex("Art/.*?/(.*)/"))) {
-        std::string match = sm.str(1);
-        boost::split(category_vector_,match,boost::is_any_of("/"));
-        //Compress terms with redundant identifiers
-        //Weapons.OneHandWeapons.OneHandMaces -> Weapons.OneHand.Maces
-        size_t min = std::min(category_vector_.size(), replace_map_.size());
-        for (size_t i = 1; i < min; i++) {
-            auto it = replace_map_[i].find(category_vector_[i]);
-            if (it != replace_map_[i].end())
-                category_vector_[i] = it->second;
-        }
-        category_ = boost::join(category_vector_, ".");
-        boost::to_lower(category_);
-    }
+    CalculateCategories(json);
 
     if (json.HasMember("talismanTier") && json["talismanTier"].IsUint()) {
        talisman_tier_ = json["talismanTier"].GetUint();
@@ -174,16 +144,12 @@ Item::Item(const rapidjson::Value &json) :
     }
 
     if (json.HasMember("properties") && json["properties"].IsArray()) {
-        for (auto prop_it = json["properties"].Begin(); prop_it != json["properties"].End(); ++prop_it) {
-            auto &prop = *prop_it;
+        for (auto &prop : json["properties"]) {
             if (!prop.HasMember("name") || !prop["name"].IsString() || !prop.HasMember("values") || !prop["values"].IsArray())
                 continue;
             std::string name = prop["name"].GetString();
-            if (name == "Map Level")
-                name = "Level";
             if (name == "Elemental Damage") {
-                for (auto value_it = prop["values"].Begin(); value_it != prop["values"].End(); ++value_it) {
-                    auto &value = *value_it;
+                for (auto &value : prop["values"]) {
                     if (value.IsArray() && value.Size() >= 2 && value[0].IsString() && value[1].IsInt())
                         elemental_damage_.push_back(std::make_pair(value[0].GetString(), value[1].GetInt()));
                 }
@@ -297,6 +263,134 @@ std::string Item::PrettyName() const {
     return typeLine_;
 }
 
+void Item::CalculateCategories(const rapidjson::Value &json) {
+    category_ = "";
+    if (json.HasMember("category") && json["category"].IsObject()) {
+        // This object contains a single array who's name is the item's category. The array may contain the item's sub-category
+        rapidjson::Value::ConstMemberIterator itr = json["category"].MemberBegin();
+        category_ = itr->name.GetString();
+        category_ = Util::Capitalise(category_);
+
+        if (category_ == "Cards") {
+            category_ = "Divination cards";
+        }
+
+        category_vector_.push_back(category_);
+        if (itr->value.IsArray() && !itr->value.Empty()) {
+            // Handle sub-categories
+
+            if (category_ == "Accessories") {    // Elevate accessories sub-categories to their own top level categories
+                category_vector_.pop_back();
+                // If amulet and .HasMember("talismanTier") (which is also checked after CalculateCategories()), add Talisman sub-category?
+            }
+
+            /*
+            If Armour.Chests, rename Armour.BodyArmour?
+            If Flasks, use Base64 encoded JSON within icon path to determine sub-category?
+            */
+
+            category_ = itr->value[0].GetString();
+            category_ = Util::Capitalise(category_);
+
+            if (category_ == "Activegem") {
+                // Rename these sub-categories
+                category_ = "Skill";
+                if (icon_.find("/Art/2DItems/Gems/VaalGems/") != std::string::npos) {
+                    category_vector_.push_back(category_);
+                    category_ = "Vaal";
+                }
+            } else if (category_ == "Supportgem") {
+                category_ = "Support";
+            } else if (category_ == "Bow" || category_ == "Staff") {
+                // Sub-categories these categories under handedness
+                category_vector_.push_back("TwoHand");
+            } else if (category_ == "Claw" || category_ == "Dagger" || category_ == "Sceptre" || category_ == "Wand") {
+                category_vector_.push_back("OneHand");
+            } else if (category_ == "Oneaxe") {
+                // Sub-categories these categories under handedness and rename them
+                category_vector_.push_back("OneHand");
+                category_ = "Axe";
+            } else if (category_ == "Onemace") {
+                category_vector_.push_back("OneHand");
+                category_ = "Mace";
+            } else if (category_ == "Onesword") {
+                category_vector_.push_back("OneHand");
+                category_ = "Sword";
+            } else if (category_ == "Twoaxe") {
+                category_vector_.push_back("TwoHand");
+                category_ = "Axe";
+            } else if (category_ == "Twomace") {
+                category_vector_.push_back("TwoHand");
+                category_ = "Mace";
+            } else if (category_ == "Twosword") {
+                category_vector_.push_back("TwoHand");
+                category_ = "Sword";
+            }
+
+            category_vector_.push_back(category_);
+        } else if (category_ == "Maps") {
+            // Use icon path to determine possible expansion sub-category
+            std::smatch sm;
+            if (std::regex_search(icon_, sm, std::regex("/Art/2DItems/Maps/(.*)/"))) {
+                std::string match = sm.str(1);
+                std::vector<std::string> iconsubs;
+                boost::split(iconsubs, match, boost::is_any_of("/"));
+                std::string sub = iconsubs[0];
+                if (sub == "Atlas2Maps") {
+                    category_vector_.push_back("3.1");
+                    if (iconsubs.size() > 1) {
+                        sub = iconsubs[1];  // Typically "New"
+                        sub = Util::Capitalise(sub);
+                        category_vector_.push_back(sub);
+                    }
+                } else if (sub == "AtlasMaps") {
+                    category_vector_.push_back("2.4");
+                } else if (sub == "act4maps") {
+                    category_vector_.push_back("2.0");
+                } else {
+                    Util::Capitalise(sub);
+                    category_vector_.push_back(sub);
+                }
+            } else {
+                if (icon_.find("/Art/2DItems/Maps/Map") != std::string::npos) {
+                    // Doesn't find all because of some maps like FairgravesMap01.png, olmec.png, etc. They'll end up in Maps.Misc, then moved to Maps.Older Uniques
+                    category_vector_.push_back("Original");
+                } else if (icon_.find("/Art/2DItems/Currency/Breach/") != std::string::npos) {
+                    // Isn't really a map, has no property named Map Tier
+                    category_vector_.pop_back();
+                    category_vector_.push_back("Currency");
+                    category_vector_.push_back("Breach");
+                } else {
+                    category_vector_.push_back("Misc");
+
+                    if (json.HasMember("properties") && json["properties"].IsArray()) {
+                        for (auto &prop : json["properties"]) {
+                            if (!prop.HasMember("name") || !prop["name"].IsString() || !prop.HasMember("values") || !prop["values"].IsArray())
+                                continue;
+                            std::string name = prop["name"].GetString();
+                            if (name == "Map Tier") {
+                                category_vector_.pop_back();
+                                category_vector_.push_back("Older Uniques");    // Future ones might fall under a new /Maps/ icon path
+                                break;
+                            }
+                            // Else determine if Sacrifice/Mortal/Offering/etc fragment?
+                        }
+                    }
+                }
+            }
+        } else if (category_ == "Currency") {
+            if (icon_.find("/Art/2DItems/Currency/Breach/") != std::string::npos) {
+                category_vector_.push_back("Breach");
+            } else if (icon_.find("/Art/2DItems/Currency/Essence/") != std::string::npos) {
+                category_vector_.push_back("Essence");
+            }
+        }
+    }
+    category_ = boost::join(category_vector_, ".");
+    boost::to_lower(category_);
+
+}
+
 double Item::DPS() const {
     return pDPS() + eDPS() + cDPS();
 }
@@ -374,4 +468,13 @@ bool Item::operator<(const Item &rhs) const {
     std::string name = PrettyName();
     std::string rhs_name = rhs.PrettyName();
     return std::tie(name,uid_,hash_) < std::tie(rhs_name, rhs.uid_, hash_);
+}
+
+bool Item::Wearable() const {
+    return (category_ == "flasks"
+            || category_ == "amulet" || category_ == "ring" || category_ == "belt"
+            || category_.find("armour") != std::string::npos
+            || category_.find("weapons") != std::string::npos
+            || category_.find("jewels") != std::string::npos
+    );
 }

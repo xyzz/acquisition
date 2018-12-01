@@ -255,7 +255,7 @@ void BuyoutManager::CompressTabBuyouts() {
         tmp.insert(loc.GetUniqueHash());
 
     for (auto it = tab_buyouts_.begin(), ite = tab_buyouts_.end(); it != ite;) {
-        if(tmp.count(it->first) == 0) {
+        if (tmp.count(it->first) == 0) {
             save_needed_ = true;
             it = tab_buyouts_.erase(it);
         } else {

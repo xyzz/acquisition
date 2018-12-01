@@ -179,7 +179,7 @@ void CurrencyManager::Deserialize(const std::string &data, std::vector<std::shar
         auto &object = itr->value;
         Currency curr = Currency::FromTag(object["currency"].GetString());
         for (auto &item : *currencies) {
-            if(item->currency == curr) {
+            if (item->currency == curr) {
                 item = std::make_shared<CurrencyItem>(object["count"].GetDouble(), curr,
                         object["chaos_ratio"].GetDouble(), object["exalt_ratio"].GetDouble());
             }

@@ -278,7 +278,7 @@ void LoginDialog::LoadSettings() {
 
 void LoginDialog::SaveSettings() {
     QSettings settings(settings_path_.c_str(), QSettings::IniFormat);
-    if(ui->rembmeCheckBox->isChecked()) {
+    if (ui->rembmeCheckBox->isChecked()) {
         settings.setValue("session_id", session_id_);
         settings.setValue("league", ui->leagueComboBox->currentText());
     } else {

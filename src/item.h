@@ -64,6 +64,12 @@ class Item {
 public:
     typedef const std::unordered_map<std::string, std::string> CategoryReplaceMap;
 
+    enum BASE_TYPES {
+        BASE_NORMAL,
+        BASE_SHAPER,
+        BASE_ELDER
+    };
+
     explicit Item(const rapidjson::Value &json);
     Item(const std::string &name, const ItemLocation &location); // used by tests
     std::string name() const { return name_; }
@@ -73,8 +79,9 @@ public:
     bool corrupted() const { return corrupted_; }
     bool crafted() const { return crafted_; }
     bool enchanted() const { return enchanted_; }
-    bool shaper() const { return shaper_; }
-    bool elder() const { return elder_; }
+    BASE_TYPES baseType() const { return baseType_; }
+    bool shaper() const { return baseType_ == BASE_SHAPER; }
+    bool elder() const { return baseType_ == BASE_ELDER; }
     int w() const { return w_; }
     int h() const { return h_; }
     int frameType() const { return frameType_; }
@@ -106,10 +113,10 @@ public:
     const ModTable &mod_table() const { return mod_table_; }
     int ilvl() const { return ilvl_; }
     bool operator<(const Item &other) const;
-    static const size_t k_CategoryLevels = 3;
-    static const std::array<CategoryReplaceMap, k_CategoryLevels> replace_map_;
+    bool Wearable() const;
 
 private:
+    void CalculateCategories(const rapidjson::Value &json);
     // The point of GenerateMods is to create combined (e.g. implicit+explicit) poe.trade-like mod map to be searched by mod filter.
     // For now it only does that for a small chosen subset of mods (think "popular" + "pseudo" sections at poe.trade)
     void GenerateMods(const rapidjson::Value &json);
@@ -124,8 +131,7 @@ private:
     bool corrupted_;
     bool crafted_;
     bool enchanted_;
-    bool shaper_;
-    bool elder_;
+    BASE_TYPES baseType_;
     int w_, h_;
     int frameType_;
     std::string icon_;
