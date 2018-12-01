@@ -114,6 +114,7 @@ public:
     int ilvl() const { return ilvl_; }
     bool operator<(const Item &other) const;
     bool Wearable() const;
+    std::string POBformat() const;
 
 private:
     void CalculateCategories(const rapidjson::Value &json);

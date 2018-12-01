@@ -653,7 +653,7 @@ void MainWindow::UpdateCurrentItem() {
     // in future should move everything tooltip-related there
     UpdateItemTooltip(*current_item_, ui);
 
-    //ui->pobTooltipButton->setEnabled(current_item_->Wearable());
+    ui->pobTooltipButton->setEnabled(current_item_->Wearable());
 
     std::string icon = current_item_->icon();
     if (icon.size() && icon[0] == '/')
@@ -903,7 +903,7 @@ void MainWindow::on_pobTooltipButton_clicked() {
         return;
     }
 
-    QApplication::clipboard()->setText(GenerateItemPOBText(*current_item_));
+    QApplication::clipboard()->setText(QString::fromStdString(current_item_->POBformat()));
     QLOG_INFO() << current_item_->PrettyName().c_str() << "was copied to your clipboard in Path of Building's \"Create custom\" format.";
 }
 

@@ -111,7 +111,7 @@ void CurrencyManager::ClearCurrency() {
     }
 }
 void CurrencyManager::InitCurrency() {
-    for(auto type: Currency::Types()) {
+    for (auto type: Currency::Types()) {
         currencies_.push_back(std::make_shared<CurrencyItem>(0, Currency(type), 1, 1));
     }
     Deserialize(data_.Get("currency_items"), &currencies_);
@@ -124,7 +124,7 @@ void CurrencyManager::FirstInitCurrency() {
     std::string value = "";
     //Dummy items + dummy currency_last_value
     //TODO : can i get the size of the Currency enum ??
-    for(auto type: Currency::Types()) {
+    for (auto type: Currency::Types()) {
         currencies_.push_back(std::make_shared<CurrencyItem>(0, Currency(type), 1, 1));
 
         value += "0;";
@@ -356,7 +356,7 @@ void CurrencyDialog::UpdateVisibility(bool show_chaos, bool show_exalt) {
     headers_->exalt_value->setVisible(show_exalt);
     headers_->exalt_ratio->setVisible(show_exalt);
 
-    for(auto &item : currencies_widgets_) {
+    for (auto &item : currencies_widgets_) {
         item->UpdateVisual(show_chaos, show_exalt);
     }
     headers_->chaos_total->setVisible(show_chaos);

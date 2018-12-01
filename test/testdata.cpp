@@ -53,6 +53,15 @@ const std::string kCategoriesItemBelt =
    "s\":[\"+49 to maximum Energy Shield\",\"18% reduced Flask Charges used\",\"18% increased Elemental Damage with Atta"
    "ck Skills\"],\"frameType\":2,\"category\":{\"accessories\":[\"belt\"]},\"x\":0,\"y\":10,\"inventoryId\":\"Stash21\""
    ",\"socketedItems\":[]}";
+const std::string kItemBeltPOB =
+R"(Ambush Cord
+Stygian Vise
+Sockets: A
+Implicits: 1
+Has 1 Abyssal Socket
++49 to maximum Energy Shield
+18% reduced Flask Charges used
+18% increased Elemental Damage with Attack Skills)";
 
 const std::string kCategoriesItemEssence =
    "{\"verified\":false,\"w\":1,\"h\":1,\"ilvl\":0,\"icon\":\"https:\\/\\/web.poecdn.com\\/image\\/Art\\/2DItems\\/Curr"
@@ -125,6 +134,16 @@ const std::string kCategoriesItemBow =
    "Damage\",\"Adds 24 to 72 Physical Damage\",\"10% increased Attack Speed\",\"Bow Attacks fire 4 additional Arrows\","
    "\"20% reduced Projectile Speed\"],\"flavourText\":[\"We stand together. We strike together.\"],\"frameType\":3,\"ca"
    "tegory\":{\"weapons\":[\"bow\"]},\"x\":0,\"y\":0,\"inventoryId\":\"Weapon2\",\"socketedItems\":[]}";
+const std::string kItemBowPOB =
+R"(Reach of the Council
+Spine Bow
+Sockets: G G-B-B-G-G
+Implicits: 0
+44% increased Physical Damage
+Adds 24 to 72 Physical Damage
+10% increased Attack Speed
+Bow Attacks fire 4 additional Arrows
+20% reduced Projectile Speed)";
 
 const std::string kCategoriesItemClaw =
    "{\"verified\":false,\"w\":2,\"h\":2,\"ilvl\":70,\"icon\":\"https:\\/\\/web.poecdn.com\\/image\\/Art\\/2DItems\\/Wea"
@@ -143,6 +162,18 @@ const std::string kCategoriesItemClaw =
    " maximum Energy Shield\",\"Life Leech is applied to Energy Shield instead\"],\"flavourText\":[\"The darkest clouds "
    "clashed and coupled,\\r\",\"giving birth to four lightning children of hate.\"],\"frameType\":3,\"category\":{\"wea"
    "pons\":[\"claw\"]},\"x\":6,\"y\":6,\"inventoryId\":\"Stash4\",\"socketedItems\":[]}";
+const std::string kItemClawPOB =
+R"(Essentia Sanguis
+Eye Gouger
+Sockets: G-G
+Implicits: 1
+0.6% of Physical Attack Damage Leeched as Life
++10% Chance to Block Attack Damage while Dual Wielding Claws
+116% increased Physical Damage
+Adds 1 to 50 Lightning Damage
+22% increased Attack Speed
++32 to maximum Energy Shield
+Life Leech is applied to Energy Shield instead)";
 
 const std::string kCategoriesItemFragment =
    "{\"verified\":false,\"w\":1,\"h\":1,\"ilvl\":0,\"icon\":\"https:\\/\\/web.poecdn.com\\/image\\/Art\\/2DItems\\/Maps"

@@ -27,4 +27,5 @@ class TestItem : public QObject
 private slots:
     void Parse();
     void ParseCategories();
+    void POBformat();
 };

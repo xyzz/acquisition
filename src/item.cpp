@@ -21,6 +21,7 @@
 
 #include <utility>
 #include <QString>
+#include <sstream>
 #include <boost/algorithm/string.hpp>
 #include <regex>
 #include "rapidjson/document.h"
@@ -93,7 +94,7 @@ Item::Item(const rapidjson::Value &json) :
         crafted_ = true;
     if (json.HasMember("enchantMods") && json["enchantMods"].IsArray() && !json["enchantMods"].Empty())
         enchanted_ = true;
-	
+
     if (json.HasMember("shaper") && json["shaper"].IsBool() && json["shaper"].GetBool())
         baseType_ = BASE_SHAPER;
     if (json.HasMember("elder") && json["elder"].IsBool() && json["elder"].GetBool()) {
@@ -477,4 +478,69 @@ bool Item::Wearable() const {
             || category_.find("weapons") != std::string::npos
             || category_.find("jewels") != std::string::npos
     );
+}
+
+std::string Item::POBformat() const {
+    std::stringstream PoBText;
+    PoBText << name();
+    PoBText << "\n" << typeLine();
+
+    // Could use uid_ for "Unique ID:", if it'd help PoB avoid duplicate imports later via stash API?
+
+    auto &sockets = text_sockets();
+    if (sockets.size() > 0) {
+        PoBText << "\nSockets: ";
+        ItemSocket prev = { 255, '-' };
+        size_t i = 0;
+        for (auto &socket : sockets) {
+            bool link = socket.group == prev.group;
+            if (i > 0) {
+                PoBText << (link ? "-" : " ");
+            }
+            switch (socket.attr) {
+                case 'S':
+                    PoBText << "R";
+                    break;
+                case 'D':
+                    PoBText << "G";
+                    break;
+                case 'I':
+                    PoBText << "B";
+                    break;
+                case 'G':
+                    PoBText << "W";
+                    break;
+                default:
+                    PoBText << socket.attr;
+                    break;
+            }
+            prev = socket;
+            ++i;
+        }
+    }
+
+    auto &mods = text_mods();
+
+    auto implicitMods = mods.at("implicitMods");
+    auto enchantMods = mods.at("enchantMods");
+    PoBText << "\nImplicits: " << (implicitMods.size() + enchantMods.size());
+    for (const auto &mod : enchantMods) {
+        PoBText << "\n{crafted}" << mod;
+    }
+    for (const auto &mod : implicitMods) {
+        PoBText << "\n"<< mod;
+    }
+
+    auto explicitMods = mods.at("explicitMods");
+    auto craftedMods = mods.at("craftedMods");
+    if (!explicitMods.empty() || !craftedMods.empty()) {
+        for (const auto &mod : explicitMods) {
+            PoBText << "\n"<< mod;
+        }
+        for (const auto &mod : craftedMods) {
+            PoBText << "\n{crafted}" << mod;
+        }
+    }
+
+    return PoBText.str();
 }

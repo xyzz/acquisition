@@ -438,7 +438,3 @@ QPixmap GenerateItemIcon(const Item &item, const QImage &image) {
 
     return layered;
 }
-
-QString GenerateItemPOBText(const Item &item) {
-    return QString::fromStdString(item.PrettyName());
-}
