@@ -89,3 +89,18 @@ void TestItem::ParseCategories() {
     item = Item(doc);
     QCOMPARE(item.category().c_str(), "currency.breach");
 }
+
+void TestItem::POBformat() {
+    rapidjson::Document doc;
+    doc.Parse(kCategoriesItemBelt.c_str());
+    Item item(doc);
+    QCOMPARE(item.POBformat(), kItemBeltPOB);
+
+    doc.Parse(kCategoriesItemBow.c_str());
+    item = Item(doc);
+    QCOMPARE(item.POBformat(), kItemBowPOB);
+
+    doc.Parse(kCategoriesItemClaw.c_str());
+    item = Item(doc);
+    QCOMPARE(item.POBformat(), kItemClawPOB);
+}

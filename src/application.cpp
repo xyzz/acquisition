@@ -84,7 +84,7 @@ void Application::SaveDbOnNewVersion() {
         QDir dst(save_path);
         if (!dst.exists())
             QDir().mkpath(dst.path());
-        for(auto name : src.entryList()) {
+        for (auto name : src.entryList()) {
             QFile::copy(data_path + QDir::separator() + name, save_path + QDir::separator() + name);
         }
         QLOG_INFO() << "I've created the folder " << save_path << "in your acquisition folder, containing a save of all your data";
