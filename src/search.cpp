@@ -217,7 +217,7 @@ void Search::Activate(const Items &items) {
 void Search::SaveViewProperties() {
     expanded_property_.clear();
     auto rowCount = model_->rowCount();
-    for( int row = 0; row < rowCount; ++row ) {
+    for (int row = 0; row < rowCount; ++row) {
         QModelIndex index = model_->index( row, 0, QModelIndex());
         if (index.isValid() && view_->isExpanded(index)) {
             expanded_property_.insert(bucket(row)->location().GetHeader());
@@ -228,7 +228,7 @@ void Search::SaveViewProperties() {
 void Search::RestoreViewProperties() {
     if (!expanded_property_.empty()) {
         auto rowCount = model_->rowCount();
-        for( int row = 0; row < rowCount; ++row ) {
+        for (int row = 0; row < rowCount; ++row) {
             QModelIndex index = model_->index( row, 0, QModelIndex());
             // Block signals else columns will be resized on every expand which can be super slow.
             view_->blockSignals(true);

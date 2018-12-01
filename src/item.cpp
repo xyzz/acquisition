@@ -97,7 +97,7 @@ Item::Item(const rapidjson::Value &json) :
     if (json.HasMember("shaper") && json["shaper"].IsBool() && json["shaper"].GetBool())
         baseType_ = BASE_SHAPER;
     if (json.HasMember("elder") && json["elder"].IsBool() && json["elder"].GetBool()) {
-        if(baseType_ != BASE_NORMAL) {
+        if (baseType_ != BASE_NORMAL) {
             QLOG_WARN() << PrettyName().c_str() << " has multiple conflicting base type attributes.";
         }
         baseType_ = BASE_ELDER;
@@ -271,15 +271,15 @@ void Item::CalculateCategories(const rapidjson::Value &json) {
         category_ = itr->name.GetString();
         category_ = Util::Capitalise(category_);
 
-        if(category_ == "Cards") {
+        if (category_ == "Cards") {
             category_ = "Divination cards";
         }
 
         category_vector_.push_back(category_);
-        if( itr->value.IsArray() && !itr->value.Empty() ) {
+        if (itr->value.IsArray() && !itr->value.Empty()) {
             // Handle sub-categories
 
-            if(category_ == "Accessories") {    // Elevate accessories sub-categories to their own top level categories
+            if (category_ == "Accessories") {    // Elevate accessories sub-categories to their own top level categories
                 category_vector_.pop_back();
                 // If amulet and .HasMember("talismanTier") (which is also checked after CalculateCategories()), add Talisman sub-category?
             }
@@ -292,70 +292,70 @@ void Item::CalculateCategories(const rapidjson::Value &json) {
             category_ = itr->value[0].GetString();
             category_ = Util::Capitalise(category_);
 
-            if(category_ == "Activegem") {
+            if (category_ == "Activegem") {
                 // Rename these sub-categories
                 category_ = "Skill";
-                if(icon_.find("/Art/2DItems/Gems/VaalGems/") != std::string::npos) {
+                if (icon_.find("/Art/2DItems/Gems/VaalGems/") != std::string::npos) {
                     category_vector_.push_back(category_);
                     category_ = "Vaal";
                 }
-            } else if(category_ == "Supportgem") {
+            } else if (category_ == "Supportgem") {
                 category_ = "Support";
-            } else if(category_ == "Bow" || category_ == "Staff") {
+            } else if (category_ == "Bow" || category_ == "Staff") {
                 // Sub-categories these categories under handedness
                 category_vector_.push_back("TwoHand");
-            } else if(category_ == "Claw" || category_ == "Dagger" || category_ == "Sceptre" || category_ == "Wand") {
+            } else if (category_ == "Claw" || category_ == "Dagger" || category_ == "Sceptre" || category_ == "Wand") {
                 category_vector_.push_back("OneHand");
-            } else if(category_ == "Oneaxe") {
+            } else if (category_ == "Oneaxe") {
                 // Sub-categories these categories under handedness and rename them
                 category_vector_.push_back("OneHand");
                 category_ = "Axe";
-            } else if(category_ == "Onemace") {
+            } else if (category_ == "Onemace") {
                 category_vector_.push_back("OneHand");
                 category_ = "Mace";
-            } else if(category_ == "Onesword") {
+            } else if (category_ == "Onesword") {
                 category_vector_.push_back("OneHand");
                 category_ = "Sword";
-            } else if(category_ == "Twoaxe") {
+            } else if (category_ == "Twoaxe") {
                 category_vector_.push_back("TwoHand");
                 category_ = "Axe";
-            } else if(category_ == "Twomace") {
+            } else if (category_ == "Twomace") {
                 category_vector_.push_back("TwoHand");
                 category_ = "Mace";
-            } else if(category_ == "Twosword") {
+            } else if (category_ == "Twosword") {
                 category_vector_.push_back("TwoHand");
                 category_ = "Sword";
             }
 
             category_vector_.push_back(category_);
-        } else if(category_ == "Maps") {
+        } else if (category_ == "Maps") {
             // Use icon path to determine possible expansion sub-category
             std::smatch sm;
-            if(std::regex_search(icon_, sm, std::regex("/Art/2DItems/Maps/(.*)/"))) {
+            if (std::regex_search(icon_, sm, std::regex("/Art/2DItems/Maps/(.*)/"))) {
                 std::string match = sm.str(1);
                 std::vector<std::string> iconsubs;
                 boost::split(iconsubs, match, boost::is_any_of("/"));
                 std::string sub = iconsubs[0];
-                if(sub == "Atlas2Maps") {
+                if (sub == "Atlas2Maps") {
                     category_vector_.push_back("3.1");
-                    if(iconsubs.size() > 1) {
+                    if (iconsubs.size() > 1) {
                         sub = iconsubs[1];  // Typically "New"
                         sub = Util::Capitalise(sub);
                         category_vector_.push_back(sub);
                     }
-                } else if(sub == "AtlasMaps") {
+                } else if (sub == "AtlasMaps") {
                     category_vector_.push_back("2.4");
-                } else if(sub == "act4maps") {
+                } else if (sub == "act4maps") {
                     category_vector_.push_back("2.0");
                 } else {
                     Util::Capitalise(sub);
                     category_vector_.push_back(sub);
                 }
             } else {
-                if(icon_.find("/Art/2DItems/Maps/Map") != std::string::npos) {
+                if (icon_.find("/Art/2DItems/Maps/Map") != std::string::npos) {
                     // Doesn't find all because of some maps like FairgravesMap01.png, olmec.png, etc. They'll end up in Maps.Misc, then moved to Maps.Older Uniques
                     category_vector_.push_back("Original");
-                } else if(icon_.find("/Art/2DItems/Currency/Breach/") != std::string::npos) {
+                } else if (icon_.find("/Art/2DItems/Currency/Breach/") != std::string::npos) {
                     // Isn't really a map, has no property named Map Tier
                     category_vector_.pop_back();
                     category_vector_.push_back("Currency");
@@ -363,12 +363,12 @@ void Item::CalculateCategories(const rapidjson::Value &json) {
                 } else {
                     category_vector_.push_back("Misc");
 
-                    if(json.HasMember("properties") && json["properties"].IsArray()) {
-                        for(auto &prop : json["properties"]) {
-                            if(!prop.HasMember("name") || !prop["name"].IsString() || !prop.HasMember("values") || !prop["values"].IsArray())
+                    if (json.HasMember("properties") && json["properties"].IsArray()) {
+                        for (auto &prop : json["properties"]) {
+                            if (!prop.HasMember("name") || !prop["name"].IsString() || !prop.HasMember("values") || !prop["values"].IsArray())
                                 continue;
                             std::string name = prop["name"].GetString();
-                            if(name == "Map Tier") {
+                            if (name == "Map Tier") {
                                 category_vector_.pop_back();
                                 category_vector_.push_back("Older Uniques");    // Future ones might fall under a new /Maps/ icon path
                                 break;
@@ -378,10 +378,10 @@ void Item::CalculateCategories(const rapidjson::Value &json) {
                     }
                 }
             }
-        } else if(category_ == "Currency") {
-            if(icon_.find("/Art/2DItems/Currency/Breach/") != std::string::npos) {
+        } else if (category_ == "Currency") {
+            if (icon_.find("/Art/2DItems/Currency/Breach/") != std::string::npos) {
                 category_vector_.push_back("Breach");
-            } else if(icon_.find("/Art/2DItems/Currency/Essence/") != std::string::npos) {
+            } else if (icon_.find("/Art/2DItems/Currency/Essence/") != std::string::npos) {
                 category_vector_.push_back("Essence");
             }
         }

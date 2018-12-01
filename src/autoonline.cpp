@@ -53,7 +53,7 @@ bool is_poe_running_locally() {
 
     pe32.dwSize = sizeof(PROCESSENTRY32);
 
-    if(!Process32First(hProcessSnap, &pe32)) {
+    if (!Process32First(hProcessSnap, &pe32)) {
         QLOG_ERROR() << "Process32First";
         CloseHandle(hProcessSnap);
         return false;
@@ -114,7 +114,7 @@ void AutoOnline::SendOnlineUpdate(bool online) {
     // online: true  -> Go online
     // online: false -> Go offline
     std::string url = url_;
-    if(!online) {
+    if (!online) {
         url += "/offline";
     }
     QNetworkRequest request(QUrl(url.c_str()));
@@ -125,7 +125,7 @@ void AutoOnline::SendOnlineUpdate(bool online) {
 
 void AutoOnline::Check() {
     bool running = is_poe_running_locally();
-    if(IsRemoteScriptSet()){
+    if (IsRemoteScriptSet()){
         running = is_poe_running_remotely(process_script_);
     } else {
         running = is_poe_running_locally();

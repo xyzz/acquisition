@@ -898,7 +898,7 @@ void MainWindow::on_pobTooltipButton_clicked() {
         return;
     }
     // if category isn't wearable, including flasks, don't do anything
-    if(!current_item_->Wearable()) {
+    if (!current_item_->Wearable()) {
         QLOG_WARN() << current_item_->PrettyName().c_str() << ", category:" << current_item_->category().c_str() << ", should not have been exportable.";
         return;
     }
