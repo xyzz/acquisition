@@ -180,6 +180,8 @@ void ItemsManagerWorker::OnCharacterListReceived() {
             if (doc.HasParseError()) {
                 QLOG_ERROR() << "The error was" << rapidjson::GetParseError_En(doc.GetParseError());
             }
+            QLOG_ERROR() << "";
+            QLOG_ERROR() << "(Maybe you need to log in to the website manually and accept new Terms of Service?)";
             updating_ = false;
             return;
         }
