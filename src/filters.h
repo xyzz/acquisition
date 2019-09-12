@@ -115,6 +115,21 @@ private:
     QAbstractListModel *model_;
 };
 
+class RaritySearchFilter : public Filter {
+public:
+    explicit RaritySearchFilter(QLayout *parent, QAbstractListModel *model);
+    void FromForm(FilterData *data);
+    void ToForm(FilterData *data);
+    void ResetForm();
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
+    void Initialize(QLayout *parent);
+    static const std::string k_Default;
+    static const QStringList RARITY_LIST;
+private:
+    QComboBox *combobox_;
+    QAbstractListModel *model_;
+};
+
 class MinMaxFilter : public Filter {
 public:
     MinMaxFilter(QLayout *parent, std::string property);
@@ -253,6 +268,14 @@ public:
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
 private:
     const BuyoutManager &bm_;
+};
+
+class UnidentifiedFilter : public BooleanFilter {
+public:
+    UnidentifiedFilter(QLayout *parent, std::string property, std::string caption):
+        BooleanFilter(parent, property, caption) {}
+    using BooleanFilter::BooleanFilter;
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
 };
 
 class CraftedFilter : public BooleanFilter {
