@@ -115,6 +115,8 @@ public:
     bool operator<(const Item &other) const;
     bool Wearable() const;
     std::string POBformat() const;
+    static const size_t k_CategoryLevels = 3;
+    static const std::array<CategoryReplaceMap, k_CategoryLevels> replace_map_;
 
 private:
     void CalculateCategories(const rapidjson::Value &json);
