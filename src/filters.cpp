@@ -31,6 +31,9 @@
 #include "porting.h"
 
 const std::string CategorySearchFilter::k_Default = "<any>";
+const std::string RaritySearchFilter::k_Default = "<any>";
+const QStringList RaritySearchFilter::RARITY_LIST{ "<any>", "Normal", "Magic", "Rare", "Unique", "Unique (Relic)" };
+
 
 std::unique_ptr<FilterData> Filter::CreateData() {
     return std::make_unique<FilterData>(this);
@@ -140,6 +143,65 @@ void CategorySearchFilter::Initialize(QLayout *parent) {
     completer_->setFilterMode(Qt::MatchContains);
     completer_->setCaseSensitivity(Qt::CaseInsensitive);
     combobox_->setCompleter(completer_);
+    layout->addWidget(label);
+    layout->addWidget(combobox_);
+    group->setLayout(layout);
+    parent->addWidget(group);
+    QObject::connect(combobox_, SIGNAL(currentIndexChanged(const QString&)),
+                     parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
+}
+
+RaritySearchFilter::RaritySearchFilter(QLayout *parent, QAbstractListModel *model):
+    model_(model)
+{
+    Initialize(parent);
+}
+
+void RaritySearchFilter::FromForm(FilterData *data) {
+    std::string current_text = combobox_->currentText().toStdString();
+    data->text_query = (current_text == k_Default) ? "":current_text;
+}
+
+void RaritySearchFilter::ToForm(FilterData *data) {
+    auto index = combobox_->findText(data->text_query.c_str(), Qt::MatchFixedString);
+    combobox_->setCurrentIndex(std::max(0, index));
+}
+
+void RaritySearchFilter::ResetForm() {
+    combobox_->setCurrentText(k_Default.c_str());
+}
+
+bool RaritySearchFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    if (data->text_query == "") {
+        return true;
+    }
+    switch (item->frameType()) {
+    case FRAME_TYPE_NORMAL:
+        return (data->text_query == "Normal");
+    case FRAME_TYPE_MAGIC:
+        return (data->text_query == "Magic");
+    case FRAME_TYPE_RARE:
+        return (data->text_query == "Rare");
+    case FRAME_TYPE_UNIQUE:
+        return (data->text_query == "Unique");
+    case FRAME_TYPE_RELIC:
+        return (data->text_query == "Unique (Relic)");
+    default:
+        return false;
+    }
+}
+
+void RaritySearchFilter::Initialize(QLayout *parent) {
+    QWidget *group = new QWidget;
+    QHBoxLayout *layout = new QHBoxLayout;
+    layout->setMargin(0);
+    QLabel *label = new QLabel("Rarity");
+    label->setFixedWidth(Util::TextWidth(TextWidthId::WIDTH_LABEL));
+    label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    combobox_ = new QComboBox;
+    combobox_->setModel(model_);
+    combobox_->setEditable(false);
+    combobox_->setInsertPolicy(QComboBox::NoInsert);
     layout->addWidget(label);
     layout->addWidget(combobox_);
     group->setLayout(layout);
@@ -456,6 +518,12 @@ bool PricedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) 
     if (!data->checked)
         return true;
     return bm_.Get(*item).IsActive();
+}
+
+bool UnidentifiedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+    if (!data->checked)
+        return true;
+    return !item->identified();
 }
 
 bool CraftedFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {

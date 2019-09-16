@@ -548,8 +548,11 @@ void MainWindow::AddSearchGroup(QLayout *layout, const std::string &name="") {
 
 void MainWindow::InitializeSearchForm() {
     category_string_model_ = new QStringListModel;
+    rarity_search_model_ = new QStringListModel;
+    rarity_search_model_->setStringList(RaritySearchFilter::RARITY_LIST);
     auto name_search = std::make_unique<NameSearchFilter>(search_form_layout_);
     auto category_search = std::make_unique<CategorySearchFilter>(search_form_layout_, category_string_model_);
+    auto rarity_search = std::make_unique<RaritySearchFilter>(search_form_layout_, rarity_search_model_);
     auto offense_layout = new FlowLayout;
     auto defense_layout = new FlowLayout;
     auto sockets_layout = new FlowLayout;
@@ -572,6 +575,7 @@ void MainWindow::InitializeSearchForm() {
     move_only init[] = {
         std::move(name_search),
         std::move(category_search),
+        std::move(rarity_search),
         // Offense
         // new DamageFilter(offense_layout, "Damage"),
         std::make_unique<SimplePropertyFilter>(offense_layout, "Critical Strike Chance", "Crit."),
@@ -602,9 +606,10 @@ void MainWindow::InitializeSearchForm() {
         std::make_unique<ItemlevelFilter>(misc_layout, "ilvl"),
         std::make_unique<AltartFilter>(misc_flags_layout, "", "Alt. art"),
         std::make_unique<PricedFilter>(misc_flags_layout, "", "Priced", app_->buyout_manager()),
+        std::make_unique<UnidentifiedFilter>(misc_flags2_layout, "", "Unidentified"),
+        std::make_unique<WarFilter>(misc_flags2_layout, "", "Shaper/Elder"),
         std::make_unique<CraftedFilter>(misc_flags2_layout, "", "Master-crafted"),
         std::make_unique<EnchantedFilter>(misc_flags2_layout, "", "Enchanted"),
-        std::make_unique<WarFilter>(misc_flags2_layout, "", "Shaper/Elder"),
         std::make_unique<ModsFilter>(mods_layout)
     };
     filters_ = std::vector<move_only>(std::make_move_iterator(std::begin(init)), std::make_move_iterator(std::end(init)));
