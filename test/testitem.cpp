@@ -51,7 +51,7 @@ void TestItem::ParseCategories() {
 
     doc.Parse(kCategoriesItemBelt.c_str());
     item = Item(doc);
-    QCOMPARE(item.category().c_str(), "belt");
+    QCOMPARE(item.category().c_str(), "belts");
 
     doc.Parse(kCategoriesItemEssence.c_str());
     item = Item(doc);
@@ -59,7 +59,7 @@ void TestItem::ParseCategories() {
 
     doc.Parse(kCategoriesItemVaalGem.c_str());
     item = Item(doc);
-    QCOMPARE(item.category().c_str(), "gems.skill.vaal");
+    QCOMPARE(item.category().c_str(), "gems.vaal");
 
     doc.Parse(kCategoriesItemSupportGem.c_str());
     item = Item(doc);
@@ -67,19 +67,19 @@ void TestItem::ParseCategories() {
 
     doc.Parse(kCategoriesItemBow.c_str());
     item = Item(doc);
-    QCOMPARE(item.category().c_str(), "weapons.twohand.bow");
+    QCOMPARE(item.category().c_str(), "weapons.2hand.bows");
 
     doc.Parse(kCategoriesItemClaw.c_str());
     item = Item(doc);
-    QCOMPARE(item.category().c_str(), "weapons.onehand.claw");
+    QCOMPARE(item.category().c_str(), "weapons.1hand.claws");
 
     doc.Parse(kCategoriesItemFragment.c_str());
     item = Item(doc);
-    QCOMPARE(item.category().c_str(), "maps.misc");
+    QCOMPARE(item.category().c_str(), "maps.atziri fragments");
 
     doc.Parse(kCategoriesItemWarMap.c_str());
     item = Item(doc);
-    QCOMPARE(item.category().c_str(), "maps.3.1.new");
+    QCOMPARE(item.category().c_str(), "maps.3.1");
 
     doc.Parse(kCategoriesItemUniqueMap.c_str());
     item = Item(doc);

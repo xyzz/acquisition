@@ -55,7 +55,7 @@ public:
     void ApplyAutoItemBuyouts();
     void PropagateTabBuyouts();
     void UpdateCategories();
-    const QSet<QString>& categories() const { return categories_; };
+    const QSet<QString>& categories() const { return categories_; }
 public slots:
     // called by auto_update_timer_
     void OnAutoRefreshTimer();
