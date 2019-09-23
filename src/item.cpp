@@ -461,8 +461,8 @@ bool Item::operator<(const Item &rhs) const {
 
 bool Item::Wearable() const {
     return (category_ == "flasks"
-            || category_ == "amulet" || category_ == "ring" || category_ == "belt"
-            || category_.find("armour") != std::string::npos
+            || category_ == "amulets" || category_ == "rings" || category_ == "belts"
+            || category_.find("armours") != std::string::npos
             || category_.find("weapons") != std::string::npos
             || category_.find("jewels") != std::string::npos
     );
