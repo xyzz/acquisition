@@ -465,6 +465,7 @@ bool Item::Wearable() const {
             || category_.find("armours") != std::string::npos
             || category_.find("weapons") != std::string::npos
             || category_.find("jewels") != std::string::npos
+            || category_ == "quivers"
     );
 }
 
